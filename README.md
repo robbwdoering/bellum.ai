@@ -1,17 +1,97 @@
-# create-react-app with a Node server on Heroku
+# MyTine
 
-A minimal example of using a Node backend (server for API, proxy, & routing) with a [React frontend](https://github.com/facebookincubator/create-react-app).
+Gamified COVID-19 tracker for one’s personal circle, to allow control via information consolidation + inferences.
 
-* 📐 [Design Points](#user-content-design-points)
-* 🕺 [Demo](#user-content-demo)
-* 🚀 [Deploy to Heroku](#user-content-deploy-to-heroku)
-* ⤵️ [Switching from create-react-app-buildpack](#user-content-switching-from-create-react-app-buildpack)
-* 🎛 [Runtime Config](#user-content-runtime-config)
-* 💻 [Local Development](#user-content-local-development)
+Backlog Features:
+  1. [**Connections**]
+    * STORY: Allow users to view a contact in list form 
+    * DESIGN: List of names + avis.
+      * Add button?
+      * FILTERS
+    * [**Connections/Map**]
+      * ISLANDS????
+        * Hook for the gameified version / update / app?
+        * HEXES - empty hexes are ocean
+        * CONS:
+          * Could be unsurmountable UI problem
+          * Its pretty cutesy, strikes a weird tone
+          * Might not look great on phones
+          * Old people likely to be confused
+            * vvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+            * But maybe the metaphor helps?
+            * ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        * PROS: 
+          * More paleatable to casual YOUNG users
+          * Increase usership if gameified
+      * Grouping
+        * By area
+          * coloring?
+        * By inter-connectivity
+        * By risk
+    * [**Connections/List**]
+      * Simpler view of the map
+      * Filtering would be much more helpful
+      * Definitely the focus of initial UX work over the map
+  5. [**Trace View**]
+    * STORY: Navigate list of everyone you've been in contact with, and their test / risk status.
+    * DESIGN: Circular nodes linked in a graph - each node is a person
+  6. [**Regulations View**]
+    * STORY: View regulations in different areas, for use when planning travel or inspecting users on your island.
+    * DESIGN: Dropdown at top, simple data screen below.
+      * Focus on links if possible? Can this be webscraped, or manually scraped for individual counties?
+        * Crowd-source regulation entries if they provide a link?
+        * 3007 counties - possible to do once, impossible to keep up to date in house :(
+      * Regulations, statistics
+        * Tie statistics to individual pages? Likelihood of infection?
+  7. [**Connections**]
+    * STORY: View all details on an individual
+    * DESIGN: 
+      * Fields
+        * Name
+        * Test Status
+        * Avatar (Island Avatar? Customizable? FB Photo? Two of the above?)
+        * Vitals (OPTIONAL)
+          * Age
+          * Risk Level - no specifics, just L-M-H-E
+          * Location - adds to infection chance
+          * Work type
+            * Daily contact inside est.
+            * Daily contact outside est.
+          * Close Contact list (SUPER DUPER OPTIONAL / NOT INCLUDED...)
+            * Roommates, SOs, close family, other people you see very frequently.
+            * Seems better to not include this. Doesn't add a lot of value and significantly infringes on user privacy.
+  8. [**Contact Planner**]
+    * STORY: Plan out theoretical contacts, and calculate rough risk levels depending on how long you wait.
+    * DESIGN: Form with timeline+location picker in middle, super import info up top (risk level, points of contact, etc.), other below (list of contacts).
+  9. [**Event Entry**]
+    * STORY: Enter a relevant COVID event that changes your personal risk level.
+    * DESIGN: A form. Nothing fancy.
+      * Fields
+        * Date
+        * Type
+          * Test result
+          * Risk Level Entry
+            * People probably won't want to enter their specific symptoms, but could very easily see a list of categorized symptoms and pick the most accurate one
+              * Easier to update
+              * Easier to make computations on - shield of user estimation
+  10. [**Social Media Feed**]
+    * STORY: Share COVID content.
+    * DESIGN: A non-copyright-infringing feed of some sort.
+      * Types of content
+        * News stories from reputable sources
+        * Personal posts?
+          * Really don't want to any kind of moderation...
+          * Would have to allow comments...
+      * Maybe this is best left to existing social platforms, and we should focus on making a kick-ass API/link support system for easy sharing of content via FB/Twitter?
 
-To deploy a frontend-only React app, use the static-site optimized  
-▶️ [create-react-app-buildpack](https://github.com/mars/create-react-app-buildpack)
 
+Backlog Misc:
+  1. [**Dark/Light Mode**]
+  2. [**Aesthetic**]
+    * Painterly? Could this ever work with dark mode?
+
+
+# DEPENDENCY: REACT/NODE HEROKU CRA
 
 ## Design Points
 
@@ -53,37 +133,6 @@ This deployment will automatically:
 ⚠️ Using npm 5’s new `package-lock.json`? We resolved a compatibility issue. See [PR](https://github.com/mars/heroku-cra-node/pull/10) for more details.
 
 👓 More about [deploying to Heroku](https://devcenter.heroku.com/categories/deployment).
-
-
-## Switching from create-react-app-buildpack
-
-If an app was previously deployed with [create-react-app-buildpack](https://github.com/mars/create-react-app-buildpack), then a few steps are required to migrate the app to this architecture:
-
-1. Remove **create-react-app-buildpack** from the app; [heroku/nodejs buildpack](https://devcenter.heroku.com/articles/nodejs-support#activation) will be automatically activated
-  
-    ```bash
-    heroku buildpacks:clear
-    ```
-1. Move the root React app files (including dotfiles) into a `react-ui/` subdirectory
-
-    ```bash
-    mkdir react-ui
-    git mv -k [!react-ui]* react-ui/
-    mv node_modules react-ui/
-    
-    # If you see "fatal: Not a git repository", then fix that error
-    mv react-ui/.git ./
-    ```
-    ⚠️ *Some folks have reported problems with these commands. Using the `bash` shell will probably allow them to work. Sorry if they do not work for you, know that the point is to move **everything** in the repo into the `react-ui/` subdirectory. Except for `.git/` which should remain at the root level.* 
-1. Create a root [`package.json`](package.json), [`server/`](server/), & [`.gitignore`](.gitignore) modeled after the code in this repo
-1. Commit and deploy ♻️
-  
-    ```bash
-    git add -A
-    git commit -m 'Migrate from create-react-app-buildpack to Node server'
-    git push heroku master
-    ```
-1. If the app uses [Runtime configuration](https://github.com/mars/create-react-app-buildpack/blob/master/README.md#user-content-runtime-configuration), then follow [Runtime config](#user-content-runtime-config) below to keep it working.
 
 ## Runtime Config
 
