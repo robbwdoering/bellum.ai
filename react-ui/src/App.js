@@ -35,7 +35,7 @@ function App() {
         <img src={logo} className="App-logo" alt="logo" />
         { process.env.NODE_ENV === 'production' ?
             <p>
-              This is a production build from create-react-app.
+              This is a development build from create-react-app.
             </p>
           : <p>
               Edit <code>src/App.js</code> and save to reload.
@@ -50,7 +50,7 @@ function App() {
           className="App-link"
           href="https://github.com/mars/heroku-cra-node"
         >
-          React + Node deployment on Heroku
+          React + Node rerersj on Heroku
         </a></p>
         <p><a
           className="App-link"
