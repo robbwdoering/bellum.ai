@@ -2,114 +2,27 @@
 
 Gamified COVID-19 tracker for one’s personal circle, to allow control via information consolidation + inferences.
 
-Backlog Features:
-  1. [**Connections**]
-    *STORY: Allow users to view a contact in list form 
-    *DESIGN: List of names + avis.
-      *Add button?
-      *FILTERS
-    *[**Connections/Map**]
-      *ISLANDS????
-        *Hook for the gameified version / update / app?
-        *HEXES - empty hexes are ocean
-        *CONS:
-          *Could be unsurmountable UI problem
-          *Its pretty cutesy, strikes a weird tone
-          *Might not look great on phones
-          *Old people likely to be confused
-            *vvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-            *But maybe the metaphor helps?
-            *^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-        *PROS: 
-          *More paleatable to casual YOUNG users
-          *Increase usership if gameified
-      *Grouping
-        *By area
-          *coloring?
-        *By inter-connectivity
-        *By risk
-    *[**Connections/List**]
-      *Simpler view of the map
-      *Filtering would be much more helpful
-      *Definitely the focus of initial UX work over the map
-  5. [**Trace View**]
-    *STORY: Navigate list of everyone you've been in contact with, and their test / risk status.
-    *DESIGN: Circular nodes linked in a graph - each node is a person
-  6. [**Regulations View**]
-    *STORY: View regulations in different areas, for use when planning travel or inspecting users on your island.
-    *DESIGN: Dropdown at top, simple data screen below.
-      *Focus on links if possible? Can this be webscraped, or manually scraped for individual counties?
-        *Crowd-source regulation entries if they provide a link?
-        *3007 counties - possible to do once, impossible to keep up to date in house :(
-      *Regulations, statistics
-        *Tie statistics to individual pages? Likelihood of infection?
-  7. [**Connections**]
-    *STORY: View all details on an individual
-    *DESIGN: 
-      *Fields
-        *Name
-        *Test Status
-        *Avatar (Island Avatar? Customizable? FB Photo? Two of the above?)
-        *Vitals (OPTIONAL)
-          *Age
-          *Risk Level - no specifics, just L-M-H-E
-          *Location - adds to infection chance
-          *Work type
-            *Daily contact inside est.
-            *Daily contact outside est.
-          *Close Contact list (SUPER DUPER OPTIONAL / NOT INCLUDED...)
-            *Roommates, SOs, close family, other people you see very frequently.
-            *Seems better to not include this. Doesn't add a lot of value and significantly infringes on user privacy.
-  8. [**Contact Planner**]
-    *STORY: Plan out theoretical contacts, and calculate rough risk levels depending on how long you wait.
-    *DESIGN: Form with timeline+location picker in middle, super import info up top (risk level, points of contact, etc.), other below (list of contacts).
-  9. [**Event Entry**]
-    *STORY: Enter a relevant COVID event that changes your personal risk level.
-    *DESIGN: A form. Nothing fancy.
-      *Fields
-        *Date
-        *Type
-          *Test result
-          *Risk Level Entry
-            *People probably won't want to enter their specific symptoms, but could very easily see a list of categorized symptoms and pick the most accurate one
-              *Easier to update
-              *Easier to make computations on - shield of user estimation
-  10. [**Social Media Feed**]
-    *STORY: Share COVID content.
-    *DESIGN: A non-copyright-infringing feed of some sort.
-      *Types of content
-        *News stories from reputable sources
-        *Personal posts?
-          *Really don't want to any kind of moderation...
-          *Would have to allow comments...
-      *Maybe this is best left to existing social platforms, and we should focus on making a kick-ass API/link support system for easy sharing of content via FB/Twitter?
+Naming conventions: \[Domain]|[Page/Context]|ComponentName|[Type]
+https://medium.com/@wittydeveloper/react-components-naming-convention-%EF%B8%8F-b50303551505
 
-
-Backlog Misc:
-  1. [**Dark/Light Mode**]
-  2. [**Aesthetic**]
-    * Painterly? Could this ever work with dark mode?
-
-
-# DEPENDENCY: REACT/NODE HEROKU CRA
+# DEPENDENCY: React/Node Heroku Bootstrap Package
 
 ## Design Points
 
-A combo of two npm projects, the backend server and the frontend UI. So there are two `package.json` configs and thereforce [two places to run `npm` commands](#user-content-local-development):
+A combo of two npm projects, the backend server and the frontend UI. So there are two `package.json` configs and therefore [two places to run `npm` commands](#user-content-local-development):
 
-  1. [**Node server**](server/): [`./package.json`](package.json)
-      * [deployed automatically](https://devcenter.heroku.com/categories/deployment) via heroku/nodejs buildpack
-  2. [**React UI**](react-ui/): [`react-ui/package.json`](react-ui/package.json)
-      * generated by [create-react-app](https://github.com/facebookincubator/create-react-app)
-      * deployed via `build` script in the Node server's [`./package.json`](package.json)
-      * module cache configured by `cacheDirectories`
+1. [**Node server**](server/): [`./package.json`](package.json)
+   - [deployed automatically](https://devcenter.heroku.com/categories/deployment) via heroku/nodejs buildpack
+2. [**React UI**](react-ui/): [`react-ui/package.json`](react-ui/package.json)
+   - generated by [create-react-app](https://github.com/facebookincubator/create-react-app)
+   - deployed via `build` script in the Node server's [`./package.json`](package.json)
+   - module cache configured by `cacheDirectories`
 
 Includes a minimal [Node Cluster](https://nodejs.org/docs/latest-v8.x/api/cluster.html) [implementation](server/index.js) to parallelize the single-threaded Node process across the available CPU cores.
 
 ## Demo
 
 [Demo deployment](https://cra-node.herokuapp.com/): example API call from the React UI is [fetched with a relative URL](react-ui/src/App.js#L16) that is served by an Express handler in the Node server.
-
 
 ## Deploy to Heroku
 
@@ -122,13 +35,13 @@ git push heroku master
 
 This deployment will automatically:
 
-  * detect [Node buildpack](https://elements.heroku.com/buildpacks/heroku/heroku-buildpack-nodejs)
-  * build the app with
-    * `npm install` for the Node server
-    * `npm run build` for create-react-app
-  * launch the web process with `npm start`
-    * serves `../react-ui/build/` as static files
-    * customize by adding API, proxy, or route handlers/redirectors
+- detect [Node buildpack](https://elements.heroku.com/buildpacks/heroku/heroku-buildpack-nodejs)
+- build the app with
+  - `npm install` for the Node server
+  - `npm run build` for create-react-app
+- launch the web process with `npm start`
+  - serves `../react-ui/build/` as static files
+  - customize by adding API, proxy, or route handlers/redirectors
 
 ⚠️ Using npm 5’s new `package-lock.json`? We resolved a compatibility issue. See [PR](https://github.com/mars/heroku-cra-node/pull/10) for more details.
 
@@ -144,15 +57,17 @@ create-react-app itself supports [configuration with environment variables](http
 
    ```bash
    heroku buildpacks:add -i 1 https://github.com/mars/create-react-app-inner-buildpack
-   
+
    # Verify that create-react-app-inner-buildpack comes before nodejs
    heroku buildpacks
    ```
+
 2. Set the bundle location for runtime config injection:
 
    ```bash
    heroku config:set JS_RUNTIME_TARGET_BUNDLE='/app/react-ui/build/static/js/*.js'
    ```
+
 3. Now, build the app with this new setup:
 
    ```bash
@@ -184,7 +99,6 @@ npm start
 ```bash
 npm install package-name --save
 ```
-
 
 ### Run the React UI
 

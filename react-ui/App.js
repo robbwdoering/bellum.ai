@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Provider } from 'react-redux';
 import store from './store';
 
-// Resources
+// Resources 
 import logo from './logo.svg';
 import './App.css';
 
@@ -23,11 +23,10 @@ function App() {
       .then(json => {
         setMessage(json.message);
         setIsFetching(false);
-      })
-      .catch(e => {
+      }).catch(e => {
         setMessage(`API call failed: ${e}`);
         setIsFetching(false);
-      });
+      })
   }, [url]);
 
   useEffect(() => {
@@ -39,31 +38,37 @@ function App() {
     <div className="App">
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
-        {process.env.NODE_ENV === 'production' ? (
-          <p>This is a development build from create-react-app.</p>
-        ) : (
-          <p>
-            Edit <code>src/App.js</code> and save to reload.
-          </p>
-        )}
-        <p>
-          {'« '}
-          <strong>{isFetching ? 'Fetching message from API' : message}</strong>
-          {' »'}
-        </p>
-        <p>
-          <a className="App-link" href="https://github.com/mars/heroku-cra-node">
-            React + Node rerersj on Heroku
-          </a>
-        </p>
-        <p>
-          <a className="App-link" href="https://reactjs.org" target="_blank" rel="noopener noreferrer">
-            Learn React
-          </a>
-        </p>
+        { process.env.NODE_ENV === 'production' ?
+            <p>
+              This is a development build from create-react-app.
+            </p>
+          : <p>
+              Edit <code>src/App.js</code> and save to reload.
+            </p>
+        }
+        <p>{'« '}<strong>
+          {isFetching
+            ? 'Fetching message from API'
+            : message}
+        </strong>{' »'}</p>
+        <p><a
+          className="App-link"
+          href="https://github.com/mars/heroku-cra-node"
+        >
+          React + Node rerersj on Heroku
+        </a></p>
+        <p><a
+          className="App-link"
+          href="https://reactjs.org"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Learn React
+        </a></p>
       </header>
     </div>
   );
+
 }
 
 export default App;

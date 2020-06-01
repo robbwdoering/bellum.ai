@@ -14,7 +14,8 @@
     "react-ui/node_modules"
   ],
   "dependencies": {
-    "express": "^4.16.4"
+    "express": "^4.16.4",
+    "react-redux": "^7.2.0"
   },
   "repository": {
     "type": "git",
@@ -27,5 +28,7 @@
     "react"
   ],
   "license": "MIT",
-  "devDependencies": {}
+  "devDependencies": {
+    "redux-devtools": "^3.5.0"
+  }
 }
