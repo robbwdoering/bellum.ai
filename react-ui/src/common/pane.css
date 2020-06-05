@@ -1,0 +1,20 @@
+.myt-pane.card {
+  /*background-color: red !important;*/
+  /*height: 500px !important;*/
+  /*width: 500px !important;*/
+}
+
+.myt-pane.card.blue {
+  background-color: blue !important;
+}
+
+.mytine-body {
+  background-color: #f2eee1 !important;
+}
+
+.db-sidebar {
+  height: 50rem;
+  border: 1px solid red;
+  width: 25rem;
+  margin-left: 4rem;
+}
