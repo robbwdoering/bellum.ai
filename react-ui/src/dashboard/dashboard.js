@@ -14,11 +14,13 @@ import { Button, Grid, Header, Input, Icon, Loading, Menu, Sidebar } from 'seman
 // import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 
-import { AddEventForm } from "./../forms/addEvent";
-import { testAction, openPane, openCanvas } from './../app/actions';
-import { Pane } from './../common/pane';
-import { Panes, Canvases } from './../app/constants';
-import HexMap from './../map/hexMap';
+import { testAction, openCanvas } from './../app/actions';
+import Pane from './../common/pane';
+import AddEventPane from "./../common/addEvent";
+import { Panes, Canvases, initialPaneConfigs } from './../common/constants';
+// import HexMap from './../map/hexMap';
+import Calculator from "./../war/calculator"; 
+import ListManager from "./../war/listManager"; 
 import './dashboard.css';
 
 // Custom
@@ -28,10 +30,14 @@ export class Dashboard extends Component {
 	constructor(props) {
 		super(props);
 		this.state = {
-			showSidebar: true,
+			showSidebar: false,
 			showLogin: false,
 			user: "",
-			pass: ""
+			pass: "",
+			curPanes: { },
+			curCanvas: Canvases.HexMap,
+			canvasX: 0,
+			canvasY: 0
 		};
 	};
 
@@ -82,38 +88,30 @@ export class Dashboard extends Component {
     	//TODO - MYT-21
     };
 
-    renderMainContent = () => {
-    	const { fetchAt, curPane, curCanvas } = this.props;
-    	console.log("redner, ", curPane, curCanvas)
+    renderCanvas = (curCanvas) => (
+		<div className='mytine-canvas-container'>
 
-    	return (
-    		<div className='mytine-main-content-container'>
-		    	{/* Renders the pane that can appear over the main canvas */}
-    			{curPane && (() => {
-    				switch(curPane) {
-    					case Panes.AddEvent:
-    						return (<AddEventForm />);
-    					case Panes.Regulations:
-    						return (<h3> REGULATIONS </h3>);
-    					case Panes.PlanContact:
-    						return (<h3> PLAN CONTACT </h3>);
-    					default:
-    						return (<h3> There was an error. Please reload the page. </h3>);
-    				}
-    			})()}
+	    	{/* Renders the main canvas, which always appears but is sometimes dimmed */}
+			{curCanvas && curCanvas.length && (() => {
+				switch(curCanvas) {
+					case Canvases.HexMap:
+						// return (<HexMap x={this.state.canvasX} y={this.state.canvasY} />);
+					default:
+						return (<h3> There was an error. Please reload the page. </h3>);
+				}
+			})()}
+		</div>
+	);
 
-		    	{/* Renders the main canvas, which always appears but is sometimes dimmed */}
-    			{curCanvas && (() => {
-    				switch(curCanvas) {
-    					case Panes.Map:
-    						return (<HexMap />);
-    					default:
-    						return (<h3> There was an error. Please reload the page. </h3>);
-    				}
-    			})()}
-    		</div>
-		);
-    };
+    // TODO add context menu option to have mutliple of the same key at once? Would have to rework this structure 
+	togglePane = name => {
+		if (Object.keys(this.state.curPanes).includes(name)) {
+			this.configPane(name, "DEL");
+		} else {
+			console.log("TOGGLING: ", initialPaneConfigs, initialPaneConfigs[name])
+			this.configPane(name, "CLEAR", initialPaneConfigs[name]);
+		}
+	};
 
     renderSidebarMenu = (vertical) => (
 		<Menu
@@ -122,8 +120,8 @@ export class Dashboard extends Component {
 			fluid={vertical}
 		>
 			<Menu.Item name='update'>
+				{/* TODO: Change this to be a dropdown multiselect once the contacts packages is up */}
 				<Input 
-					// label='Contact Search'
 					name='contactSearchVal'
 					placeholder='Search Contacts...'
 					onChange={this.handleChange}
@@ -134,27 +132,80 @@ export class Dashboard extends Component {
 				/>
 			</Menu.Item>
 
+			<Menu.Item> <h2> WAR </h2> </Menu.Item>
+
 			<Menu.Item>
-				<Button onClick={() => this.props.openPane(Panes.AddEvent)}>Add Event</Button>
+				<Button onClick={() => this.togglePane(Panes.Calculator)}>Calculator</Button>
 			</Menu.Item>
 
 			<Menu.Item>
-				<Button onClick={() => this.props.openPane(Panes.PlanContact)}>Plan Contact</Button>
+				<Button onClick={() => this.togglePane(Panes.ListManager)}>List Manager</Button>
+			</Menu.Item>
+
+			<Menu.Item> <h2> COVID-19 </h2> </Menu.Item>
+
+			<Menu.Item>
+				<Button onClick={() => this.togglePane(Panes.AddEvent)}>Add Event</Button>
 			</Menu.Item>
 
 			<Menu.Item>
-				<Button onClick={() => this.props.openPane(Panes.Regulations)}>Regulation Map</Button>
+				<Button onClick={() => this.togglePane(Panes.PlanContact)}>Plan Contact</Button>
+			</Menu.Item>
+
+			<Menu.Item>
+				<Button onClick={() => this.togglePane(Panes.Regulations)}>Regulation Map</Button>
+			</Menu.Item>
+
+
+			{/* TEST BUTTONS */}
+			<Menu.Item>
+				<Button
+					onClick={() => {
+						this.props.sendMsg('/api/db', 'GET');
+					}}
+				>
+					DB GET
+				</Button>
 			</Menu.Item>
 		</Menu>
     );
+
+    configPane = (name, action, config) => {
+    	const { curPanes } = this.state;
+		let newPanes = Object.assign({}, curPanes);
+
+		// Parse whether to replace, modify, or delete the specified pane
+		switch (action) {
+			case "ADD":
+				newPanes[name] = config;
+				break;
+			case "MOD":
+				newPanes[name] = Object.assign({}, curPanes[name] ? curPanes[name] : {}, config);
+				break;
+			case "CLEAR":
+				newPanes = { [name]: config };
+				break;
+			default:
+				console.error("[dashboard|configPane] Received a pane configuration of unknown type: ", action.actionType);
+			case "DEL":
+				newPanes[name] = undefined;
+				break;
+		}
+
+		this.setState({
+			curPanes: newPanes
+		})
+    }
 
     openUserGuide = () => {
     	console.log("[openUserGuide]");
     };
 
   	render() {
-	  	const { showSidebar, showLogin, user, pass } = this.state;
+	  	const { showSidebar, showLogin, user, pass, curPanes, curCanvas } = this.state;
 	  	const { testsReceived, fetchAt } = this.props;
+	  	console.log("[render]", curPanes)
+
 
 	    return (
 	    	<div className="dashboard">
@@ -223,16 +274,27 @@ export class Dashboard extends Component {
 					// width='very wide'
 					direction='top'
 				>
-					<div className='db-sidebar-main-contents'>
-						<Pane>
-							{this.renderSidebarMenu(true)}
-						</Pane>
-					</div>
+					<Pane compact className='db-sidebar-menu'>
+						{this.renderSidebarMenu(true)}
+					</Pane>
+
+			    	{/* Renders the pane that can appear over the main canvas */}
+			    	{curPanes && Object.keys(curPanes).map(name => {
+			    		console.log("PANES: ", curPanes);
+						switch(name) {
+							case Panes.Calculator:
+								return (<Calculator fetchAt={this.props.fetchAt} sendMsg={this.props.sendMsg} key={name} name={name} config={curPanes[name]} />);
+							case Panes.ListManager:
+								return (<ListManager fetchAt={this.props.fetchAt} sendMsg={this.props.sendMsg} key={name} name={name} config={curPanes[name]} />);
+							default:
+								return (<h3 key={name}> There was an error. Please reload the page. </h3>);
+						}
+			    	})}
 				</Sidebar>
 
 				{/* Main Content */}
 	    		<Grid>
-	    			{this.renderMainContent()}
+	    			{this.renderCanvas(curCanvas)}
 	    		</Grid>
 	    	</div>
 		);
@@ -242,9 +304,8 @@ export class Dashboard extends Component {
 export const mapStateToProps = (state, props) => {
   return {
     testsReceived: state.appReducer.testsReceived,
-    curPane: state.appReducer.curPane,
     curCanvas: state.appReducer.curCanvas
   };
 };
 
-export default connect(mapStateToProps, { testAction, openPane, openCanvas })(Dashboard);
+export default connect(mapStateToProps, { testAction, openCanvas })(Dashboard);

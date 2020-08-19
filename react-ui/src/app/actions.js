@@ -8,11 +8,14 @@ export const testAction = payload => {
 	};
 };
 
-export const openPane = payload => {
+// TODO: add "ADD/MOD/DEL" functionality to configPane(), so callers can override a pane completely if they want to
+export const configPane = (name, actionType, config) => {
 	console.log('[reducer] OPEN_PANE dispatched');
 	return {
 		type: AppActions.OPEN_PANE,
-		payload
+		name,
+		actionType,
+		config
 	};
 };
 

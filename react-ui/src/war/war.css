@@ -1,0 +1,11 @@
+/**
+ * FILENAME: war.js
+ *
+ * DESCRIPTION: css definitions for the war package.
+ *
+ * OWNER: RWD
+ */
+
+.list-manager .input {
+	width: 15rem !important;
+}

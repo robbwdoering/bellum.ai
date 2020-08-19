@@ -1,0 +1,4 @@
+export const ProfileActions = {
+	MODIFY_PROFILE: "MODIFY_PROFILE",
+	SET_PANE_PROFILE: "SET_PANE_PROFILE"
+};

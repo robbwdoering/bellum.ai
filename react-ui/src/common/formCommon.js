@@ -22,6 +22,11 @@ export const FormBody = ({ data }) => {
 							<Input
 								onChange={(event, { value }) => e.callback(value)}
 								{...e}
+								callback={undefined}
+								children={undefined}
+								type={e.componentType || undefined}
+								length={undefined}
+								componentType={undefined}
 							/>
 	    				)}
 
@@ -29,6 +34,11 @@ export const FormBody = ({ data }) => {
 							<Dropdown
 								onChange={(event, { value }) => e.callback(value)}
 								{...e}
+								callback={undefined}
+								type={e.componentType || undefined}
+								length={undefined}
+								componentType={undefined}
+								children={undefined}
 							/>
 	    				)}
 

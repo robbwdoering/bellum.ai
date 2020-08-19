@@ -1,17 +1,49 @@
 div.ui.overlay.top.visible.sidebar.db-sidebar {
-  width: 35rem !important;
-  height: 25rem;
-  margin-left: 4rem;
-  margin-top: 5rem !important;
-  z-index: 1 !important;
-  box-shadow: none;
+	height: 25rem;
+	margin-left: 4rem;
+	margin-top: 5rem !important;
+	z-index: 1 !important;
+	box-shadow: none;
 }
 
-.db-sidebar .db-sidebar-main-contents {
+.db-sidebar .myt-pane.db-sidebar-menu {
 	float: left;
-	margin-left: 3rem;
-	border: 1px solid red;
 }
+
+.db-sidebar .myt-pane {
+	margin-left: 3rem !important;
+	margin-top: 0rem !important;
+	border: 1px solid red;
+	padding: 1rem;
+}
+
+.db-sidebar .myt-pane.small {
+	width: 40rem;
+	height: 60rem;
+}
+
+.db-sidebar .myt-pane.medium {
+	width: 50rem;
+	height: 75rem;
+}
+
+.db-sidebar .myt-pane.large {
+	width: 70rem;
+	height: 105rem;
+}
+
+.db-sidebar .myt-pane.top {
+	width: 50rem;
+	height: 10rem;
+}
+
 div.ui.menu.db-header {
 	background-color: rgb(0, 0, 0, 0.1);
+}
+
+.myt-pane.my-add-event {
+
+}
+.myt-pane div.ui.grid {
+	padding: 1rem !important;
 }
