@@ -12,8 +12,6 @@ export const appReducer = (state = initialState, action) => {
 		return initialState;
 	}
 
-	console.log('[reducer]', action);
-
 	switch (action.type) {
 		case AppActions.OPEN_PANE:
 			let newVal;
@@ -35,7 +33,6 @@ export const appReducer = (state = initialState, action) => {
 
 			// Set the value and return
 			newState.curPanes[action.name] = newVal;
-			console.log("New Pane List: ", newState.curPanes);
 			return newState;
 
 		case AppActions.OPEN_CANVAS:

@@ -43,7 +43,9 @@ export const Pane = ({
     		{header && (
     			<Header className='myt-pane-header'>
     				<Menu>
-	    				{config.headerItems}
+    					<div className="custom-header-container">
+		    				{config.headerItems}
+	    				</div>
 
 	    				<Menu.Menu position='right'>
 		    				<Menu.Item name='expand' onClick={() => configPane(name, "MOD", {expand: !config.expand})}>

@@ -11,15 +11,18 @@ import { AppActions } from './constants';
 import { testAction, configPane, openCanvas } from './actions';
 import { ProfileActions } from './../profile/constants';
 import { modifyProfile, setPaneProfile } from './../profile/actions';
+import { WarActions } from './../war/constants';
+import { processWarAction } from './../war/actions';
 
 import './App.css';
 import 'react-semantic-ui-datepickers/dist/react-semantic-ui-datepickers.css';
 import 'semantic-ui-css/semantic.min.css';
 
-const App = ({ testAction, configPane, openCanvas, modifyProfile, setPaneProfile }) => {
+const App = ({ testAction, configPane, openCanvas, modifyProfile, setPaneProfile, processWarAction }) => {
 	const [message, setMessage] = useState(null);
 	const [isFetching, setIsFetching] = useState(false);
 	const [url, setUrl] = useState('/api');
+	const [userId, setUserId] = useState(1);
 
 	// TODO - this doesn't seem like it's going to support multiple concurrent requests... I don't think we should just hope that doesn't happen,
 	// especially if future functionality requires frequent handshakes
@@ -38,12 +41,15 @@ const App = ({ testAction, configPane, openCanvas, modifyProfile, setPaneProfile
 			}
 		};
 
-		if (data) {
-			msg.body = JSON.stringify(data);
+		let finalUrl = url;
+		if (data && method !== "GET") {
+			msg.body = JSON.stringify(Object.assign({}, data, { userId }));
+		} else {
+			finalUrl += "/" + userId;
 		}
 
-		console.log('[sendMsg] msg: ', msg);
-		fetch(url, msg)
+		console.log('[sendMsg] msg: ', msg, finalUrl, method);
+		fetch(finalUrl, msg)
 			.then(response => {
 				if (!response.ok) {
 					console.error('[sendMsg] Received a bad status from the server: ', response.status);
@@ -69,6 +75,11 @@ const App = ({ testAction, configPane, openCanvas, modifyProfile, setPaneProfile
 						break;
 					case ProfileActions.SET_PANE_PROFILE:
 						setPaneProfile(json.payload);
+						break;
+					case WarActions.SET_PRIMARY_LIST:
+					case WarActions.SET_SECONDARY_LIST:
+					case WarActions.SET_METALIST:
+						processWarAction(json.type, json.payload);
 						break;
 					case 'DB_ACTION':
 						console.log('[sendMsg] DB action json: ', json);
@@ -98,4 +109,4 @@ const App = ({ testAction, configPane, openCanvas, modifyProfile, setPaneProfile
 	);
 };
 
-export default connect(null, { testAction, configPane, openCanvas, modifyProfile, setPaneProfile })(App);
+export default connect(null, { testAction, configPane, openCanvas, modifyProfile, setPaneProfile, processWarAction })(App);

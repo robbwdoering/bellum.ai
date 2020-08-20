@@ -17,6 +17,12 @@ div.ui.overlay.top.visible.sidebar.db-sidebar {
 	padding: 1rem;
 }
 
+.myt-pane .myt-pane-header .custom-header-container {
+	font-size: 1.5rem !important;
+	padding: 0.5rem !important;
+	font-weight: bold;
+}
+
 .db-sidebar .myt-pane.small {
 	width: 40rem;
 	height: 60rem;
@@ -35,6 +41,11 @@ div.ui.overlay.top.visible.sidebar.db-sidebar {
 .db-sidebar .myt-pane.top {
 	width: 50rem;
 	height: 10rem;
+}
+
+.db-sidebar .myt-pane.right_sidebar {
+	float: right;
+	width: 40rem;
 }
 
 div.ui.menu.db-header {

@@ -29,6 +29,7 @@ export const Calculator = props => {
 			<Grid>
 				<Grid.Row>
 					<Grid.Column>
+						Name: {}
 					</Grid.Column>
 
 					<Grid.Column>
@@ -59,7 +60,8 @@ export const Calculator = props => {
 
 export const mapStateToProps = (state, props) => {
 	return {
-		// curConfidence: state.profileReducer.data.symptomConfidence
+		metalist: state.warReducer.metalist,
+		metalistHash: state.warReducer.metalistHash
 	}
 }
 

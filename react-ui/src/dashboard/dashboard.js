@@ -21,6 +21,7 @@ import { Panes, Canvases, initialPaneConfigs } from './../common/constants';
 // import HexMap from './../map/hexMap';
 import Calculator from "./../war/calculator"; 
 import ListManager from "./../war/listManager"; 
+import { UnitDeck, ArmyDetails } from "./../war/strategy"; 
 import './dashboard.css';
 
 // Custom
@@ -134,26 +135,33 @@ export class Dashboard extends Component {
 
 			<Menu.Item> <h2> WAR </h2> </Menu.Item>
 
-			<Menu.Item>
-				<Button onClick={() => this.togglePane(Panes.Calculator)}>Calculator</Button>
+			<Menu.Item as='a' onClick={() => {
+				this.configPane([Panes.UnitDeck, Panes.ArmyDetails], "CLEAR", [initialPaneConfigs[Panes.UnitDeck], initialPaneConfigs[Panes.ArmyDetails]]);
+			}}
+			>
+				Strategic Overview
 			</Menu.Item>
 
-			<Menu.Item>
-				<Button onClick={() => this.togglePane(Panes.ListManager)}>List Manager</Button>
+			<Menu.Item as='a' onClick={() => this.togglePane(Panes.Calculator)}>
+				Calculator
+			</Menu.Item>
+
+			<Menu.Item as='a' onClick={() => this.togglePane(Panes.ListManager)}>
+				List Manager
 			</Menu.Item>
 
 			<Menu.Item> <h2> COVID-19 </h2> </Menu.Item>
 
-			<Menu.Item>
-				<Button onClick={() => this.togglePane(Panes.AddEvent)}>Add Event</Button>
+			<Menu.Item as='a' onClick={() => this.togglePane(Panes.AddEvent)}>
+				Add Event
 			</Menu.Item>
 
-			<Menu.Item>
-				<Button onClick={() => this.togglePane(Panes.PlanContact)}>Plan Contact</Button>
+			<Menu.Item as='a' onClick={() => this.togglePane(Panes.PlanContact)}>
+				Plan Contact
 			</Menu.Item>
 
-			<Menu.Item>
-				<Button onClick={() => this.togglePane(Panes.Regulations)}>Regulation Map</Button>
+			<Menu.Item as='a' onClick={() => this.togglePane(Panes.Regulations)}>
+				Regulation Map
 			</Menu.Item>
 
 
@@ -172,25 +180,29 @@ export class Dashboard extends Component {
 
     configPane = (name, action, config) => {
     	const { curPanes } = this.state;
-		let newPanes = Object.assign({}, curPanes);
+		let newPanes = action === "CLEAR" ? {} : Object.assign({}, curPanes);
 
-		// Parse whether to replace, modify, or delete the specified pane
-		switch (action) {
-			case "ADD":
-				newPanes[name] = config;
-				break;
-			case "MOD":
-				newPanes[name] = Object.assign({}, curPanes[name] ? curPanes[name] : {}, config);
-				break;
-			case "CLEAR":
-				newPanes = { [name]: config };
-				break;
-			default:
-				console.error("[dashboard|configPane] Received a pane configuration of unknown type: ", action.actionType);
-			case "DEL":
-				newPanes[name] = undefined;
-				break;
-		}
+    	console.log("configPane", name, action, config)
+    	let nameArr = Array.isArray(name) ? name : [name];
+    	let configArr = Array.isArray(config) ? config : [config];
+
+    	nameArr.forEach((name, i) => {
+			// Parse whether to replace, modify, or delete the specified pane
+			switch (action) {
+				case "ADD":
+				case "CLEAR":
+					newPanes[name] = configArr[i];
+					break;
+				case "MOD":
+					newPanes[name] = Object.assign({}, curPanes[name] ? curPanes[name] : {}, configArr[i]);
+					break;
+				default:
+					console.error("[dashboard|configPane] Received a pane configuration of unknown type: ", action.actionType);
+				case "DEL":
+					newPanes[name] = undefined;
+					break;
+			}
+    	});
 
 		this.setState({
 			curPanes: newPanes
@@ -282,6 +294,10 @@ export class Dashboard extends Component {
 			    	{curPanes && Object.keys(curPanes).map(name => {
 			    		console.log("PANES: ", curPanes);
 						switch(name) {
+							case Panes.UnitDeck:
+								return (<UnitDeck fetchAt={this.props.fetchAt} sendMsg={this.props.sendMsg} key={name} name={name} config={curPanes[name]} />);
+							case Panes.ArmyDetails:
+								return (<ArmyDetails fetchAt={this.props.fetchAt} sendMsg={this.props.sendMsg} key={name} name={name} config={curPanes[name]} />);
 							case Panes.Calculator:
 								return (<Calculator fetchAt={this.props.fetchAt} sendMsg={this.props.sendMsg} key={name} name={name} config={curPanes[name]} />);
 							case Panes.ListManager:
