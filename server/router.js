@@ -203,6 +203,9 @@ const processProfile = async(pool, profile) => {
 			return acc;
 		}, "");
 
+
+		// TODO: Parse shots to a string here, and from a string to a float after loading from database in massageProfile funciton
+
 		if (str.length) {
 			str = "INSERT INTO war_weapon_profile (name, ap, damage, range, strength, weaponType, abilities, meaning) VALUES " + str + " ON CONFLICT (name) DO NOTHING RETURNING name;";
 			console.log("enterying query: ", str);
@@ -212,7 +215,6 @@ const processProfile = async(pool, profile) => {
 		}
 	}
 }
-
 
 const massageDetachments = (pool, detachments) => {
 	// If the unit has no model children, or it's a special case that's missing a model for itself (vehicles and characters) add the model
@@ -240,6 +242,7 @@ const massageDetachments = (pool, detachments) => {
 			}
 
 			ret.push(unit);
+
 			// TODO: deal with drones
 		});
 	});

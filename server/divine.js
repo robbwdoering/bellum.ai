@@ -131,14 +131,38 @@ const calcShootingOptions = (army, ctx, profile) => {
 }
 
 applyAddMods = (origVal, unit, modTypes, optional) => {
-	let ret = 0;
+	let ret = 0, doBreak = false;
 
 	// Loop through every modification type, adding it's value if it's present
 	modTypes
 		.map(type => unit.mods.find(mod => mod.type === type))
 		.filter(mod => mod && (!mod.cond || mod.cond.isSatisfied(optional)))
 		.forEach(mod => {
+			if (doBreak) return;
 			switch(mod.type) {
+				case "REPLACE_HIT":
+				case "REPLACE_HIT_SHOOT":
+				case "REPLACE_HIT_FIGHT":
+				case "REPLACE_WOUND":
+				case "REPLACE_WOUND_SHOOT":
+				case "REPLACE_WOUND_FIGHT":
+				case "REPLACE_SAVE":
+				case "REPLACE_SAVE_SHOOT":
+				case "REPLACE_SAVE_FIGHT":
+				case "REPLACE_INVULN":
+				case "REPLACE_INVULN_SHOOT":
+				case "REPLACE_INVULN_FIGHT":
+				case "REPLACE_AP":
+				case "REPLACE_AP_SHOOT":
+				case "REPLACE_AP_FIGHT":
+				case "REPLACE_AP_TARGET":
+				case "REPLACE_SHOTS":
+				case "REPLACE_SHOTS_TARGET":
+					// TODO: add support for multiple replaces overriding eachother. Don't just take the first one, take the best one (?)
+					ret = mod.params.value - origVal; // subtract origVal to cancel out addition in return statement
+					doBreak = true;
+					break;
+
 				default: 	
 					ret += mod.params.value;
 			}
@@ -188,7 +212,7 @@ applyRerollMods = (origVal, unit, modTypes, optional) => {
 6 - 0.16
 */
 
-const woundCalc = (s, t) => {
+const calcToWound = (s, t) => {
 	if ((2*t) <= s) {
 		return 2;
 	} else if (t < s) {
@@ -202,6 +226,31 @@ const woundCalc = (s, t) => {
 	}
 }
 
+// Saves
+/*
+1 
+2
+3
+4
+5
+6
+*/
+
+const calcShots = (unit, wepProfile, ctx, profile, target) => {
+	let val = wepProfile.shots || 1;
+	if (!wepProfile.shots) console.error("Found a weapon that doesn't have shots defined", wepProfile);
+
+	val = applyAddMods(val, unit, ["SHOTS", "REPLACE_SHOTS"], wepProfile);
+	val = applyAddMods(val, unit, ["SHOTS_TARGET", "REPLACE_SHOTS_TARGET"], wepProfile);
+
+	if (wepProfile.type === "RAPID_FIRE" && ctx.board.distance(unit.boardId, target.boardId) <= (wepProfile.range / 2)) {
+		val *= 2;
+	}
+
+	return val;
+}
+
+
 // HELPER
 /**
  * Calculates the expected damage for one weapon for one unit against one enemy.
@@ -210,20 +259,40 @@ const woundCalc = (s, t) => {
 const fireSalvo = (unit, wepProfile, ctx, profile, target) => {
 	let numShots, damagePr, hitPr, woundPr, savePr, avgDamage, tmpVal;
 
+	numShots = calcShots(wepProfile);
+
 	// Calculate probabilty of hitting the target
 	tmpVal = applyAddMods(profile.stats[unit.name].bs, unit, ["HIT", "HIT_SHOOT"], wepProfile);
 	tmpVal = applyAddMods(tmpVal, target, ["BE_HIT"], wepProfile);
-	hitPr = (6 - tmpVal + 1) / 6.0; // Translate "n-up" value into probability
+	hitPr = tmpVal < 7 ? (7 - tmpVal) / 6.0 : 0; // Translate "n-up" value into probability
 
 	// Modify probabilty in response to reroll rules
-	hitPr = applyRerollMods(tmpVal, unit, ["HIT__REROLL", "HIT_SHOOT__REROLL"], wepProfile);
-	tmpVal = applyRerollMods(tmpVal, target, ["BE_HIT__REROLL", "BE_HIT_SHOOT__REROLL"], wepProfile);
+	hitPr = applyRerollMods(hitPr, unit, ["HIT__REROLL", "HIT_SHOOT__REROLL"], wepProfile);
+	// hitPr = applyRerollMods(hitPr, target, ["BE_HIT__REROLL", "BE_HIT_SHOOT__REROLL"], wepProfile); // TODO: Is this a rule that exists?
 
 	// Calculate probability of wounding the target
-	let tmpToughness = applyAddMods(profile.stats[target.name].t, target, ["TOUGHNESS", "TOUGHNESS_SHOOT"]);
-	tmpVal = applyAddMods(woundCalc(wepProfile.s, tmpToughness), unit, ["WOUND"], wepProfile);
+	let tmpToughness = applyAddMods(profile.stats[target.name].t, target, ["TOUGHNESS", "TOUGHNESS_SHOOT"], wepProfile);
+	tmpVal = applyAddMods(calcToWound(wepProfile.s, tmpToughness), unit, ["WOUND", "WOUND_SHOOT", "REPLACE_WOUND", "REPLACE_WOUND_SHOOT"], wepProfile);
+	woundPr = tmpVal < 7 ? (7 - tmpVal) / 6.0 : 0; // Translate "n-up" value into probability
 
-	damagePr = hitPr * woundPr * (1 - savePr);
+	// Calculate probability of the target saving 
+	tmpVal = applyAddMods(profile.stats[target.name].save, target, ["SAVE", "REPLACE_SAVE", "SAVE_SHOOT", "REPLACE_SAVE_SHOOT"], wepProfile);
+	let invuln = applyAddMods(profile.stats[target.name].invuln || 7, target, ["INVULN", "REPLACE_INVULN", "REPLACE_INVULN_SHOOT"], wepProfile);
+
+	// Calculate AP
+	let AP = applyAddMods(wepProfile.ap || 0, unit, ["AP", "AP_SHOOT", "REPLACE_AP", "REPLACE_AP_SHOOT"], wepProfile);
+	AP = applyAddMods(AP, target, ["AP_TARGET", "REPLACE_AP_TARGET"], wepProfile);
+
+	// Choose the higher of normal save with Armor Piercing applied, or invulnerable save
+	if (tmpVal + AP < invuln) {
+		tmpVal = invuln;	
+	} else {
+		tmpVal += AP;
+	}
+
+	savePr = tmpVal < 7 ? (7 - tmpVal) / 6.0 : 0; // Translate "n-up" value into probability
+
+	damagePr = numShots * hitPr * woundPr * (1 - savePr);
 };
 
 // HELPER
