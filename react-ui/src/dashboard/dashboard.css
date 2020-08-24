@@ -8,12 +8,12 @@ div.ui.overlay.top.visible.sidebar.db-sidebar {
 
 .db-sidebar .myt-pane.db-sidebar-menu {
 	float: left;
+	margin-left: 3rem !important;
 }
 
 .db-sidebar .myt-pane {
-	margin-left: 3rem !important;
 	margin-top: 0rem !important;
-	border: 1px solid red;
+	/*border: 1px solid red;*/
 	padding: 1rem;
 }
 
@@ -23,29 +23,22 @@ div.ui.overlay.top.visible.sidebar.db-sidebar {
 	font-weight: bold;
 }
 
-.db-sidebar .myt-pane.small {
-	width: 40rem;
-	height: 60rem;
+.db-sidebar .tab.active.segment {
+	margin-top: 0;	
+	padding: 0;
+	background: transparent;
 }
 
-.db-sidebar .myt-pane.medium {
-	width: 50rem;
-	height: 75rem;
+.db-sidebar .tab .myt-pane {
+	width: 100%;
 }
 
-.db-sidebar .myt-pane.large {
-	width: 70rem;
-	height: 105rem;
+.db-sidebar .db-small-pane-container {
+	margin-top: 3.8rem !important;
 }
 
-.db-sidebar .myt-pane.top {
-	width: 50rem;
-	height: 10rem;
-}
-
-.db-sidebar .myt-pane.right_sidebar {
-	float: right;
-	width: 40rem;
+.db-sidebar .db-small-pane-container .row {
+	margin-bottom: 1rem !important;
 }
 
 div.ui.menu.db-header {

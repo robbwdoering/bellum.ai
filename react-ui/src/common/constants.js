@@ -5,10 +5,12 @@ export const Panes = {
 	AddEvent: "ADD_EVENT",
 	Regulations: "REGULATIONS",
 	PlanContact: "PLAN_CONTACT",
-	Calculator: "CALCULATOR",
-	ListManager: "LIST_MANAGER",
-	UnitDeck: "UNIT_DECK",
-	ArmyDetails: "ARMY_DETAILS"
+
+	Calculator: "Calculator",
+	ListManager: "List Manager",
+	UnitDeck: "Unit Deck",
+	ArmyDetails: "Army Details",
+	ProfileEditor: "Profile Editor"
 }
 
 //  ---------------------------
@@ -19,13 +21,15 @@ export const Canvases = {
 }
 
 export const initialPaneConfigs = {
-	[Panes.AddEvent]: {size: 'medium'},
-	[Panes.Regulations]: {size: 'medium'},
-	[Panes.PlanContact]: {size: 'medium'},
-	[Panes.ListManager]: {size: 'small', headerItems: "Lists"},
-	[Panes.UnitDeck]: {size: 'small right_sidebar', headerItems: "Units"},
-	[Panes.ArmyDetails]: {size: 'small', headerItems: "Army Details"}
-}
+	[Panes.AddEvent]: {size: 'small'},
+	[Panes.Regulations]: {size: 'small'},
+	[Panes.PlanContact]: {size: 'small'},
+
+	[Panes.ListManager]: [],
+	[Panes.UnitDeck]: [],
+	[Panes.ArmyDetails]: [],
+	[Panes.ProfileEditor]: []
+};
 
 export const eventTypeOptions = [
 	{text: "Test", value: "test"},

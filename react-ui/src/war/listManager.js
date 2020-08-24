@@ -13,7 +13,6 @@ import { Button, Dropdown, Grid, Form, Header, Label, Table, TextArea, Input, Ic
 import SemanticDatepicker from 'react-semantic-ui-datepickers';
 // import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-import Pane from "./../common/pane";
 // import { Panes, eventTypeOptions, eventTestSubtypeOptions, eventTypeIconMap, eventSocDistOptions, locationOptions } from './constants';
 import { FormBody } from './../common/formCommon';
 

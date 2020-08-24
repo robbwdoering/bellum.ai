@@ -15,6 +15,49 @@
  import { regex } from "./constants";
 
 
+export const calcExpectedDamage = (weapons, stats, lhs, rhs, mods) => {
+	// Parse amount of attacks 
+
+	// Add modifiers for weapon type
+	// const type =  
+	// switch (type)
+	return;
+
+	//   
+// const calcDpr = weapon => {
+// 	let idx;
+// 	let tmpArr = weapon.type.split(" ");
+// 	let numAttacks = tmpArr[tmpArr.length - 1];
+// 	let damage = parseInt(weapon.d);
+// 	if (numAttacks.match(/^[0-9]+D[1-6]/g)) {
+// 		idx = numAttacks.indexOf("D");
+
+// 		numAttacks = parseInt(numAttacks.substring(0, idx)) * ((parseInt(numAttacks.substring(idx+1)) + 1.0) / 2.0)
+// 	} else if (numAttacks.match(/^[0-9]+/g)) {
+// 		numAttacks = parseInt(numAttacks) * 1.0;
+// 	} else {
+// 		console.error("Cannot calculate DPR since numAttacks is: ", numAttacks);
+// 	}
+
+// 	if (weapon.type.includes("Assualt")) {
+// 		return 
+
+// 	} else if (weapon.type.includes("Rapid Fire")) {
+// 		return numAttacks * 2 * damage;
+
+// 	} else if (weapon.type.includes("Heavy")) {
+
+// 	} else if (weapon.type.includes("Pistol")) {
+
+// 	} else if (weapon.type.includes("Grenade")) {
+
+// 	} else if (weapon.type.includes("Blast")) {
+
+// 	}
+// }
+
+}
+
 export const parsePlainText = str => {
 	if (!str) {
 		console.error("Can't parse plain text, no string provided.");

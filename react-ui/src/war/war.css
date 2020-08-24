@@ -9,3 +9,20 @@
 .list-manager .input {
 	width: 15rem !important;
 }
+
+
+/* ARMY DETAILS */
+
+.myt-army-details .grid .menu.myt-ad-top-menu {
+	width: 100% !important;
+	background: transparent !important;
+	border: none !important;
+}
+
+.ud-splitter.disabled {
+	color: #ccc !important;
+}
+
+.myt-army-details .grid  .menu.myt-ad-top-menu .dropdown {
+
+}

@@ -1,0 +1,151 @@
+Meaning Formats
+
+CUR_TIME: [Round][Phase]
+
+
+COND_OBJ_TYPES: [
+	IN_RANGE: [
+		subtype: [UNIT|OBJ|EDGE|COORD],
+		params: { target: ""}	
+	],
+
+	UNIT_HAS_TAG: [
+
+	],
+	
+	UNIT_HAS_STATUS: [
+		subtype: [LIVING|DEEP|CHARGED|WAS_CHARGED|MOVED|ADVANCED|FELL_BACK|FIRED|CUSTOM],
+		param: { target: "" }
+	],
+	
+	HAS_COVER: [
+		subtype: [LIGHT_COVER|HEAVY_COVER],
+		param
+	],
+	
+	GEN_COND: [
+		subtype: [UNITS_DIED|]
+	],
+
+	COND_OBJ_SUBTYPE: [
+	],
+]
+
+MODS_OBJ_TYPE: [
+	"HIT",
+	"HIT_SHOOT",
+	"HIT_FIGHT",
+
+	HIT__REROLL,
+	HIT_SHOOT_REROLL,
+	HIT_FIGHT_REROLL,
+
+	BE_HIT,
+	BE_HIT_SHOOT_REROLL,
+	BE_HIT_FIGHT_REROLL,
+
+	"CHARGE",
+	""
+]
+
+
+/**
+ * CONDITIONAL OBJECT 
+ * This object represents some ongoing rule that will change how a dice roll is conducted.
+ */
+COND_OBJ: {
+	type: [COND_OBJ_TYPE],
+	subtype: [COND_OBJ_SUBTYPE],
+	params: {} 
+}
+
+/**
+ * MODIFICATION OBJECT 
+ * This object represents some ongoing rule that will change how a dice roll is conducted.
+ */
+MODS: {
+	type: [MODS_OBJ_TYPE],
+	target: [SELF|OTHER|ABSTRACT_NAME|UNIT_NAME]
+	subtype: [MOD_OBJ_SUBTYPE],
+	expiration: [BattlePhaseIndicator] // Optional
+	cond: [ COND_OBJ... ]
+	params: {} 
+}
+
+
+/**
+ * UNIT
+ * This object represents a unit composed of one or more models.  
+ */
+UNIT: {
+	boardID: int,
+	name: string,
+	models: [],
+	mods: [ MODIFICATION_OBJECT... ],
+	divs: {
+		// Distance that this unit can move and then shoot (incl. advances for assault units)
+		engagementDistance: int,
+
+		// Array of objects
+		shootingArr: [
+			{
+				profile_name: string,
+				targetArr: [
+					{
+						boardId: string,
+						name: string,
+						damagePerShot: float
+
+					}
+
+				]
+			}
+		]
+	} 
+
+}
+----------
+   DESC
+----------
+categories = {
+	MOVE : {
+		modInches : { amount: INT, variable: BOOL },
+		advanceCharge : {} ,
+		advanceShootAsNormal: {}
+	},
+	SHOOTING : [
+		fireInEngaged : {}
+
+	],
+	[CAT_NAME] : [
+	],
+	[CAT_NAME] : [
+	],
+}
+// Moves And Advances
+{ cat: "", type: "", }
+
+// 
+{ cat: "", type: "", }
+
+// 
+{ cat: "", type: "", }
+
+// 
+{ cat: "", type: "", }
+
+// 
+{ cat: "", type: "", }
+
+// 
+{ cat: "", type: "", }
+
+// 
+{ cat: "", type: "", }
+-----------
+  WEAPONS 
+-----------
+
+----------
+  POWERS 
+----------

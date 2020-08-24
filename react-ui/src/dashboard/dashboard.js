@@ -10,7 +10,8 @@
 // React + Redux
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { Button, Grid, Header, Input, Icon, Loading, Menu, Sidebar } from 'semantic-ui-react';
+import { Button, Grid, Header, Tab, Input, Icon, Loading, Menu, Sidebar } from 'semantic-ui-react';
+// import VirtualDraggableGrid from ' react-virtual-draggable-grid';
 // import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 
@@ -21,7 +22,7 @@ import { Panes, Canvases, initialPaneConfigs } from './../common/constants';
 // import HexMap from './../map/hexMap';
 import Calculator from "./../war/calculator"; 
 import ListManager from "./../war/listManager"; 
-import { UnitDeck, ArmyDetails } from "./../war/strategy"; 
+import { UnitDeck, ArmyDetails, ProfileEditor } from "./../war/strategy"; 
 import './dashboard.css';
 
 // Custom
@@ -38,7 +39,8 @@ export class Dashboard extends Component {
 			curPanes: { },
 			curCanvas: Canvases.HexMap,
 			canvasX: 0,
-			canvasY: 0
+			canvasY: 0,
+			selectedMain: 0 
 		};
 	};
 
@@ -110,7 +112,7 @@ export class Dashboard extends Component {
 			this.configPane(name, "DEL");
 		} else {
 			console.log("TOGGLING: ", initialPaneConfigs, initialPaneConfigs[name])
-			this.configPane(name, "CLEAR", initialPaneConfigs[name]);
+			this.configPane(name, "ADD", initialPaneConfigs[name]);
 		}
 	};
 
@@ -136,7 +138,7 @@ export class Dashboard extends Component {
 			<Menu.Item> <h2> WAR </h2> </Menu.Item>
 
 			<Menu.Item as='a' onClick={() => {
-				this.configPane([Panes.UnitDeck, Panes.ArmyDetails], "CLEAR", [initialPaneConfigs[Panes.UnitDeck], initialPaneConfigs[Panes.ArmyDetails]]);
+				this.configPane([Panes.UnitDeck, Panes.ArmyDetails], "ADD", [initialPaneConfigs[Panes.UnitDeck], initialPaneConfigs[Panes.ArmyDetails]]);
 			}}
 			>
 				Strategic Overview
@@ -148,6 +150,10 @@ export class Dashboard extends Component {
 
 			<Menu.Item as='a' onClick={() => this.togglePane(Panes.ListManager)}>
 				List Manager
+			</Menu.Item>
+
+			<Menu.Item as='a' onClick={() => this.togglePane(Panes.ProfileEditor)}>
+				Profile Editor	
 			</Menu.Item>
 
 			<Menu.Item> <h2> COVID-19 </h2> </Menu.Item>
@@ -213,11 +219,56 @@ export class Dashboard extends Component {
     	console.log("[openUserGuide]");
     };
 
-  	render() {
+    renderPane = name => {
 	  	const { showSidebar, showLogin, user, pass, curPanes, curCanvas } = this.state;
-	  	const { testsReceived, fetchAt } = this.props;
+	  	const { testsReceived, sendMsg, fetchAt } = this.props;
+		switch(name) {
+			case Panes.UnitDeck:
+				return (<UnitDeck fetchAt={this.props.fetchAt} sendMsg={this.props.sendMsg} key={name} name={name} config={curPanes[name]} />);
+			case Panes.ArmyDetails:
+				return (<ArmyDetails fetchAt={this.props.fetchAt} sendMsg={this.props.sendMsg} key={name} name={name} config={curPanes[name]} />);
+			case Panes.Calculator:
+				return (<Calculator fetchAt={this.props.fetchAt} sendMsg={this.props.sendMsg} key={name} name={name} config={curPanes[name]} />);
+			case Panes.ListManager:
+				return (<ListManager fetchAt={this.props.fetchAt} sendMsg={this.props.sendMsg} key={name} name={name} config={curPanes[name]} />);
+			default:
+				return (<h3 key={name}> There was an error. Please reload the page. </h3>);
+		}
+    }
+
+  	render() {
+	  	const { showSidebar, showLogin, user, pass, curPanes, curCanvas, selectedMain } = this.state;
+	  	const { testsReceived, fetchAt, sendMsg } = this.props;
 	  	console.log("[render]", curPanes)
 
+	  	const mainPanels = [], sidePanels = [];
+    	if (curPanes) Object.keys(curPanes).forEach(name => {
+    		console.log("PANES: ", curPanes);
+			switch(name) {
+				case Panes.UnitDeck:
+				case Panes.Calculator:
+					sidePanels.push(name);
+					break
+				case Panes.ListManager:
+				case Panes.ArmyDetails:
+				case Panes.ProfileEditor:
+					mainPanels.push(name);
+					break;
+				default:
+					console.log("Unknown pane name: ", name);
+			}
+    	});
+
+    	const tmpPanels = mainPanels.map(name => ({
+			menuItem: name,
+			render: () => (
+				<Tab.Pane attached={false}>
+					<Pane key={name} className="db-main-pane" header name={name}>
+						{this.renderPane(name)}
+					</Pane>
+				</Tab.Pane>
+			)
+		}));
 
 	    return (
 	    	<div className="dashboard">
@@ -290,22 +341,29 @@ export class Dashboard extends Component {
 						{this.renderSidebarMenu(true)}
 					</Pane>
 
-			    	{/* Renders the pane that can appear over the main canvas */}
-			    	{curPanes && Object.keys(curPanes).map(name => {
-			    		console.log("PANES: ", curPanes);
-						switch(name) {
-							case Panes.UnitDeck:
-								return (<UnitDeck fetchAt={this.props.fetchAt} sendMsg={this.props.sendMsg} key={name} name={name} config={curPanes[name]} />);
-							case Panes.ArmyDetails:
-								return (<ArmyDetails fetchAt={this.props.fetchAt} sendMsg={this.props.sendMsg} key={name} name={name} config={curPanes[name]} />);
-							case Panes.Calculator:
-								return (<Calculator fetchAt={this.props.fetchAt} sendMsg={this.props.sendMsg} key={name} name={name} config={curPanes[name]} />);
-							case Panes.ListManager:
-								return (<ListManager fetchAt={this.props.fetchAt} sendMsg={this.props.sendMsg} key={name} name={name} config={curPanes[name]} />);
-							default:
-								return (<h3 key={name}> There was an error. Please reload the page. </h3>);
-						}
-			    	})}
+			    	{/* Render the panes that can appear over the main canvas */}
+			    	<Grid>
+			    		<Grid.Row>
+					    	{/* The main display, which uses tabs*/}
+			    			<Grid.Column width={12}>
+			    				<Tab value={selectedMain} onChange={e => this.setState({selectedMain: e.target.value })} menu={{secondary: true, pointing: true}} panes={tmpPanels} />
+			    			</Grid.Column>
+
+					    	{/* The right sidebar of small items */}
+			    			<Grid.Column width={4} className="db-small-pane-container">
+				    			{sidePanels && sidePanels.length > 0 && sidePanels.slice(0, 3).map(name => 
+				    				<Grid.Row> <Pane compact> {this.renderPane(name)} </Pane> </Grid.Row>
+			    				)}
+			    			</Grid.Column>
+			    		</Grid.Row>
+
+				    	{/* The bottom sidebar of small items */}
+			    		<Grid.Row className="db-small-pane-container">
+			    			{sidePanels && sidePanels.length > 3 && sidePanels.slice(3, 7).map(name => 
+			    				<Grid.Column width={4}> <Pane compact> {this.renderPane(name)} </Pane> </Grid.Column>
+		    				)}
+			    		</Grid.Row>
+			    	</Grid>
 				</Sidebar>
 
 				{/* Main Content */}

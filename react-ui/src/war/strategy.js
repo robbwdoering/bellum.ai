@@ -12,14 +12,15 @@
  */
 
 // React + Redux
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { connect } from 'react-redux';
 import { Button, Dropdown, Grid, Form, Placeholder, Header, Table, Label, Input, Icon, Loading, Menu, Sidebar, Step } from 'semantic-ui-react';
 import SemanticDatepicker from 'react-semantic-ui-datepickers';
 // import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-import Pane from "./../common/pane";
 import { FormBody } from './../common/formCommon';
+
+import "./war.css";
 
 export const UnitDeckComponent = props => {
 	const {
@@ -38,7 +39,8 @@ export const UnitDeckComponent = props => {
 		primaryList,
 		secondaryList,
 		listHash,
-		profiles
+		profiles,
+		alerts
 
 		// Dispatched Actions
 	} = props;
@@ -64,7 +66,7 @@ export const UnitDeckComponent = props => {
 	console.log('rendering with unit list: ', unitList);
 
  	return (
-		<Pane key={key} className="myt-unit-deck" header name={name} config={config}>
+		<div className="myt-unit-deck">
 			{(primaryList ? (
 				<Table>
 					<Table.Header>
@@ -112,7 +114,7 @@ export const UnitDeckComponent = props => {
 					</Placeholder.Paragraph>
 				</Placeholder>
 			))}
- 		</Pane>
+ 		</div>
  	);
 };
 
@@ -161,6 +163,41 @@ export const ArmyDetailsComponent = props => {
 		}
 	};
 
+	// Army details: 
+	// damage per turn avg
+	// Chart Ideas:
+		// Damage by category
+		// Wounds by category
+
+
+	const genDetails = isPrimary => (
+		<Grid>
+			<Grid.Row>
+				{/* Percentiles */}
+				<Grid.Column>
+					<span> </span>
+				</Grid.Column>
+
+				{/* Best Unit in each role */}
+				<Grid.Column>
+					<strong> Best Anti-Tank </strong>
+					<strong> Best Anti-Troop </strong>
+					<strong> Best Overall </strong>
+				</Grid.Column>
+
+				{/* Alerts */}
+				<Grid.Column>
+					{alerts}
+				</Grid.Column>
+				
+			</Grid.Row>
+
+			<Grid.Row>
+			</Grid.Row>
+
+		</Grid>
+	);
+
 	const primaryOptions = useMemo(filterPrimaryList, [listHash])
 	const secondaryOptions = useMemo(filterSecondaryList, [listHash])
 
@@ -168,71 +205,137 @@ export const ArmyDetailsComponent = props => {
 	// const unitList = useMemo(parseUnitList, [listHash]);
 
  	return (
-		<Pane key={key} className="myt-army-details" header name={name} config={config}>
+		<div className="myt-army-details">
+ 				<Menu className="myt-ad-top-menu">
+	 				<Menu.Item position="left">
+	 					<Dropdown
+	 						button
+	 						options={primaryOptions}
+	 						selection
+	 						search
+	 						floating
+	 						name="primary"
+	 						value={primaryList ? primaryList.name : undefined}
+	 						onChange={handleArmySelection}
+	 					/>
+	 				</Menu.Item>
+
+	 				<Menu.Item as="h2" className={"ud-splitter" + (isEngaged ? "" : " disabled")}>
+	 					Vs
+	 				</Menu.Item>
+
+	 				<Menu.Item position="right">
+	 					<Dropdown 
+	 						button
+	 						options={secondaryOptions}
+	 						selection
+	 						search
+	 						floating
+	 						name="secondary"
+	 						value={secondaryList ? secondaryList.name : undefined}
+	 						disabled={primaryList === null}
+	 						onChange={handleArmySelection}
+	 					/>
+	 				</Menu.Item>
+ 				</Menu>
+
+	 			{isEngaged ? (
+ 					<div className="army-details-lhs-container"> {genDetails(true)} </div>
+ 					<div className="army-details-rhs-container"> {genDetails(false)} </div>
+ 				) : (
+ 					genDetails(true);
+ 				)}
+	 			<Grid.Row>
+	 			</Grid.Row>
+	 		</Grid>
+ 		</div>
+ 	);
+};
+
+export const ProfileEditor = props => {
+	const {
+		// Root 
+		config,
+		sendMsg,
+		fetchAt,
+
+		// Parent
+		key,
+		name,
+
+		// Redux
+		metalist,
+		metalistHash,
+		primaryList,
+		secondaryList,
+		listHash,
+		profiles,
+		unsetProfiles,
+
+		// Dispatched Actions
+	} = props;
+
+	const [mode, setMode] = useState("weapon");
+
+	useEffect(() => {
+		sendMsg("/api/war/profiles/"+mode+"/unset", "GET");
+	}, [mode]);
+
+	const isEngaged = useMemo(() => primaryList !== null && secondaryList !== null, [listHash])
+	// const unitList = useMemo(parseUnitList, [listHash]);
+
+ 	return (
+		<div key={key} className="myt-army-details">
 	 		<Grid>
 	 			<Grid.Row>
 	 				<Menu>
-		 				<Menu.Item position="left">
-		 					<Dropdown 
-		 						options={primaryOptions}
-		 						selection
-		 						search
-		 						name="primary"
-		 						value={primaryList ? primaryList.name : undefined}
-		 						onChange={handleArmySelection}
-		 					/>
+		 				<Menu.Item>
+		 					<Button.Group>
+		 						<Button onClick={() => setMode('weapon')}> Weapons </Button>
+		 					</Button.Group>
+		 					<Button.Group>
+		 						<Button onClick={() => setMode('power')}> Powers </Button>
+		 					</Button.Group>
+		 					<Button.Group>
+		 						<Button onClick={() => setMode('desc')}> Rules </Button>
+		 					</Button.Group>
 		 				</Menu.Item>
 
-		 				<Menu.Item as="h2" className={"ud-splitter" + (isEngaged ? "" : " disabled")}>
-		 					Vs
-		 				</Menu.Item>
 
-		 				<Menu.Item position="right">
-		 					<Dropdown 
-		 						options={secondaryOptions}
-		 						selection
-		 						search
-		 						name="secondary"
-		 						value={secondaryList ? secondaryList.name : undefined}
-		 						disabled={primaryList === null}
-		 						onChange={handleArmySelection}
-		 					/>
-		 				</Menu.Item>
+				<Table>
+					<Table.Header>
+						<Table.Row>
+							<Table.HeaderCell> Name </Table.HeaderCell>
+							<Table.HeaderCell> Text </Table.HeaderCell>
+						</Table.Row>
+					</Table.Header>
+
+					<Table.Body>
+						{unsetProfiles[mode] && unsetProfiles[mode].map((e, i) => (
+							<Table.Row key={i} >
+								<Table.Cell> {e.name} </Table.Cell>
+								<Table.Cell> {e.text} </Table.Cell>
+							</Table.Row>
+						))}
+					</Table.Body>
+				</Table>
+
 	 				</Menu>
+	 			</Grid.Row>
+	 			<Grid.Row>
+		 			<Grid.Column>
+		 				<strong> Name: </strong> &nbsp; {unsetProfiles[mode] && unsetProfiles[mode].name}
+		 			</Grid.Column>
+
+		 			<Grid.Column>
+		 				<strong> Text: </strong> &nbsp; {unsetProfiles[mode] && unsetProfiles[mode].text}
+		 			</Grid.Column>
 	 			</Grid.Row>
 
 	 			<Grid.Row>
-	 				{(primaryList ? (
-		 				<Table>
-							<Table.Header>
-								<Table.Row>
-									<Table.HeaderCell> Unit </Table.HeaderCell>
-									{isEngaged && (
-										<React.Fragment>
-											<Table.HeaderCell>  </Table.HeaderCell>
-											<Table.HeaderCell> Factions </Table.HeaderCell>
-											<Table.HeaderCell> Rating </Table.HeaderCell>
-										</React.Fragment>
-									)}
-								</Table.Row>
-							</Table.Header>
-
-							<Table.Body>
-							</Table.Body>
-		 				</Table>
- 					) : (
-	 					<Placeholder>
-		 					<Placeholder.Paragraph>
-		 						<Placeholder.Line length="long" />
-		 						<Placeholder.Line length="medium" />
-		 						<Placeholder.Line length="medium" />
-		 						<Placeholder.Line length="medium" />
-		 					</Placeholder.Paragraph>
- 						</Placeholder>
- 					))}
 	 			</Grid.Row>
 	 		</Grid>
- 		</Pane>
+ 		</div>
  	);
 };
 
@@ -243,7 +346,8 @@ export const mapStateToProps = (state, props) => {
 		primaryList: state.warReducer.primaryList,
 		secondaryList: state.warReducer.secondaryList,
 		listHash: state.warReducer.listHash,
-		profiles: state.warReducer.profiles
+		profiles: state.warReducer.profiles,
+		alerts: state.warReducer.alerts
 		// curConfidence: state.profileReducer.data.symptomConfidence
 	}
 };

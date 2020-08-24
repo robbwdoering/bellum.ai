@@ -30,39 +30,18 @@ export const Pane = ({
 	compact,
 	header,
 	name,
-	config,
-	configPane,
 	key
 }) => {
     return (
-    	<Card 
-	    	className={`myt-pane ${className ? className : ""} ${config && config.size ? config.size : ""}`}
-	    	style={style ? style : undefined}
-	    	key={key}
-    	>
-    		{header && (
-    			<Header className='myt-pane-header'>
-    				<Menu>
-    					<div className="custom-header-container">
-		    				{config.headerItems}
-	    				</div>
-
-	    				<Menu.Menu position='right'>
-		    				<Menu.Item name='expand' onClick={() => configPane(name, "MOD", {expand: !config.expand})}>
-		    					<Icon name={config.expand ? 'compress' : 'expand'}/>
-		    				</Menu.Item>
-
-		    				<Menu.Item name='close' onClick={() => configPane(name, "DEL")}>
-		    					<Icon name='x'/>
-		    				</Menu.Item>
-	    				</Menu.Menu>
-    				</Menu>
-    			</Header>
-			)}
+    	<Card className={`myt-pane ${className || ""}`} style={style} key={key} >
     		{children}
     	</Card>
 	);
 };
+
+		    				// <Menu.Item name='expand' onClick={() => configPane(name, "MOD", {expand: config && !config.expand})}>
+		    				// 	<Icon name={config.expand ? 'compress' : 'expand'}/>
+		    				// </Menu.Item>
 
 // const mapStateToProps = (state, props) => {
 // 	return {

@@ -12,8 +12,8 @@ const initialState = {
 		descs: [],
 		stats: [],
 		powers: []
-	}
-
+	},
+	alerts: []
 };
 
 export const warReducer = (state = initialState, action) => {
@@ -51,8 +51,12 @@ export const warReducer = (state = initialState, action) => {
 					}
 				});
 			}
+			return newState;
 
-
+		case WarActions.SET_UNSET_PROFILES:
+			console.log("Setting unset profiles:", action.payload.results);
+			// newState.unset_profile[] = action.payload.results[0].json;
+			// newState.listHash++;
 			return newState;
 
 		default:

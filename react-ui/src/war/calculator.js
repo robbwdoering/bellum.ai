@@ -14,7 +14,6 @@ import { Button, Dropdown, Grid, Form, Header, Label, Input, Icon, Loading, Menu
 import SemanticDatepicker from 'react-semantic-ui-datepickers';
 // import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-import Pane from "./../common/pane";
 import { FormBody } from './../common/formCommon';
 
 // Custom
