@@ -115,7 +115,7 @@ const calcShootingOptions = (army, ctx, profile) => {
 		// we have a list of weapons per unit
 		// we want expected damage for every enemy unit
 		unit.weapons && unit.weapons.forEach(wep => {
-			wepProfile = profile.weapon[wep];
+			wepProfile = profile.weapons[wep];
 			const targetList = ctx.board.allInRadius(unitId, wepProfile.range, "ENEMY");
 			const { expectedDamage, variance } = targetList.reduce((acc, target) => {
 				const { tmpExpectedDamage, tmpVariance } = fireSalvo(unit, wepProfile, ctx, profile, target);
@@ -128,7 +128,7 @@ const calcShootingOptions = (army, ctx, profile) => {
 			}, {boardId: [], expectedDamage: [], variance: []});
 		});
 	});
-}
+};
 
 applyAddMods = (origVal, unit, modTypes, optional) => {
 	let ret = 0, doBreak = false;
@@ -163,7 +163,7 @@ applyAddMods = (origVal, unit, modTypes, optional) => {
 					doBreak = true;
 					break;
 
-				default: 	
+				default:
 					ret += mod.params.value;
 			}
 		});

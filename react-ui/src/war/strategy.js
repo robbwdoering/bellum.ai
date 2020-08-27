@@ -187,7 +187,7 @@ export const ArmyDetailsComponent = props => {
 
 				{/* Alerts */}
 				<Grid.Column>
-					{alerts}
+					[ALERTS GO HERE]
 				</Grid.Column>
 				
 			</Grid.Row>
@@ -206,48 +206,47 @@ export const ArmyDetailsComponent = props => {
 
  	return (
 		<div className="myt-army-details">
- 				<Menu className="myt-ad-top-menu">
-	 				<Menu.Item position="left">
-	 					<Dropdown
-	 						button
-	 						options={primaryOptions}
-	 						selection
-	 						search
-	 						floating
-	 						name="primary"
-	 						value={primaryList ? primaryList.name : undefined}
-	 						onChange={handleArmySelection}
-	 					/>
-	 				</Menu.Item>
+			<Menu className="myt-ad-top-menu">
+ 				<Menu.Item position="left">
+ 					<Dropdown
+ 						button
+ 						options={primaryOptions}
+ 						selection
+ 						search
+ 						floating
+ 						name="primary"
+ 						value={primaryList ? primaryList.name : undefined}
+ 						onChange={handleArmySelection}
+ 					/>
+ 				</Menu.Item>
 
-	 				<Menu.Item as="h2" className={"ud-splitter" + (isEngaged ? "" : " disabled")}>
-	 					Vs
-	 				</Menu.Item>
+ 				<Menu.Item as="h2" className={"ud-splitter" + (isEngaged ? "" : " disabled")}>
+ 					Vs
+ 				</Menu.Item>
 
-	 				<Menu.Item position="right">
-	 					<Dropdown 
-	 						button
-	 						options={secondaryOptions}
-	 						selection
-	 						search
-	 						floating
-	 						name="secondary"
-	 						value={secondaryList ? secondaryList.name : undefined}
-	 						disabled={primaryList === null}
-	 						onChange={handleArmySelection}
-	 					/>
-	 				</Menu.Item>
- 				</Menu>
+ 				<Menu.Item position="right">
+ 					<Dropdown 
+ 						button
+ 						options={secondaryOptions}
+ 						selection
+ 						search
+ 						floating
+ 						name="secondary"
+ 						value={secondaryList ? secondaryList.name : undefined}
+ 						disabled={primaryList === null}
+ 						onChange={handleArmySelection}
+ 					/>
+ 				</Menu.Item>
+			</Menu>
 
-	 			{isEngaged ? (
+ 			{isEngaged ? (
+ 				<React.Fragment>
  					<div className="army-details-lhs-container"> {genDetails(true)} </div>
  					<div className="army-details-rhs-container"> {genDetails(false)} </div>
- 				) : (
- 					genDetails(true);
- 				)}
-	 			<Grid.Row>
-	 			</Grid.Row>
-	 		</Grid>
+ 				</React.Fragment>
+				) : (
+					genDetails(true)
+			)}
  		</div>
  	);
 };
@@ -322,6 +321,7 @@ export const ProfileEditor = props => {
 
 	 				</Menu>
 	 			</Grid.Row>
+
 	 			<Grid.Row>
 		 			<Grid.Column>
 		 				<strong> Name: </strong> &nbsp; {unsetProfiles[mode] && unsetProfiles[mode].name}

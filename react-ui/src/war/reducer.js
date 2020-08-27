@@ -25,13 +25,15 @@ export const warReducer = (state = initialState, action) => {
 
 	switch (action.type) {
 		case WarActions.SET_PRIMARY_LIST:
-			console.log("Setting primary list: ", action.payload.results[0].json);
-			newState.primaryList = action.payload.results[0].json;
+			console.log("Setting primary list: ", action.payload.results);
+			newState.primaryList = action.payload.results;
+			newState.primaryProfile = action.payload.profile;
 			newState.listHash++;
 			return newState;
 		case WarActions.SET_SECONDARY_LIST:
-			console.log("Setting secondary list: ", action.payload.results[0].json);
-			newState.secondaryList = action.payload.results[0].json;
+			console.log("Setting secondary list: ", action.payload.results);
+			newState.secondaryList = action.payload.results;
+			newState.secondaryProfile = action.payload.profile;
 			newState.listHash++;
 			return newState;
 		case WarActions.SET_METALIST:

@@ -135,7 +135,7 @@ export class Dashboard extends Component {
 				/>
 			</Menu.Item>
 
-			<Menu.Item> <h2> WAR </h2> </Menu.Item>
+			<Menu.Item> <h2> Main Window </h2> </Menu.Item>
 
 			<Menu.Item as='a' onClick={() => {
 				this.configPane([Panes.UnitDeck, Panes.ArmyDetails], "ADD", [initialPaneConfigs[Panes.UnitDeck], initialPaneConfigs[Panes.ArmyDetails]]);
@@ -144,43 +144,28 @@ export class Dashboard extends Component {
 				Strategic Overview
 			</Menu.Item>
 
-			<Menu.Item as='a' onClick={() => this.togglePane(Panes.Calculator)}>
-				Calculator
-			</Menu.Item>
-
-			<Menu.Item as='a' onClick={() => this.togglePane(Panes.ListManager)}>
-				List Manager
+			<Menu.Item as='a' onClick={() => this.togglePane(Panes.ArmyDetails)}>
+				Army Details	
 			</Menu.Item>
 
 			<Menu.Item as='a' onClick={() => this.togglePane(Panes.ProfileEditor)}>
 				Profile Editor	
 			</Menu.Item>
 
-			<Menu.Item> <h2> COVID-19 </h2> </Menu.Item>
-
-			<Menu.Item as='a' onClick={() => this.togglePane(Panes.AddEvent)}>
-				Add Event
+			<Menu.Item as='a' onClick={() => this.togglePane(Panes.ListManager)}>
+				List Manager
 			</Menu.Item>
 
-			<Menu.Item as='a' onClick={() => this.togglePane(Panes.PlanContact)}>
-				Plan Contact
+			<Menu.Item> <h2> Utilities </h2> </Menu.Item>
+
+			<Menu.Item as='a' onClick={() => this.togglePane(Panes.UnitDeck)}>
+				Unit Deck	
 			</Menu.Item>
 
-			<Menu.Item as='a' onClick={() => this.togglePane(Panes.Regulations)}>
-				Regulation Map
+			<Menu.Item as='a' onClick={() => this.togglePane(Panes.Calculator)}>
+				Calculator
 			</Menu.Item>
 
-
-			{/* TEST BUTTONS */}
-			<Menu.Item>
-				<Button
-					onClick={() => {
-						this.props.sendMsg('/api/db', 'GET');
-					}}
-				>
-					DB GET
-				</Button>
-			</Menu.Item>
 		</Menu>
     );
 
@@ -188,7 +173,7 @@ export class Dashboard extends Component {
     	const { curPanes } = this.state;
 		let newPanes = action === "CLEAR" ? {} : Object.assign({}, curPanes);
 
-    	console.log("configPane", name, action, config)
+    	console.log("configPane", name, action, config);
     	let nameArr = Array.isArray(name) ? name : [name];
     	let configArr = Array.isArray(config) ? config : [config];
 

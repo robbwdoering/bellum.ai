@@ -70,6 +70,7 @@ const sanitizeString = str => str.toLowerCase().replace(/[- ]/g, "_").replace(/'
 
 const parseUnit = (lines) => {
 	let newUnit = { models: [] };
+	let newModel = null; 
 	let curLine = 0;
 	let tmpArr, idx, tmpStr;
 
@@ -84,19 +85,23 @@ const parseUnit = (lines) => {
 	newUnit.pl = parseInt(tmpArr[0]);
 	newUnit.points = parseInt(tmpArr[(tmpArr.length === 2) ? 1 : 2]);
 
-	const numSubsections = lines.filter(line => line.match(regex.subsection)).length;
+	// Read the unit's equipment (this happens when the unit should be understood as it's own IMPLIED model)
+	// Yes this is really how battlescribe is structured, no this is somehow not a crime
+	idx = lines[0].indexOf(": ", idx + 1) + 2;
+	newUnit.equipment = lines[0].substring(idx).split(", ")
 
-	// Read every line of this unit
-	let newModel = null;
+	// Read every line of this unit after the first one
+	// const numSubsections = lines.filter(line => line.match(regex.subsection)).length;
 	lines.slice(1).forEach(line => {
 		// Handle Categories 
 		if (line.includes(". Categories: ")) {
 			tmpArr = line.substring(line.indexOf(": ") + 2).split(", ");
+
 			// Add subsections to the unit
 			if (line.match(regex.subsection)) {
 				newUnit.categories = tmpArr;
 			// Add everything else to the model
-			} else {
+			} else if (newModel != null) {
 				newModel.categories = tmpArr;
 			}
 
@@ -170,16 +175,17 @@ const parseDetachment = (lines) => {
 	// Parse all slots
 	const numSlots = lines.filter(line => line.match(regex.slotHeader)).length;
 
-	const pArr = lines.join("\n").split("\n\n");
+	const pArr = lines.slice(2).join("\n").split("\n\n");
 
 	// Process every paragraph if configuration isn't found. Otherwise wait to pass it
-	let doBegin = !lines.join("").includes("+ Configuration +");
+	let doBegin = !lines.join("").includes("+ Configuration");
 	pArr.forEach(para => {
 		const pLines = para.split("\n");
 		console.log("dealing with paragraph:", pLines)
 
-		// If this paragraph is a slot header, skip it
+		// If this paragraph is a slot header, skip it and note that the configuration section is over
 		if (pLines[0].match(regex.slotHeader)) {
+			console.log("Skipping header.");
 			doBegin = true;
 		} else if (doBegin) {
 			ret.units.push(parseUnit(pLines));
@@ -195,7 +201,41 @@ const parseProfile = lines => {
 
 	const handleEntry = arr => arr.reduce((subAcc, str, i) => {
 		idx = str.indexOf(":");
-		subAcc[sanitizeString(str.substring(0, idx))] = str.substring(idx+1);
+		let name = sanitizeString(str.substring(0, idx));
+		let val = str.substring(idx + 1).replace(/'/g, "");
+
+		if (name === "remaining_w") {
+			name = "w";
+
+			// If this is a wound track, add some init values since we won't fill out every field of the statblock
+			subAcc.m = -1;
+			subAcc.bs = -1;
+			subAcc.ws = -1;
+			subAcc.t = -1;
+			subAcc.s = -1;
+			subAcc.a = -1;
+			subAcc.save = "0";
+			subAcc.ld = 0;
+
+			// Update the val to be the minimum amount of wounds for every track
+			val = parseInt(str.substring(idx + 1, str.indexOf("-", idx)));
+		} else if (name === "movement") {
+			name = "m";
+		} else if (name === "toughness") {
+			name = "t";
+		} else if (name === "ballistics" || name === "ballistics_skill") {
+			name = "bs";
+		} else if (name === "attacks") {
+			name = "a";
+		} else if (name === "strength") {
+			name = "s";
+		} else if (name === "weapons_skill") {
+			name = "ws";
+		} else if (name === "leadership") {
+			name = "ld";
+		}
+
+		subAcc[name] = val;
 		return subAcc;
 	}, {});
 
@@ -206,6 +246,10 @@ const parseProfile = lines => {
 			idx = line.indexOf(": Description:");
 			propName = sanitizeString(line.substring(2, idx));
 			acc.desc[propName] = line.substring(idx + 14);
+		} else if (line.match(regex.profileEffect)) {
+			idx = line.indexOf(": Effect:");
+			propName = sanitizeString(line.substring(2, idx));
+			acc.desc[propName] = line.substring(idx + 9);
 		} else if (line.match(regex.profilePower)) {
 			idx = line.indexOf(": Warp Charge:");
 			catName = "power";
@@ -218,6 +262,9 @@ const parseProfile = lines => {
 		} else if (line.match(regex.profilePsyker)) {
 			idx = line.indexOf(": Cast:");
 			catName = "psykers";
+		} else if (line.match(regex.profileWoundTrack)) {
+			idx = line.indexOf(": ");
+			catName = "stats";
 		} else {
 			console.log("Cannot parse profile line ", line)
 		}
