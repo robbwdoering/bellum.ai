@@ -68,7 +68,7 @@ class MytRouter {
 			}
 
 			let results = await queryDB(pool, `SELECT (name, ${fields} ) from war_${req.params.type}_profile;`);
-			console.log("RESULTS", results);
+			// console.log("RESULTS", results);
 			sendMsg(res, {type: "SET_UNSET_PROFILES", payload: results});
 		});
 
@@ -81,14 +81,14 @@ class MytRouter {
 
 			// Get the list from the database
 			let results = await queryDB(pool, "SELECT (json) from war_list WHERE userId = " + req.params.userId + " AND id = " + req.params.listId + ";");
-			console.log("Dealing with results: ", results);
+			// console.log("Dealing with results: ", results);
 			if (results && results.results && results.results.length && results.results[0].json) {
-				console.log("Massaging list.");
+				// console.log("Massaging list.");
 				results = massageList(results.results[0].json);
 			}
 
 			// Fetch the profiles that are needed to understand this list, and 
-			const profiles = getProfilesForList(pool, results);
+			const profiles = await getProfilesForList(pool, results);
 			massageProfile(pool, profiles, results);
 
 			sendMsg(res, {type: req.params.isPrimary === "true" ? "SET_PRIMARY_LIST" : "SET_SECONDARY_LIST", payload: {profiles, results}});
@@ -249,9 +249,9 @@ const processProfile = async(pool, profile) => {
 
 const massageProfile = (pool, profile, army) => {
 	let idx;
-	console.log("Massaging profile:", profile, profile.weapons);
+	// console.log("Massaging profile:", profile);
 
-	profile.weapons = profile.weapons && profile.weapons.forEach(obj => {
+	profile.weapons && profile.weapons.forEach(obj => {
 		// Parse shots from a string to a float after loading
 		if (obj.weaponType === "Melee") {
 			obj.type = "Melee";
@@ -315,9 +315,9 @@ const getProfilesForList = async(pool, army) => {
 		});
 	});
 
-	console.log("Fetching all from DB, starting with: ", ret.desc, ret.weapons, ret.stats, ret.psykers, ret.powers);
 	await ret.fetchAllFromDb(pool, queryDB);
-	console.log("Fetched all from DB, returning: ", ret.desc, ret.weapons, ret.stats, ret.psykers, ret.powers);
+
+	return ret;
 };
 
 // Translates the database entry into a fully fleshed out object

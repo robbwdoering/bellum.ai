@@ -29,7 +29,7 @@ class Profile {
 			), "SELECT * FROM war_desc_profile WHERE ") + ";");
 			console.log("Sending Query: ", query);
 			results = await queryDB(pool, query);
-			console.log("Received results for profile request: ", results);
+			// console.log("Received results for profile request: ", results);
 			this.desc = processResults(results);
 		}
 
@@ -39,7 +39,7 @@ class Profile {
 			), "SELECT * FROM war_weapon_profile WHERE ") + ";");
 			console.log("Sending Query: ", query);
 			results = await queryDB(pool, query);
-			console.log("Received results for profile request: ", results);
+			// console.log("Received results for profile request: ", results);
 			this.weapons = processResults(results);
 		}
 
@@ -49,7 +49,7 @@ class Profile {
 			), "SELECT * FROM war_stat_profile WHERE ") + ";");
 			console.log("Sending Query: ", query);
 			results = await queryDB(pool, query);
-			console.log("Received results for profile request: ", results);
+			// console.log("Received results for profile request: ", results);
 			this.stats = processResults(results);
 		}
 
@@ -59,7 +59,7 @@ class Profile {
 			), "SELECT * FROM war_psyker_profile WHERE ") + ";");
 			console.log("Sending Query: ", query);
 			results = await queryDB(pool, query);
-			console.log("Received results for profile request: ", results);
+			// console.log("Received results for profile request: ", results);
 			this.psykers = processResults(results);
 		}
 
@@ -69,7 +69,7 @@ class Profile {
 			), "SELECT * FROM war_power_profile WHERE ") + ";");
 			console.log("Sending Query: ", query);
 			results = await queryDB(pool, query);
-			console.log("Received results for profile request: ", results);
+			// console.log("Received results for profile request: ", results);
 			this.powers = processResults(results);
 		}
 	}

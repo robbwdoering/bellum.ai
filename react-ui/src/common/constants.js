@@ -17,7 +17,8 @@ export const Panes = {
 //  ------ START CANVASES -----
 //  ---------------------------
 export const Canvases = {
-	HexMap:"HEX_MAP"
+	HexMap:"HEX_MAP",
+	ThreeMap:"THREE_MAP"
 }
 
 export const initialPaneConfigs = {

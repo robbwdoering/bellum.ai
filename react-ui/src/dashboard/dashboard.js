@@ -20,6 +20,7 @@ import Pane from './../common/pane';
 import AddEventPane from "./../common/addEvent";
 import { Panes, Canvases, initialPaneConfigs } from './../common/constants';
 // import HexMap from './../map/hexMap';
+import ThreeMap from './../map/threeMap';
 import Calculator from "./../war/calculator"; 
 import ListManager from "./../war/listManager"; 
 import { UnitDeck, ArmyDetails, ProfileEditor } from "./../war/strategy"; 
@@ -37,7 +38,7 @@ export class Dashboard extends Component {
 			user: "",
 			pass: "",
 			curPanes: { },
-			curCanvas: Canvases.HexMap,
+			curCanvas: Canvases.ThreeMap,
 			canvasX: 0,
 			canvasY: 0,
 			selectedMain: 0 
@@ -92,18 +93,19 @@ export class Dashboard extends Component {
     };
 
     renderCanvas = (curCanvas) => (
-		<div className='mytine-canvas-container'>
-
-	    	{/* Renders the main canvas, which always appears but is sometimes dimmed */}
-			{curCanvas && curCanvas.length && (() => {
+		// <div className='mytine-canvas-container'>
+	    	// {/* Renders the main canvas, which always appears but is sometimes dimmed */}
+			curCanvas && curCanvas.length && (() => {
 				switch(curCanvas) {
 					case Canvases.HexMap:
 						// return (<HexMap x={this.state.canvasX} y={this.state.canvasY} />);
+					case Canvases.ThreeMap:
+						return (<ThreeMap />);
 					default:
 						return (<h3> There was an error. Please reload the page. </h3>);
 				}
-			})()}
-		</div>
+			})()
+		// </div>
 	);
 
     // TODO add context menu option to have mutliple of the same key at once? Would have to rework this structure 
@@ -352,9 +354,7 @@ export class Dashboard extends Component {
 				</Sidebar>
 
 				{/* Main Content */}
-	    		<Grid>
-	    			{this.renderCanvas(curCanvas)}
-	    		</Grid>
+    			{this.renderCanvas(curCanvas)}
 	    	</div>
 		);
   	};

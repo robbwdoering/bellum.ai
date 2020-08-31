@@ -88,7 +88,9 @@ const parseUnit = (lines) => {
 	// Read the unit's equipment (this happens when the unit should be understood as it's own IMPLIED model)
 	// Yes this is really how battlescribe is structured, no this is somehow not a crime
 	idx = lines[0].indexOf(": ", idx + 1) + 2;
-	newUnit.equipment = lines[0].substring(idx).split(", ")
+	if (idx != -1) {
+		newUnit.equipment = lines[0].substring(idx).split(", ")
+	}
 
 	// Read every line of this unit after the first one
 	// const numSubsections = lines.filter(line => line.match(regex.subsection)).length;

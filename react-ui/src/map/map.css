@@ -1,0 +1,12 @@
+
+div.seamless-container {
+	z-index: 1;
+	vertical-align: middle !important;
+	text-align: center;
+}
+
+.splashctrl-container-mid {
+	margin: auto;
+	max-width: 55rem;
+	margin-top: 100px;
+}

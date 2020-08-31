@@ -1,8 +1,14 @@
+.App .dashboard {
+	height: 100%;
+	/*background-color: #1b262c;*/
+	background-color: #0c0c0c;
+}
+
 div.ui.overlay.top.visible.sidebar.db-sidebar {
 	height: 25rem;
 	margin-left: 4rem;
 	margin-top: 5rem !important;
-	z-index: 1 !important;
+	z-index: 2 !important;
 	box-shadow: none;
 }
 

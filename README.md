@@ -1,9 +1,6 @@
 # MyTine
 
-Gamified COVID-19 tracker for one’s personal circle, to allow control via information consolidation + inferences.
-
-Naming conventions: \[Domain]|[Page/Context]|ComponentName|[Type]
-https://medium.com/@wittydeveloper/react-components-naming-convention-%EF%B8%8F-b50303551505
+Animated silicon.
 
 # DEPENDENCY: React/Node Heroku Bootstrap Package
 
