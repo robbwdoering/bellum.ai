@@ -1,10 +1,43 @@
 export const START_RAD = 100;
 export const GRID_SIZE = 12;
 
+
+export const testUnits = [
+  {
+    name: "Space Marine Squad",
+    models: [
+      {
+        name: "Space Marine",
+        quantity: 8,
+        equipment: ["Bolter", "Plasma Grenade"]
+      },
+      {
+        name: "Space Marine Seargent",
+        quantity: 1,
+        equipment: ["Plasma Gun"]
+      }
+    ]
+  },
+
+
+  {
+    name: "Warlock Skyrunner Coven",
+    models: [
+      {
+        name: "Warlock Skyrunner",
+        quantity: 5,
+        equipment: ["Skylance", "Shruiken Catapult"],
+        size: 40
+      }
+    ]
+  }
+];
+
 export const MapActions = {
-	INIT_MAP_DATA: "INIT_MAP_DATA",
+  INIT_MAP_DATA: "INIT_MAP_DATA",
   MOD_DATA: "MOD_DATA",
-  DEL_DATA: "DEL_DATA"
+  DEL_DATA: "DEL_DATA",
+  CTRL_HOVER: "CTRL_HOVER"
 };
 
 export const P3 = (x=0, y=0, z=0) => (

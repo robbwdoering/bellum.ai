@@ -27,20 +27,20 @@ export const SplashControlsComponent = props => {
 					<Grid>
 						<Grid.Row columns={1}>
 							<Grid.Column>
-								<Button size='huge' onClick={() => handleClick('SIGNUP')}> SIGNUP </Button>
+								<Button size='huge' onClick={() => setStage('SIGNUP')}> SIGNUP </Button>
 							</Grid.Column>
 						</Grid.Row>
 						<Grid.Row columns={3}>
 							<Grid.Column>
-								<Button size='large' onClick={() => handleClick('INFO')}> What is this? </Button>
+								<Button size='large' onClick={() => setStage('INFO')}> What is this? </Button>
 							</Grid.Column>
 
 							<Grid.Column>
-								<Button size='large' onClick={() => handleClick('DEMO')}> See a Demo </Button>
+								<Button size='large' onClick={() => setStage('DEMO')}> See a Demo </Button>
 							</Grid.Column>
 
 							<Grid.Column>
-								<Button size='large' onClick={() => handleClick('DEMO')}> See a Tutorial </Button>
+								<Button size='large' onClick={() => setStage('DEMO')}> See a Tutorial </Button>
 							</Grid.Column>
 						</Grid.Row>
 					</Grid>
@@ -107,7 +107,7 @@ export const SplashControlsComponent = props => {
 			ret = <div />;
 	};
 
-	return ret;
+	return stage !== 'WELCOME' ? (<div > {ret} </div>) : ret ;
 };
 
 const mapStateToProps = (state, props) => {

@@ -226,7 +226,7 @@ export class Dashboard extends Component {
   	render() {
 	  	const { showSidebar, showLogin, user, pass, curPanes, curCanvas, selectedMain } = this.state;
 	  	const { testsReceived, fetchAt, sendMsg } = this.props;
-	  	console.log("[render]", curPanes)
+	  	console.log("[db|render]", curPanes, this.props.hoverItems)
 
 	  	const mainPanels = [], sidePanels = [];
     	if (curPanes) Object.keys(curPanes).forEach(name => {
@@ -354,6 +354,10 @@ export class Dashboard extends Component {
 				</Sidebar>
 
 				{/* Main Content */}
+				{this.props.hoverItems && Object.keys(this.props.hoverItems).map(key => {
+					console.log("Rendering hover item!", key);
+					return this.props.hoverItems[key];
+				})}
     			{this.renderCanvas(curCanvas)}
 	    	</div>
 		);
@@ -363,7 +367,9 @@ export class Dashboard extends Component {
 export const mapStateToProps = (state, props) => {
   return {
     testsReceived: state.appReducer.testsReceived,
-    curCanvas: state.appReducer.curCanvas
+    curCanvas: state.appReducer.curCanvas,
+    hoverItems: state.mapReducer.hoverItems,
+    hoverHash: state.mapReducer.hoverHash
   };
 };
 

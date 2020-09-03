@@ -12,7 +12,9 @@ const initialState = {
 	gridSize: {q: 10, r: 10},
 	oceans: [],
 	oceanHash: 0,
-	dataHash: 0
+	dataHash: 0,
+	hoverItems: {},
+	hoverHash: 0
 };
 
 export const mapReducer = (state = initialState, action) => {
@@ -47,6 +49,22 @@ export const mapReducer = (state = initialState, action) => {
 				newState.data[msg.q][msg.r].delete(msg.id);
 			}
 
+			return newState;
+
+		case MapActions.CTRL_HOVER:
+			switch(action.payload.type) {
+				case "ADD":
+					newState.hoverItems[action.payload.name] = action.payload.component;
+					break;
+				case "DEL":
+					delete newState.hoverItems[action.payload.name];
+					break;
+				case "CLEAR":
+					newState.hoverItems = {};
+					break;
+			}
+
+			newState.hoverHash++;
 			return newState;
 	}
 

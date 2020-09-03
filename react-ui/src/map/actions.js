@@ -20,3 +20,10 @@ export const delData = payload => {
 		payload
 	};
 };
+
+export const ctrlHover = payload => {
+	return {
+		type: MapActions.CTRL_HOVER,
+		payload
+	};
+};
