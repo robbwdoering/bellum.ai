@@ -9,7 +9,7 @@ import React, { useState, useRef, useMemo, useEffect } from 'react';
 import { connect } from 'react-redux';
 import { Button, Card, Grid, Header, Input, Icon, Loading, Menu, Sidebar } from 'semantic-ui-react';
 
-import { Canvas, useFrame, useThree, useLoader } from 'react-three-fiber';
+import { Canvas, useFrame, useThree, useLoader, extend } from 'react-three-fiber';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 // import { RenderPass } from 'three/examples/jsm/controls/RenderPass';
@@ -22,9 +22,12 @@ import { useDrag, useGesture } from "react-use-gesture";
 import './map.css';
 import * as shapeLib from './shapeLib';
 import * as styleLib from './styleLib';
-import { testUnits } from './constants';
+import { testUnits, ballGridPos, inch } from './constants';
 import { ctrlHover } from './actions';
 import { SplashControls } from './mapPanes';
+
+// Extend will make OrbitControls available as a JSX element called orbitControls for us to use.
+extend({ OrbitControls });
 
 
 const OctahedronSpringExample = () => {
@@ -109,40 +112,10 @@ const Unit = (props) => {
 	// const { size, viewport } = useThree();
 	// const aspect = size.width / viewport.width;
 
-	// const dummy = useMemo(() => new THREE.Object3D(), []);
-
-	// const setup = () => {
-	// 	const temp = []
-	// 	dummy.scale.set(.01, .01, .01);
-
-	// 	for (let i = 0; i < unit.models.length; i++) {
-	// 		// Update the dummy object
-	// 		// dummy.position.set(x, y, z);
-	// 		dummy.updateMatrix()
-
-	// 		// Set this mesh matrix to clone the dummy object
-	// 		mesh.current.setMatrixAt(i, dummy.matrix);
-	// 	};
-	// };
-
-	// // Initalize the point values
-	// useEffect(setup, [unit]);
-
-	// useFrame(() => {
-	// 	mesh.current.rotation.y -= 0.00025;
-	// 	mesh.current.rotation.x += 0.00025;
-	// 	// mesh.current.rotation.x += 0.005;
-	// });
-
-	// // Render `count` number of these cloned meshes
-	// return (
-	// 	<instancedMesh ref={mesh} args={[null, null, unit.models.length]} position={position} >
-	// 		<dodecahedronBufferGeometry attach="geometry" args={[1, 0]} />
-	// 		<meshLambertMaterial attach="material" color="#888" />
-	// 	</instancedMesh>
-	// );
-
-	const { cfg, onPointerDown, unit, ctrlHover } = props;
+	const { cfg, onPointerDown, unit, ctrlHover, initPos } = props;
+	const numModels = useMemo(() => unit.models ? unit.models.reduce((acc, m) => acc + (m.quantity || 1), 0) : 0, [unit]);
+	const dummy = useMemo(() => new THREE.Object3D(), []);
+	const mesh = useRef();
 
 	const hover = (e) => {
 		ctrlHover({
@@ -151,7 +124,7 @@ const Unit = (props) => {
 			component: (
 				<Card className="unit-popup" style={{left: e.pageX, top: e.pageY}} > 
 					<Card.Header> {unit.name} </Card.Header>
-					<Card.Content> Content pending! </Card.Content>
+					<Card.Content> {numModels} models </Card.Content>
 				</Card> 
 			)
 		});
@@ -161,15 +134,55 @@ const Unit = (props) => {
 		ctrlHover({type: "DEL", name: "UNIT-HOVER"});
 	}
 
+	const setup = () => {
+		const temp = []
+		dummy.scale.set(.01, .01, .01);
+
+		console.log("Processed unit " + unit.name + " with " + numModels + " models.", initPos);
+
+		for (let i = 0; i < numModels; i++) {
+			const [x, y] = ballGridPos[i];
+
+			// Update the dummy object
+			dummy.position.set(initPos[0] + x*inch, initPos[1], initPos[2] + y*inch);
+			dummy.scale.set(1, 0.25, 1);
+			dummy.updateMatrix();
+			console.log("setting point to ", dummy.position)
+
+			// Set this mesh matrix to clone the dummy object
+			mesh.current.setMatrixAt(i, dummy.matrix);
+		};
+	};
+
+	// Initalize the point values
+	useEffect(setup, [unit]);
+
+	// useFrame(() => {
+	// 	mesh.current.rotation.y -= 0.00025;
+	// 	mesh.current.rotation.x += 0.00025;
+	// 	// mesh.current.rotation.x += 0.005;
+	// });
+
+	// TODO: Get models working
+
 	return (
-    <a.mesh {...cfg} 
-    	onPointerDown={onPointerDown}
-    	onPointerEnter={hover}
-    	onPointerLeave={leave}
-	>
-        <boxBufferGeometry attach="geometry" args={[0.2, 0.2, 0.2]} />
-        <a.meshStandardMaterial roughness={0.5} attach="material" color='#999' />
-    </a.mesh>
+		<group key={unit.name}>
+		    <a.mesh
+		    	position={initPos}
+		    	scale={[inch, 0.02, inch]}
+		    	{...cfg}
+		    	onPointerDown={onPointerDown}
+		    	onPointerEnter={hover}
+		    	onPointerLeave={leave}
+			>
+		        <sphereBufferGeometry attach="geometry" args={[0.2, 0.2, 0.2]} />
+		        <meshStandardMaterial roughness={0.5} attach="material" color='#ef626c' />
+		    </a.mesh>
+	 	 	<instancedMesh ref={mesh} args={[null, null, numModels]} >
+				<sphereBufferGeometry attach="geometry" args={[inch, 16, 16]} />
+				<meshStandardMaterial attach="material" color="#ccc" />
+	 	 	</instancedMesh>
+		</group>
     );
 }
 
@@ -401,7 +414,7 @@ export const Skybox = props => {
 
 	        <mesh position-y={-5} rotation-x={-Math.PI / 2}>
 	            <planeBufferGeometry attach="geometry" args={[1000, 1000, 8, 8]} />
-	            <meshStandardMaterial attach="material" color="#fdcb9e" side={THREE.DoubleSide}/>
+	            <meshBasicMaterial attach="material" color="#1c1b1b" side={THREE.DoubleSide}/>
 	        </mesh>
         </group>
     );
@@ -487,17 +500,17 @@ const Board = props => {
 	// <a.mesh {...spring} {...bind()} castShadow>
 	return (
 		<group>
-	        <mesh position-z={-2} rotation-x={-Math.PI / 2} onPointerMove={move} onPointerUp={up}>
+	        <mesh position-z={-2.5} rotation-x={-Math.PI / 2} onPointerMove={move} onPointerUp={up}>
 	            <planeBufferGeometry attach="geometry" args={[6, 4, 16, 16]} />
 	            <meshStandardMaterial attach="material" transparent opacity={0.1} color="#3ad0ef" side={THREE.DoubleSide}/>
 	        </mesh>
-	        <mesh position-z={-2} rotation-x={-Math.PI / 2}>
+	        <mesh position-z={-2.5} rotation-x={-Math.PI / 2}>
 	            <planeBufferGeometry attach="geometry" args={[boardSize[0], boardSize[1], 16, 16]} />
 	            <meshStandardMaterial attach="material" color="#3ad0ef" wireframe side={THREE.DoubleSide}/>
 	        </mesh>
 
 	        {springs && springs.map((spring, i) => (
-	        	<Unit cfg={spring} unit={units[i]} onPointerDown={event => down(event, i)} ctrlHover={ctrlHover} />
+	        	<Unit initPos={[-3+(i*.25), 0, -2]} cfg={spring} unit={units[i]} onPointerDown={event => down(event, i)} ctrlHover={ctrlHover} />
         	))}
 		</group>
 	);
@@ -511,7 +524,119 @@ const Board = props => {
 				<meshStandardMaterial attach="material" color='white' side={THREE.DoubleSide} />
 			</a.mesh>
 	*/
+};
+
+const Waves = props => {
+	const { x, y, position } = props;
+	const numParticles = x * y;
+	const separation = 0.1;
+
+	const mesh = useRef();
+	// const ref = useRef({ positions: new Float32Array(numParticles * 3), scales: new Float32Array(numParticles)});
+	// const { size, viewport } = useThree();
+	// const aspect = size.width / viewport.width;
+
+	const dummy = useMemo(() => new THREE.Object3D(), []);
+
+	const setup = () => {
+		const temp = []
+		let _x, _y, _z;
+
+		for (let xIdx = 0; xIdx < x; xIdx++) {
+			for (let yIdx = 0; yIdx < y; yIdx++) {
+				// Calculate cartesians
+				_x = xIdx * separation - (( x * separation ) / 2); // x
+				_y = 0; // y
+				_z = yIdx * separation - (( y * separation ) / 2); // z
+
+				// Update the dummy object
+				dummy.position.set(_x, _y, _z);
+				dummy.scale.set(.01, .01, .01);
+				dummy.updateMatrix()
+
+				// Set this mesh matrix to clone the dummy object
+				mesh.current.setMatrixAt((xIdx * y) + yIdx, dummy.matrix);
+			}
+		};
+
+		// ref.current.positions.fill(0);
+		// ref.current.scales.fill(0.1);
+	};
+
+	// Initalize the point values
+	useEffect(setup, [numParticles]);
+
+	useFrame(() => {
+		if (!mesh.current) {
+			return;
+		}
+		let idx = 0;
+		let cur;
+		let scale;
+		let _x, _y, _z;
+
+		for (let xIdx = 0; xIdx < x; xIdx++) {
+			for (let yIdx = 0; yIdx < y; yIdx++) {
+				// Update the dummy object
+				console.log("cur: ", mesh.current);
+				cur = mesh.current.getMatrixAt(idx, dummy.matrix);
+
+				const cur = dummy.position;
+				console.log("cur position: ", cur);
+				_x = cur.x || 0;
+				_y = Math.sin( ( xIdx + numParticles ) * 0.3 ) * 50 ) + ( Math.sin( ( yIdx + numParticles ) * 0.5 ) * 50;
+				_z = cur.z || 0;
+				dummy.position.set(_x, _y, _z);
+				scale = 
+				dummy.
+				mesh.current.setMatrixAt(idx, dummy.matrix);
+				dummy.updateMatrix()
+				// Set this mesh matrix to clone the dummy object
+
+				// ref.current.scales[idx] = ( Math.sin( ( xIdx + numParticles ) * 0.3 ) + 1 ) * 20 +
+				// 				( Math.sin( ( yIdx + numParticles ) * 0.5 ) + 1 ) * 20;
+
+				idx++;
+			}
+
+		}
+		// mesh.current.rotation.x += 0.005;
+	});
+
+	// Render `numParticles` number of these cloned meshes
+	return (
+		<instancedMesh ref={mesh} args={[null, null, numParticles]} position={position} >
+			<dodecahedronBufferGeometry attach="geometry" args={[1, 0]} />
+			<meshStandardMaterial attach="material" color="#fff" />
+		</instancedMesh>
+	);
 }
+
+const CameraControls = () => {
+  // Get a reference to the Three.js Camera, and the canvas html element.
+  // We need these to setup the OrbitControls class.
+  // https://threejs.org/docs/#examples/en/controls/OrbitControls
+
+  const {
+    camera,
+    gl: { domElement },
+  } = useThree();
+
+  // Ref to the controls, so that we can update them on every frame using useFrame
+  const controls = useRef();
+  useFrame((state) => controls.current.update());
+  return (
+    <orbitControls
+      ref={controls}
+      args={[camera, domElement]}
+      enableZoom={false}
+      maxAzimuthAngle={Math.PI / 4}
+      maxPolarAngle={Math.PI}
+      minAzimuthAngle={-Math.PI / 4}
+      minPolarAngle={0}
+    />
+  );
+};
 
 export const ThreeMap = props => {
 	// const buff = useMemo(() => (<boxBufferGeometry attach="geometry" args={[1, 1, 1]} />), []);
@@ -546,21 +671,21 @@ export const ThreeMap = props => {
 		}
 	}, [isHoriz]);
 
-	//		<div className='seamless-container' style={seamlessStyle}>
-	//			<SplashControls stage={stage} setStage={setStage} />
-	//		</div>
 
-	// }, [stage]);
-
-			// <ambientLight />
-			// <Canvas camera={{fov: 100, position: [0, .5, -2], target: [0, 5.5, 0]}} >
 	return (
 		<React.Fragment>
-			<Canvas camera={{fov: 100, position: [0, 3.5, 0]}} >
+			<div className='seamless-container' style={seamlessStyle}>
+				<SplashControls stage={stage} setStage={setStage} />
+			</div>
+			<Canvas camera={{fov: 100, position: [0, 4, 0]}} >
 				<spotLight position={[-10, 20, 10]} color='#fff' distance={0} penumbra={0.75} castShadow/>
+				<CameraControls />
 				{/* <Swarm count={1000} position={[0, 0, 0]}/> */}
 				{/*<DotPlane rows={40} cols={80} position={[0, -0.9, 1]}/>*/}
 				<Board units={testUnits}  boardSize={[6, 4]} ctrlHover={ctrlHover} />
+				<Waves x={50} y={50} position={[0, 0, 0]} />
+
+
 
 				<Skybox position={[0, 0.5, -2]}/>
 			</Canvas>

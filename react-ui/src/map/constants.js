@@ -104,3 +104,53 @@ export const projTypes = {
     zAxis : Ang2Vec(0) ,
   }
 };
+
+const sqrt3 = Math.sqrt(3);
+
+// This is hacky, but efficient - array of indices of touching circles around a central circle
+// Calculated by hand using isometric triangles to calculate origin vects
+export const ballGridPos = [
+  // First layer, 0-5
+  [2, 0],
+  [1, -sqrt3],
+  [-1, -sqrt3],
+  [-2, 0],
+  [-1, sqrt3],
+  [1, sqrt3],
+
+  // Second layer, 6-17
+  [4, 0],
+  [3, -sqrt3],
+  [2, -2*sqrt3],
+  [0, -2*sqrt3],
+  [-2, -2*sqrt3],
+  [-3, -sqrt3],
+  [-4, 0],
+  [-3, sqrt3],
+  [-2, 2*sqrt3],
+  [0, 2*sqrt3],
+  [2, 2*sqrt3],
+  [3, sqrt3],
+
+  // Third layer, 18-35
+  [6, 0],
+  [5, -sqrt3],
+  [4, -2*sqrt3],
+  [3, -3*sqrt3],
+  [1, -3*sqrt3],
+  [-1, -3*sqrt3],
+  [-3, -3*sqrt3],
+  [-4, -2*sqrt3],
+  [-5, -sqrt3],
+  [-6, 0],
+  [-5, sqrt3],
+  [-4, 2*sqrt3],
+  [-3, 3*sqrt3],
+  [-1, 3*sqrt3],
+  [1, 3*sqrt3],
+  [3, 3*sqrt3],
+  [4, 2*sqrt3],
+  [5, sqrt3],
+];
+
+export const inch = 0.0415;

@@ -1,7 +1,7 @@
 import { AppActions } from './constants';
 
 export const testAction = payload => {
-	console.log('[reducer] TEST_ACTION dispatched');
+	console.debug('[reducer] TEST_ACTION dispatched');
 	return {
 		type: AppActions.TEST_ACTION,
 		payload
@@ -10,7 +10,7 @@ export const testAction = payload => {
 
 // TODO: add "ADD/MOD/DEL" functionality to configPane(), so callers can override a pane completely if they want to
 export const configPane = (name, actionType, config) => {
-	console.log('[reducer] OPEN_PANE dispatched');
+	console.debug('[reducer] OPEN_PANE dispatched');
 	return {
 		type: AppActions.OPEN_PANE,
 		name,
@@ -20,9 +20,25 @@ export const configPane = (name, actionType, config) => {
 };
 
 export const openCanvas = payload => {
-	console.log('[reducer] OPEN_CANVAS dispatched');
+	console.debug('[reducer] OPEN_CANVAS dispatched');
 	return {
 		type: AppActions.OPEN_CANVAS,
+		payload
+	};
+};
+
+export const openContents = payload => {
+	console.debug('[reducer] OPEN_CONTENTS dispatched');
+	return {
+		type: AppActions.OPEN_CONTENTS,
+		payload
+	};
+};
+
+export const setDemoState = payload => {
+	console.debug('[reducer] SET_DEMO_STATE dispatched');
+	return {
+		type: AppActions.SET_DEMO_STATE,
 		payload
 	};
 };

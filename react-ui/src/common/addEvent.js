@@ -1,5 +1,5 @@
 /**
- * FILENAME: dashboard.js
+ * FILENAME: addEvent.js
  *
  * DESCRIPTION: This is the component rendered at the top of the visible tree, just below App.
  * Contains hooks for the sidebar, header bar / menu, heads up status, and main content.
@@ -19,7 +19,6 @@ import { Panes, eventTypeOptions, eventTestSubtypeOptions, eventTypeIconMap, eve
 import { FormBody } from './formCommon';
 
 // Custom
-// import './dashboard.css';
 // TODO for profile form, ask "how many people do you come in contact with inside at work? Outside? What percentage are wearing masks?"
 
 export const AddEventPane = ({ curConfidence, config, key, sendMsg, fetchAt }) => {

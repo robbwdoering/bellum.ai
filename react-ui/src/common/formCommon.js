@@ -1,5 +1,5 @@
 /**
- * FILENAME: dashboard.js
+ * FILENAME: formCommon.js
  *
  * DESCRIPTION: This is the component rendered at the top of the visible tree, just below App.
  * Contains hooks for the sidebar, header bar / menu, heads up status, and main content.

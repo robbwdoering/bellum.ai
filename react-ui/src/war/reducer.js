@@ -13,7 +13,16 @@ const initialState = {
 		stats: [],
 		powers: []
 	},
-	alerts: []
+	alerts: [],
+
+	matchState: {
+		turn: -1,
+		phase: -1,
+		activePlayer: -1,
+		vpCount: [0, 0],
+		cpCount: [0, 0]
+	},
+	matchHash: 0
 };
 
 export const warReducer = (state = initialState, action) => {
@@ -59,6 +68,11 @@ export const warReducer = (state = initialState, action) => {
 			console.log("Setting unset profiles:", action.payload.results);
 			// newState.unset_profile[] = action.payload.results[0].json;
 			// newState.listHash++;
+			return newState;
+
+		case WarActions.SET_MATCH_STATE:
+			Object.assign(newState.matchState, action.payload);
+			newState.matchHash++;
 			return newState;
 
 		default:

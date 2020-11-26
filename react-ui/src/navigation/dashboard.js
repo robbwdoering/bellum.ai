@@ -11,23 +11,23 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { Button, Grid, Header, Tab, Input, Icon, Loading, Menu, Sidebar } from 'semantic-ui-react';
-// import VirtualDraggableGrid from ' react-virtual-draggable-grid';
-// import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-
 
 import { testAction, openCanvas } from './../app/actions';
 import Pane from './../common/pane';
 import AddEventPane from "./../common/addEvent";
-import { Panes, Canvases, initialPaneConfigs } from './../common/constants';
-// import HexMap from './../map/hexMap';
+import { Panes, Canvases, ContentTypes, initialPaneConfigs } from './../common/constants';
 import ThreeMap from './../map/threeMap';
 import Calculator from "./../war/calculator"; 
 import ListManager from "./../war/listManager"; 
 import { UnitDeck, ArmyDetails, ProfileEditor } from "./../war/strategy"; 
-import './dashboard.css';
 
-// Custom
-// import './dashboard.css';
+import { SplashContainer } from "./../contents/Splash";
+// import { ArmyBrowserContainer } from "./../contents/ArmyBrowser";
+// import { UnitDetailsContainer } from "./../contents/UnitDetails";
+import { PreMatchContainer } from "./../contents/PreMatch";
+import { PostMatchContainer } from "./../contents/PostMatch";
+import { MatchContainer } from "./../contents/Match";
+import './dashboard.css';
 
 export class Dashboard extends Component {
 	constructor(props) {
@@ -91,6 +91,41 @@ export class Dashboard extends Component {
     	console.log("[searchContacts]");
     	//TODO - MYT-21
     };
+
+    renderContent = () => {
+    	const { contents } = this.props;
+
+    	switch(contents) {
+			case ContentTypes.Splash:
+				return (
+					<SplashContainer />
+				);
+			// case ContentTypes.ArmyAdd:
+			// 	return (
+			// 		<ArmyAddContainer />
+			// 	);
+			// case ContentTypes.ArmyBrowser:
+			// 	return (
+			// 		<ArmyBrowserContainer />
+			// 	);
+			// case ContentTypes.UnitDetails:
+			// 	return (
+			// 		<UnitDetailsContainer />
+			// 	);
+			case ContentTypes.PreMatch:
+				return (
+					<PreMatchContainer />
+				);
+			case ContentTypes.Match:
+				return (
+					<MatchContainer />
+				);
+			case ContentTypes.PostMatch:
+				return (
+					<PostMatchContainer />
+				);
+		}
+    }
 
     renderCanvas = (curCanvas) => (
 		// <div className='mytine-canvas-container'>
@@ -355,10 +390,13 @@ export class Dashboard extends Component {
 
 				{/* Main Content */}
 				{this.props.hoverItems && Object.keys(this.props.hoverItems).map(key => {
-					console.log("Rendering hover item!", key);
 					return this.props.hoverItems[key];
 				})}
+
     			{this.renderCanvas(curCanvas)}
+
+    			{this.renderContent()}
+
 	    	</div>
 		);
   	};

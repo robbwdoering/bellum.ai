@@ -22,7 +22,6 @@ import { parsePlainText } from "./utils";
 import "./war.css";
 
 // Custom
-// import './dashboard.css';
 // TODO for profile form, ask "how many people do you come in contact with inside at work? Outside? What percentage are wearing masks?"
 
 export const ListManager = props => {

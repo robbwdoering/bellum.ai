@@ -1,9 +1,11 @@
 import { AppActions } from './constants';
-import { Panes, Canvases } from './../common/constants';
+import { Panes, Canvases, ContentTypes } from './../common/constants';
 
 const initialState = {
 	curPanes: {},
-	curCanvas: Canvases.HEX_MAP
+	curCanvas: Canvases.HEX_MAP,
+	curContents: ContentTypes.Splash,
+	demoState: 0
 };
 
 export const appReducer = (state = initialState, action) => {
@@ -38,6 +40,16 @@ export const appReducer = (state = initialState, action) => {
 		case AppActions.OPEN_CANVAS:
 			return Object.assign({}, state, {
 				curCanvas: action.payload || ''
+			});
+
+		case AppActions.OPEN_CONTENT:
+			return Object.assign({}, state, {
+				curContent: action.payload || ''
+			});
+
+		case AppActions.SET_DEMO_STATE:
+			return Object.assign({}, state, {
+				demoState: action.payload
 			});
 	}
 

@@ -11,15 +11,24 @@ export const Panes = {
 	UnitDeck: "Unit Deck",
 	ArmyDetails: "Army Details",
 	ProfileEditor: "Profile Editor"
-}
+};
 
-//  ---------------------------
-//  ------ START CANVASES -----
-//  ---------------------------
+// Include subtypes with double underscores, like TYPE__SUBTYPE
+export const ContentTypes = {
+	Splash: "Splash",
+	ArmyAdd: "ArmyAdd",
+	ArmyBrowser: "ArmyBrowser",
+	UnitDetails: "UnitDetails",
+	PreMatch: "PreMatch",
+	Match: "Match",
+	PostMatch: "PostMatch",
+	Auth: "Auth"
+};
+
 export const Canvases = {
 	HexMap:"HEX_MAP",
 	ThreeMap:"THREE_MAP"
-}
+};
 
 export const initialPaneConfigs = {
 	[Panes.AddEvent]: {size: 'small'},

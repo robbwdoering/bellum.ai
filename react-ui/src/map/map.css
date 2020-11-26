@@ -13,7 +13,8 @@ div.seamless-container {
 }
 
 .seamless-container .button {
-	background-color: #0f4c75 !important;
+	/*background-color: #0f4c75 !important;*/
+	background-color: var(--primaryFive) !important;
 	color: #fff !important;
 }
 

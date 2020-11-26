@@ -16,3 +16,25 @@ code {
 p + p {
   margin-top: 0;
 }
+
+/* THEME COLORS */
+:root {
+  --grayOne: #f7f0f1; /* background */
+  --grayTwo: #bab5b5;
+  --grayThree: #807d7d;
+  --grayFour: #4b4949;
+  --grayFive: #1c1b1b;
+
+  --primaryOne: #2e1013;
+  --primaryTwo: #571f25;
+  --primaryThree: #842e38;
+  /*--primaryFour: #b43f4a;*/
+  --primaryFour: #b54853;
+  --primaryFive: #e6505d;
+
+  --accentOne: #f9f9f9;
+  --accentTwo: #f9f9f9;
+  --accentThree: #f9f9f9;
+  --accentFour: #f9f9f9;
+  --accentFive: #f9f9f9;
+}

@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 // import { faCheckSquare, faChevronCircleRight, faChevronCircleDown } from '@fortawesome/free-solid-svg-icons';
 
 /* Local */
-import Dashboard from './../dashboard/dashboard';
+import Dashboard from './../navigation/dashboard';
 import logo from './logo.svg';
 import { AppActions } from './constants';
 import { testAction, configPane, openCanvas } from './actions';

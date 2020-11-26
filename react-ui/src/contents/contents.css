@@ -1,0 +1,7 @@
+.contents-container {
+	background-color: var(--greyFive);
+}
+
+.contents-container .button {
+	background-color: var(--primaryFive);
+}
