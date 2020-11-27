@@ -527,12 +527,13 @@ const Board = props => {
 };
 
 const Waves = props => {
-	const { x, y, position } = props;
+	const { x, y, position, separation, speed, rotation, totalScale, amplitude } = props;
 	const numParticles = x * y;
-	const separation = 0.1;
 
 	const mesh = useRef();
-	// const ref = useRef({ positions: new Float32Array(numParticles * 3), scales: new Float32Array(numParticles)});
+	const lineRef = useRef();
+	const positions = useRef(null);
+	const count = useRef(0);
 	// const { size, viewport } = useThree();
 	// const aspect = size.width / viewport.width;
 
@@ -541,26 +542,30 @@ const Waves = props => {
 	const setup = () => {
 		const temp = []
 		let _x, _y, _z;
+		let idx = 0;
+
+		positions.current = new Float32Array(numParticles * 3);
 
 		for (let xIdx = 0; xIdx < x; xIdx++) {
 			for (let yIdx = 0; yIdx < y; yIdx++) {
 				// Calculate cartesians
-				_x = xIdx * separation - (( x * separation ) / 2); // x
+				_x = xIdx * separation; // x
 				_y = 0; // y
-				_z = yIdx * separation - (( y * separation ) / 2); // z
+				_z = yIdx * separation; // z
 
 				// Update the dummy object
 				dummy.position.set(_x, _y, _z);
-				dummy.scale.set(.01, .01, .01);
+				dummy.scale.set(totalScale, totalScale, totalScale);
 				dummy.updateMatrix()
+				mesh.current.setMatrixAt(idx, dummy.matrix);
 
 				// Set this mesh matrix to clone the dummy object
-				mesh.current.setMatrixAt((xIdx * y) + yIdx, dummy.matrix);
+				positions.current.set([_x, _y, _z], idx);
+				idx += 3;
 			}
 		};
 
-		// ref.current.positions.fill(0);
-		// ref.current.scales.fill(0.1);
+		console.log(mesh.current, positions.current);
 	};
 
 	// Initalize the point values
@@ -570,44 +575,36 @@ const Waves = props => {
 		if (!mesh.current) {
 			return;
 		}
-		let idx = 0;
-		let cur;
+		let posIdx = 0;
 		let scale;
 		let _x, _y, _z;
 
 		for (let xIdx = 0; xIdx < x; xIdx++) {
 			for (let yIdx = 0; yIdx < y; yIdx++) {
-				// Update the dummy object
-				console.log("cur: ", mesh.current);
-				cur = mesh.current.getMatrixAt(idx, dummy.matrix);
+				_x = positions.current[posIdx];
+				_y = (Math.sin(xIdx + count.current) * 0.3) + Math.sin(yIdx + count.current);
+				_y *= amplitude;
+				_z = positions.current[posIdx + 2];
+				scale = (Math.sin( ( xIdx + count.current ) * 0.5 ) + 1) + ( Math.sin( ( yIdx + count.current ) * 0.5 ) + 1 );
+				scale = (scale * totalScale) + 0.05;
 
-				const cur = dummy.position;
-				console.log("cur position: ", cur);
-				_x = cur.x || 0;
-				_y = Math.sin( ( xIdx + numParticles ) * 0.3 ) * 50 ) + ( Math.sin( ( yIdx + numParticles ) * 0.5 ) * 50;
-				_z = cur.z || 0;
-				dummy.position.set(_x, _y, _z);
-				scale = 
-				dummy.
-				mesh.current.setMatrixAt(idx, dummy.matrix);
-				dummy.updateMatrix()
 				// Set this mesh matrix to clone the dummy object
-
-				// ref.current.scales[idx] = ( Math.sin( ( xIdx + numParticles ) * 0.3 ) + 1 ) * 20 +
-				// 				( Math.sin( ( yIdx + numParticles ) * 0.5 ) + 1 ) * 20;
-
-				idx++;
+				dummy.position.set(_x, _y, _z);
+				dummy.scale.set(scale, scale, scale);
+				dummy.updateMatrix()
+				mesh.current.setMatrixAt((xIdx*y) + yIdx, dummy.matrix);
+				posIdx += 3;
 			}
-
 		}
-		// mesh.current.rotation.x += 0.005;
+
+		count.current = count.current + speed;
+		mesh.current.instanceMatrix.needsUpdate = true;
 	});
 
-	// Render `numParticles` number of these cloned meshes
 	return (
-		<instancedMesh ref={mesh} args={[null, null, numParticles]} position={position} >
-			<dodecahedronBufferGeometry attach="geometry" args={[1, 0]} />
-			<meshStandardMaterial attach="material" color="#fff" />
+		<instancedMesh ref={mesh} args={[null, null, numParticles]} position={position} rotation={rotation}>
+			<sphereBufferGeometry attach="geometry" args={[1, 8, 8]} />
+			<meshStandardMaterial attach="material" color="#3ad0ef" />
 		</instancedMesh>
 	);
 }
@@ -622,9 +619,12 @@ const CameraControls = () => {
     gl: { domElement },
   } = useThree();
 
-  // Ref to the controls, so that we can update them on every frame using useFrame
   const controls = useRef();
-  useFrame((state) => controls.current.update());
+  useFrame(({ gl }) => {
+  	gl.setClearColor(0x080405, 1);
+  	return controls.current.update();
+  });
+
   return (
     <orbitControls
       ref={controls}
@@ -638,20 +638,16 @@ const CameraControls = () => {
   );
 };
 
+/**
+ * Main component.
+ */
 export const ThreeMap = props => {
-	// const buff = useMemo(() => (<boxBufferGeometry attach="geometry" args={[1, 1, 1]} />), []);
-	// const mat = useMemo(() => (<meshBasicMaterial attach="material" color="#05b" transparent={true} opacity={0.50}/>), []);
-			// <pointLight position={[10, 10, 10]} />
-			// <spotLight position={[0, -2, 0]} color="#0f0" distance={0} />
-			// <mesh scale={[3, 0.1, 4.38]} position={[0,-1,1]}>
-			// 	{buff} {mat}
-			// </mesh>
-			// <Plinth position={[0, 0, 2]} />
 	const { ctrlHover } = props;
 
 	const [isActive, setActive] = useState(false);
 	const [isHoriz, setHoriz] = useState(true);
-	const [stage, setStage] = useState('WELCOME');
+	const [stage, setStage] = useState(null);
+	const canvas = useRef();
 
 	const seamlessStyle = useMemo(() => {
 		if (isHoriz) {
@@ -671,40 +667,25 @@ export const ThreeMap = props => {
 		}
 	}, [isHoriz]);
 
+	console.log("canvas: ", canvas.current);
 
 	return (
 		<React.Fragment>
-			<div className='seamless-container' style={seamlessStyle}>
-				<SplashControls stage={stage} setStage={setStage} />
-			</div>
-			<Canvas camera={{fov: 100, position: [0, 4, 0]}} >
-				<spotLight position={[-10, 20, 10]} color='#fff' distance={0} penumbra={0.75} castShadow/>
-				<CameraControls />
+			<Canvas ref={canvas} alpha={0} camera={{fov: 100, position: [0, 4, 0]}} >
+				<spotLight position={[5, 10, 0]} color='#fff' distance={100} penumbra={0.75} decay={2} />
+				<CameraControls ref={canvas}/>
 				{/* <Swarm count={1000} position={[0, 0, 0]}/> */}
 				{/*<DotPlane rows={40} cols={80} position={[0, -0.9, 1]}/>*/}
-				<Board units={testUnits}  boardSize={[6, 4]} ctrlHover={ctrlHover} />
-				<Waves x={50} y={50} position={[0, 0, 0]} />
+				{/*<Board units={testUnits}  boardSize={[6, 4]} ctrlHover={ctrlHover} />*/}
+				<Waves x={128} y={64} position={[-7, 5, -18]} separation={1} rotation={[Math.PI * 0.5, 0.25, Math.PI * 0.5]} speed={0.009} amplitude={1} totalScale={0.1} />
 
-
-
-				<Skybox position={[0, 0.5, -2]}/>
 			</Canvas>
 		</React.Fragment>
 	);
-	        // <fog attach="fog" args={["#00b7c2", 1, 200]} />
-				// <SphereTwo position={[0, 1, 2]} />
-		        // <fog attach="fog" args={["#1b262c", 1, 200]} />
 }
-			// <BoxTwo />
 
 export const mapStateToProps = (state, props) => {
 	return {
-		// gridSize: state.mapReducer.gridSize,
-		// hexRad: state.mapReducer.hexRad,
-		// oceans: state.mapReducer.oceans,
-	 //    data: state.mapReducer.data,
-	 //    oceanHash: state.mapReducer.oceanHash,
-	 //    dataHash: state.mapReducer.dataHash
 	};
 };
 

@@ -4,6 +4,21 @@
 	background-color: #0c0c0c;
 }
 
+.dashboard .ui.db-header.menu {
+	background: transparent !important;
+	position: fixed;
+	top: 0;
+	left: 0;
+	border: none !important;
+	box-shadow: none !important;
+	width: 100%;
+}
+
+.dashboard .ui.db-header.menu .item {
+	border: none !important;
+	box-shadow: none !important;
+}
+
 div.ui.overlay.top.visible.sidebar.db-sidebar {
 	height: 25rem;
 	margin-left: 4rem;

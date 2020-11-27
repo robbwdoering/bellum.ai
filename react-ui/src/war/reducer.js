@@ -22,7 +22,12 @@ const initialState = {
 		vpCount: [0, 0],
 		cpCount: [0, 0]
 	},
-	matchHash: 0
+	matchHash: 0,
+	prematchData: {
+		primary: {},
+		secondary: {},
+		isPrimary: {}
+	}
 };
 
 export const warReducer = (state = initialState, action) => {

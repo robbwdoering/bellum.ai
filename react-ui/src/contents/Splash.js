@@ -22,17 +22,20 @@ export const Splash = props => {
 	};
 
 	const openDemo = e => {
-		setDemoState(1);
-		openContents(ContentTypes.ArmyAdd);
+		setDemoState({ step: 1});
+		openContents(ContentTypes.DemoTransition);
 	};
 
 	return (
-		<div className="contents-container">
+		<React.Fragment>
+			<h3> Welcome to Bellum.ai </h3>
+			<span> Your path to faster + more effective Warhammer 40,000 play. </span>
+			<br/>
 			<Button.Group>
 				<Button onClick={signUp} className="primaryButton"> Sign Up </Button>
 				<Button onClick={openDemo} className="primaryButton"> See A Demo </Button>
 			</Button.Group>
-		</div>
+		</React.Fragment>
 	);
 }
 

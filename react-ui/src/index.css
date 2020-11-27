@@ -17,13 +17,65 @@ p + p {
   margin-top: 0;
 }
 
+h3 {
+  color: var(--primaryOne);
+}
+
+span {
+  color: var(--primaryOne);
+}
+
+button.ui.button {
+  background-color: var(--primaryFive);
+  color: #fff;
+}
+
+button.ui.button.primaryButton {
+  padding:  0.75rem 1.5rem;
+}
+
+.ui.buttons .button.ui.button {
+  border: 2px solid #fff !important;
+  border-width: 0 2px 0 2px !important;
+}
+
+.steps.neu {
+  border: 1px solid var(--primaryFour);
+}
+
+.steps.neu div.step {
+  background-color: var(--greyTwo);
+}
+
+.steps.neu div.step.complete {
+  background-color: var(--goodTwo);
+}
+
+.neu .dropdown.icon {
+   /*box-shadow: 2px 2px 5px #b8b9be, -3px -3px 7px #eee;*/
+
+}
+
+.neu .dropdown.button.floating {
+  box-shadow: 2px 2px 5px #b8b9be, -3px -3px 7px #eee !important;
+  background-color: var(--greyOne) !important;
+  vertical-align: middle;
+}
+
+.neu .dropdown.button.floating .text {
+  padding: 0.75rem 0 0 1rem;
+}
+
 /* THEME COLORS */
 :root {
-  --grayOne: #f7f0f1; /* background */
-  --grayTwo: #bab5b5;
-  --grayThree: #807d7d;
-  --grayFour: #4b4949;
-  --grayFive: #1c1b1b;
+  --greyOne: #f7f0f1; /* background */
+  --greyTwo: #d8d2d3;
+  --greyTwo: #c9c3c4;
+  --greyThree: #bab5b5;
+  --greyFour: #807d7d;
+  --greyFive: #4b4949;
+  --greySix: #1c1b1b;
+  --greySeven: #080405;
 
   --primaryOne: #2e1013;
   --primaryTwo: #571f25;
@@ -36,5 +88,12 @@ p + p {
   --accentTwo: #f9f9f9;
   --accentThree: #f9f9f9;
   --accentFour: #f9f9f9;
-  --accentFive: #f9f9f9;
+  --accentFive: #3ad0ef;
+
+
+  --goodOne: #e3fcec;
+  --goodTwo: #a8eec1;
+  --goodThree: #249d57;
+  --goodFour: #187741;
+  --goodFive: #155239;
 }

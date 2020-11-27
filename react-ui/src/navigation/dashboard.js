@@ -15,18 +15,13 @@ import { Button, Grid, Header, Tab, Input, Icon, Loading, Menu, Sidebar } from '
 import { testAction, openCanvas } from './../app/actions';
 import Pane from './../common/pane';
 import AddEventPane from "./../common/addEvent";
-import { Panes, Canvases, ContentTypes, initialPaneConfigs } from './../common/constants';
+import { Panes, Canvases, ContentTypes, contentStyles, initialPaneConfigs } from './../common/constants';
 import ThreeMap from './../map/threeMap';
 import Calculator from "./../war/calculator"; 
 import ListManager from "./../war/listManager"; 
 import { UnitDeck, ArmyDetails, ProfileEditor } from "./../war/strategy"; 
 
-import { SplashContainer } from "./../contents/Splash";
-// import { ArmyBrowserContainer } from "./../contents/ArmyBrowser";
-// import { UnitDetailsContainer } from "./../contents/UnitDetails";
-import { PreMatchContainer } from "./../contents/PreMatch";
-import { PostMatchContainer } from "./../contents/PostMatch";
-import { MatchContainer } from "./../contents/Match";
+import { ContentContainer } from "./../contents/Content";
 import './dashboard.css';
 
 export class Dashboard extends Component {
@@ -43,6 +38,8 @@ export class Dashboard extends Component {
 			canvasY: 0,
 			selectedMain: 0 
 		};
+
+		this.dbRef = React.createRef();
 	};
 
     sendReduxTest = () => {
@@ -91,41 +88,6 @@ export class Dashboard extends Component {
     	console.log("[searchContacts]");
     	//TODO - MYT-21
     };
-
-    renderContent = () => {
-    	const { contents } = this.props;
-
-    	switch(contents) {
-			case ContentTypes.Splash:
-				return (
-					<SplashContainer />
-				);
-			// case ContentTypes.ArmyAdd:
-			// 	return (
-			// 		<ArmyAddContainer />
-			// 	);
-			// case ContentTypes.ArmyBrowser:
-			// 	return (
-			// 		<ArmyBrowserContainer />
-			// 	);
-			// case ContentTypes.UnitDetails:
-			// 	return (
-			// 		<UnitDetailsContainer />
-			// 	);
-			case ContentTypes.PreMatch:
-				return (
-					<PreMatchContainer />
-				);
-			case ContentTypes.Match:
-				return (
-					<MatchContainer />
-				);
-			case ContentTypes.PostMatch:
-				return (
-					<PostMatchContainer />
-				);
-		}
-    }
 
     renderCanvas = (curCanvas) => (
 		// <div className='mytine-canvas-container'>
@@ -260,7 +222,7 @@ export class Dashboard extends Component {
 
   	render() {
 	  	const { showSidebar, showLogin, user, pass, curPanes, curCanvas, selectedMain } = this.state;
-	  	const { testsReceived, fetchAt, sendMsg } = this.props;
+	  	const { testsReceived, fetchAt, sendMsg, curContent } = this.props;
 	  	console.log("[db|render]", curPanes, this.props.hoverItems)
 
 	  	const mainPanels = [], sidePanels = [];
@@ -293,7 +255,7 @@ export class Dashboard extends Component {
 		}));
 
 	    return (
-	    	<div className="dashboard">
+	    	<div className="dashboard" ref={this.dbRef}>
 				<Menu
 					className='db-header'
 					style={{zIndex: '1000'}}
@@ -395,7 +357,7 @@ export class Dashboard extends Component {
 
     			{this.renderCanvas(curCanvas)}
 
-    			{this.renderContent()}
+    			<ContentContainer windowCtx={this.dbRef.current} />
 
 	    	</div>
 		);
@@ -406,8 +368,10 @@ export const mapStateToProps = (state, props) => {
   return {
     testsReceived: state.appReducer.testsReceived,
     curCanvas: state.appReducer.curCanvas,
+    curContent: state.appReducer.curContent,
     hoverItems: state.mapReducer.hoverItems,
-    hoverHash: state.mapReducer.hoverHash
+    hoverHash: state.mapReducer.hoverHash,
+    demoState: state.appReducer.demoState
   };
 };
 

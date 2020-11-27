@@ -4,8 +4,11 @@ import { Panes, Canvases, ContentTypes } from './../common/constants';
 const initialState = {
 	curPanes: {},
 	curCanvas: Canvases.HEX_MAP,
-	curContents: ContentTypes.Splash,
-	demoState: 0
+	curContent: ContentTypes.Splash,
+	demoState: {
+		step: -1,
+		knowldege: 1
+	}
 };
 
 export const appReducer = (state = initialState, action) => {
@@ -43,13 +46,14 @@ export const appReducer = (state = initialState, action) => {
 			});
 
 		case AppActions.OPEN_CONTENT:
+			console.log("setting content", action.payload);
 			return Object.assign({}, state, {
 				curContent: action.payload || ''
 			});
 
 		case AppActions.SET_DEMO_STATE:
 			return Object.assign({}, state, {
-				demoState: action.payload
+				demoState: Object.assign({}, state.demoState, action.payload)
 			});
 	}
 

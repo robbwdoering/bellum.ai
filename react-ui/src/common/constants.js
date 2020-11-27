@@ -16,14 +16,27 @@ export const Panes = {
 // Include subtypes with double underscores, like TYPE__SUBTYPE
 export const ContentTypes = {
 	Splash: "Splash",
-	ArmyAdd: "ArmyAdd",
-	ArmyBrowser: "ArmyBrowser",
-	UnitDetails: "UnitDetails",
 	PreMatch: "PreMatch",
 	Match: "Match",
 	PostMatch: "PostMatch",
+	DemoTransition: "DemoTransition",
 	Auth: "Auth"
 };
+
+export const contentStyles = {
+	full_horiz: {
+		bottom: "20px",
+		left: "20px"
+	},
+	full_vert: {
+		top: "5rem",
+		right: "20px"
+	},
+	popup: {
+		top: "70%",
+		left: "55%"
+	}
+}
 
 export const Canvases = {
 	HexMap:"HEX_MAP",

@@ -30,7 +30,7 @@ export const openCanvas = payload => {
 export const openContents = payload => {
 	console.debug('[reducer] OPEN_CONTENTS dispatched');
 	return {
-		type: AppActions.OPEN_CONTENTS,
+		type: AppActions.OPEN_CONTENT,
 		payload
 	};
 };

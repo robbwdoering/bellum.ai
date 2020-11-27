@@ -1,7 +1,53 @@
 .contents-container {
-	background-color: var(--greyFive);
+	background-color: var(--greyOne);
+	background: ;
+	position: absolute;
+	width: auto;
+	padding: 1rem;
+	border-radius: 5px;
+	text-align: left;
+}
+
+.contents-container.splash h3 {
+	margin: 0;	
+}
+
+.contents-container div.ui.buttons {
+	margin-top: 1rem;
 }
 
 .contents-container .button {
 	background-color: var(--primaryFive);
 }
+
+.contents-container .prematch-launch-conditions {
+}
+
+.contents-container .horiz-button-container {
+	position: absolute;
+	right: 0;
+	top: -3rem;
+	height: 3rem !important;
+}
+
+.contents-container .telemetry-comp-container {
+	float: right;
+	height: 100%;
+}
+
+.telemetry-comp-container div.scrollable-box  {
+	overflow-y: auto;
+}
+
+.scrollable-box .telem-item {
+	box-shadow: 3px 3px 6px #b8b9be, -3px -3px 6px #fff;
+	margin-bottom: 0.5rem;
+	border: 1px solid var(--greyThree);
+	border-radius: 3px;
+	padding: 0 0.25rem;
+}
+/*
+.contents-container .horiz-button-container .button:not(.disabled):after {
+	border-color: var(--primaryFive)
+}
+*/
