@@ -28,8 +28,8 @@ div.ui.overlay.top.visible.sidebar.db-sidebar {
 }
 
 .db-sidebar .myt-pane.db-sidebar-menu {
-	float: left;
-	margin-left: 3rem !important;
+	float: right;
+	margin-right: 3rem !important;
 }
 
 .db-sidebar .myt-pane {

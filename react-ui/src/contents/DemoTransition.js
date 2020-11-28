@@ -10,19 +10,25 @@ import { connect } from 'react-redux';
 import { Button, Grid, Header, Tab, Input, Icon, Loading, Menu, Sidebar } from 'semantic-ui-react';
 
 import { testAction, openCanvas, openContents, setDemoState } from './../app/actions';
+import { setTestData } from "./../war/actions";
 import Pane from './../common/pane';
 import { ContentTypes } from './../common/constants';
 import './contents.css';
 
 export const DemoTransition = props => {
-	const { openContents, setDemoState, demoState } = props;
+	const { sendMsg, openContents, setDemoState, demoState } = props;
 
 	const signUp = e => {
 		openContents(ContentTypes.Auth);
 	};
 
 	const handleKnowledgeSelect = (e, { key }) => {
+		// Advance the demo, and remember their answer here
 		setDemoState({ step: 2, knowledge: key})
+
+		// Request test info
+		// setTestData();
+
 		openContents(ContentTypes.PreMatch);
 	};
 
@@ -38,8 +44,8 @@ export const DemoTransition = props => {
 					<h3> Before we go too far... </h3>
 					<span> How familiar are you with miniature wargames? </span>
 					<br />
-					<Button.Group className="neu"> 
-						<Button key={0} onClick={handleKnowledgeSelect} className="primaryButton"> Very Little </Button>
+					<Button.Group className="bot-right-container neu"> 
+						<Button key={0} onClick={handleKnowledgeSelect} className="primaryButton"> I'm not </Button>
 						<Button key={1} onClick={handleKnowledgeSelect} className="primaryButton"> I know the basics </Button>
 						<Button key={2} onClick={handleKnowledgeSelect} className="primaryButton"> There Is Only War </Button>
 					</Button.Group>
@@ -55,4 +61,4 @@ export const mapStateToProps = (state, props) => {
   };
 };
 
-export const DemoTransitionContainer = connect(mapStateToProps, { setDemoState, openContents })(DemoTransition);
+export const DemoTransitionContainer = connect(mapStateToProps, { setDemoState, openContents, setTestData })(DemoTransition);

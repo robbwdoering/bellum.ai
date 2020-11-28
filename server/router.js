@@ -37,7 +37,18 @@ class MytRouter {
 		 * Fetch Metalist
 		 * Gets the metalist for this user, returning all of that user's lists. NOTE: Does not return actual list contents, just header info for each.
 		 */
-		app.get('/api/db/war/metalist/:userId', async (req, res) => {
+		app.get('/api/calc/chartData/:listId/:chartName', async (req, res) => {
+			console.log("Fetching metalist.");
+
+			let results = await queryDB(pool, "SELECT (name, points, faction, rating, id) from war_list WHERE userId = " + req.params.userId + ";");
+			sendMsg(res, {type: "SET_METALIST", payload: results});
+		});
+
+		/**
+		 * Fetch Metalist
+		 * Gets the metalist for this user, returning all of that user's lists. NOTE: Does not return actual list contents, just header info for each.
+		 */
+		app.get('/api/stats/war/metalist/:userId', async (req, res) => {
 			console.log("Fetching metalist.");
 
 			let results = await queryDB(pool, "SELECT (name, points, faction, rating, id) from war_list WHERE userId = " + req.params.userId + ";");

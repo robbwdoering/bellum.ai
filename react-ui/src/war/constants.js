@@ -10,7 +10,10 @@ export const WarActions = {
 	SET_PRIMARY_LIST: "SET_PRIMARY_LIST",
 	SET_SECONDARY_LIST: "SET_SECONDARY_LIST",
 	SET_METALIST: "SET_METALIST",
-	SET_UNSET_PROFILES: "SET_UNSET_PROFILES"
+	SET_UNSET_PROFILES: "SET_UNSET_PROFILES",
+	SET_CHART_DATA: "SET_CHART_DATA",
+	REQUEST_CHART_REFRESH: "REQUEST_CHART_REFRESH",
+	SET_TEST_DATA: "SET_TEST_DATA",
 };
 
 export const regex = {
@@ -29,4 +32,7 @@ export const regex = {
 	profilePsyker: /^\. .+: Cast:/g,
 	profileEffect: /^\. .+: Effect:/g,
 	profileWoundTrack: /^\. .+: Remaining W:/g,
-}
+};
+
+export const demoData = {
+};

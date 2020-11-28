@@ -32,6 +32,15 @@ button.ui.button {
 
 button.ui.button.primaryButton {
   padding:  0.75rem 1.5rem;
+  font-size: 1.25rem;
+}
+
+span.subtitle {
+  margin-top: -1rem;
+}
+
+.ui.menu .item {
+  transition: none !important;
 }
 
 .ui.buttons .button.ui.button {
@@ -53,22 +62,79 @@ button.ui.button.primaryButton {
 
 .neu .dropdown.icon {
    /*box-shadow: 2px 2px 5px #b8b9be, -3px -3px 7px #eee;*/
-
 }
 
-.neu .dropdown.button.floating {
+div.custom-icon {
+  background-size: contain;
+}
+
+div.custom-icon.large {
+  width: 50px;
+  height: 50px;
+}
+
+div.custom-icon.logo {
+  background-image: url('/bellum_logo.png');
+}
+
+div.custom-icon.fight {
+  background-image: url('/fight.png');
+}
+div.custom-icon.fight.primary {
+  background-image: url('/fight_primary.png');
+}
+div.custom-icon.fight.secondary {
+  background-image: url('/fight_secondary.png');
+}
+
+div.custom-icon.shoot {
+  background-image: url('/shoot.png');
+}
+div.custom-icon.shoot.primary {
+  background-image: url('/shoot_primary.png');
+}
+div.custom-icon.shoot.secondary {
+  background-image: url('/shoot_secondary.png');
+}
+
+div.custom-icon.vuln {
+  background-image: url('/vuln.png');
+}
+div.custom-icon.vuln.primary {
+  background-image: url('/vuln_primary.png');
+}
+div.custom-icon.vuln.secondary {
+  background-image: url('/vuln_secondary.png');
+}
+
+div.custom-icon.control {
+  background-image: url('/control.png');
+}
+div.custom-icon.control.primary {
+  background-image: url('/control_primary.png');
+}
+div.custom-icon.control.secondary {
+  background-image: url('/control_secondary.png');
+  background-position:  
+}
+
+.neu.dropdown.button.floating {
   box-shadow: 2px 2px 5px #b8b9be, -3px -3px 7px #eee !important;
   background-color: var(--greyOne) !important;
   vertical-align: middle;
 }
 
-.neu .dropdown.button.floating .text {
+.neu.dropdown.button.floating .text {
   padding: 0.75rem 0 0 1rem;
+}
+
+.horizontal.divider:after {
+  display: none !important;
 }
 
 /* THEME COLORS */
 :root {
-  --greyOne: #f7f0f1; /* background */
+  --greyOne: #f7f3f3; /* background */
   --greyTwo: #d8d2d3;
   --greyTwo: #c9c3c4;
   --greyThree: #bab5b5;

@@ -1,4 +1,4 @@
-import { WarActions, regex } from "./constants";
+import { WarActions, regex, demoData } from "./constants";
 
 const initialState = {
 	metalist: [],
@@ -27,7 +27,10 @@ const initialState = {
 		primary: {},
 		secondary: {},
 		isPrimary: {}
-	}
+	},
+	chartData: {},
+	chartHash: 0,
+	chartQueue: []
 };
 
 export const warReducer = (state = initialState, action) => {
@@ -44,12 +47,14 @@ export const warReducer = (state = initialState, action) => {
 			newState.primaryProfile = action.payload.profile;
 			newState.listHash++;
 			return newState;
+
 		case WarActions.SET_SECONDARY_LIST:
 			console.log("Setting secondary list: ", action.payload.results);
 			newState.secondaryList = action.payload.results;
 			newState.secondaryProfile = action.payload.profile;
 			newState.listHash++;
 			return newState;
+
 		case WarActions.SET_METALIST:
 			console.log("Metalist received: ", action.payload);
 			if (!action.payload || !action.payload.results || action.payload.results.length === 0) {
@@ -78,6 +83,24 @@ export const warReducer = (state = initialState, action) => {
 		case WarActions.SET_MATCH_STATE:
 			Object.assign(newState.matchState, action.payload);
 			newState.matchHash++;
+			return newState;
+
+		case WarActions.SET_CHART_DATA:
+			Object.assign(newState.chartData, action.payload);
+			newState.chartHash++;
+			return newState;
+
+		case WarActions.REQUEST_CHART_REFRESH:
+			newState.chartQueue.push(action.payload);
+			return newState;
+
+		case WarActions.CLEAR_CHART_QUEUE:
+			newState.chartQueue = [];
+			return newState;
+
+		case WarActions.SET_TEST_DATA:
+			Object.assign(newState, demoData);
+			newState.metalistHash++;
 			return newState;
 
 		default:

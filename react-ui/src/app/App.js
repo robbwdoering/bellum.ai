@@ -80,6 +80,7 @@ const App = ({ testAction, configPane, openCanvas, modifyProfile, setPaneProfile
 					case WarActions.SET_SECONDARY_LIST:
 					case WarActions.SET_METALIST:
 					case WarActions.SET_UNSET_PROFILES:
+					case WarActions.SET_CHART_DATA:
 						processWarAction(json.type, json.payload);
 						break;
 					case 'DB_ACTION':

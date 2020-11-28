@@ -10,6 +10,7 @@
 // React + Redux
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
+import { withAuth0 } from '@auth0/auth0-react';
 import { Button, Grid, Header, Tab, Input, Icon, Loading, Menu, Sidebar } from 'semantic-ui-react';
 
 import { testAction, openCanvas } from './../app/actions';
@@ -121,50 +122,15 @@ export class Dashboard extends Component {
 			vertical={vertical}
 			fluid={vertical}
 		>
-			<Menu.Item name='update'>
-				{/* TODO: Change this to be a dropdown multiselect once the contacts packages is up */}
-				<Input 
-					name='contactSearchVal'
-					placeholder='Search Contacts...'
-					onChange={this.handleChange}
-					fluid
-					action={{
-						icon: 'search'
-					}}
-				/>
+			<Menu.Item> <h2> MainPanels </h2> </Menu.Item>
+
+			<Menu.Item as='a' onClick={() => this.props.openContent(ContentTypes.ForceRoster)}>
+				Force Roster	
 			</Menu.Item>
 
-			<Menu.Item> <h2> Main Window </h2> </Menu.Item>
-
-			<Menu.Item as='a' onClick={() => {
-				this.configPane([Panes.UnitDeck, Panes.ArmyDetails], "ADD", [initialPaneConfigs[Panes.UnitDeck], initialPaneConfigs[Panes.ArmyDetails]]);
-			}}
-			>
-				Strategic Overview
+			<Menu.Item as='a' onClick={() => this.props.auth0.logout({ returnTo: window.location.origin })}>
+				Logout
 			</Menu.Item>
-
-			<Menu.Item as='a' onClick={() => this.togglePane(Panes.ArmyDetails)}>
-				Army Details	
-			</Menu.Item>
-
-			<Menu.Item as='a' onClick={() => this.togglePane(Panes.ProfileEditor)}>
-				Profile Editor	
-			</Menu.Item>
-
-			<Menu.Item as='a' onClick={() => this.togglePane(Panes.ListManager)}>
-				List Manager
-			</Menu.Item>
-
-			<Menu.Item> <h2> Utilities </h2> </Menu.Item>
-
-			<Menu.Item as='a' onClick={() => this.togglePane(Panes.UnitDeck)}>
-				Unit Deck	
-			</Menu.Item>
-
-			<Menu.Item as='a' onClick={() => this.togglePane(Panes.Calculator)}>
-				Calculator
-			</Menu.Item>
-
 		</Menu>
     );
 
@@ -260,57 +226,20 @@ export class Dashboard extends Component {
 					className='db-header'
 					style={{zIndex: '1000'}}
 				>
-					<Menu.Item name='showSidebar'>
+					<Menu.Item position="left">
+						<div className="custom-icon logo large" />
+					</Menu.Item>
+
+					<Menu.Item className="header-item" name='showSidebar' position="right">
 						<Button
 	    					icon
 	    					circular
 	    					onClick={() => this.setState({showSidebar: !showSidebar}) }
 						>
-		    				<Icon name={'chevron ' + (showSidebar ? 'down' : 'right')} />
+		    				<Icon name={'chevron ' + (showSidebar ? 'down' : 'left')} />
 						</Button>
 						{!showSidebar && false && (this.renderSidebarMenu(false))}
 					</Menu.Item>
-					<Menu.Menu position='right'>
-						{showLogin && (
-							<Menu.Item name='login-form'>
-								<Input
-									label='Username'
-									name='user'
-									placeholder='anthony.fauci'
-									onChange={this.handleChange}
-								/>
-								<Input
-									label='Password'
-									name='pass'
-									placeholder='i_<3_m4sks'
-									value={'*'.repeat(pass.length)}
-									onChange={this.handleChange}
-								/>
-							</Menu.Item>
-						)}
-						<Menu.Item name='login-button' className='db-header-login'>
-							<Button
-		    					onClick={this.login}
-							>
-								Login
-							</Button>
-						</Menu.Item>
-						<Menu.Item name='login'>
-							<Button
-		    					onClick={this.openUserGuide}
-							>
-								Getting Started	
-							</Button>
-						</Menu.Item>
-						<Menu.Item name='login'>
-							<Button
-		    					icon
-		    					onClick={() => this.setState({showSidebar: !showSidebar}) }
-							>
-			    				<Icon name='setting' />
-							</Button>
-						</Menu.Item>
-					</Menu.Menu>
 				</Menu>
 
 				{/* Sidebar menu that overlays on the app */}
@@ -357,7 +286,7 @@ export class Dashboard extends Component {
 
     			{this.renderCanvas(curCanvas)}
 
-    			<ContentContainer windowCtx={this.dbRef.current} />
+    			<ContentContainer sendMsg={this.props.sendMsg} windowCtx={this.dbRef.current} />
 
 	    	</div>
 		);
@@ -375,4 +304,4 @@ export const mapStateToProps = (state, props) => {
   };
 };
 
-export default connect(mapStateToProps, { testAction, openCanvas })(Dashboard);
+export default withAuth0(connect(mapStateToProps, { testAction, openCanvas })(Dashboard));

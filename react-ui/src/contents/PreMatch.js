@@ -5,15 +5,21 @@
  */
 
 // React + Redux
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { connect } from 'react-redux';
-import { Button, Grid, Step, Dropdown, Header, Tab, Input, Icon, Loading, Menu, Sidebar } from 'semantic-ui-react';
+import { Button, Grid, Step, Divider, Dropdown, Header, Tab, Input, Icon, Loading, Menu, Sidebar } from 'semantic-ui-react';
 
 import { openContents, setDemoState } from './../app/actions';
 import Pane from './../common/pane';
 import { ContentTypes } from './../common/constants';
 import { BarChart } from './../stats/BarChart';
+import { ForceCard } from './../stats/ForceCard';
+import { ChartCard } from './../stats/ChartCard';
+import { statCategories, mainCategoryNames } from './../stats/constants';
 import './contents.css';
+
+const minChartSize = 300;
+const maxChartSize = 600;
 
 export const PreMatch = props => {
 	const {
@@ -25,7 +31,8 @@ export const PreMatch = props => {
 		// Parent
 		key,
 		name,
-		windowCtx,
+		height,
+		width,
 
 		// Redux
 		metalist,
@@ -38,6 +45,9 @@ export const PreMatch = props => {
 		// Dispatched Actions
 		openContents
 	} = props;
+
+	const ref = useRef(); 
+	const [activeCategory, setActiveCategory] = useState("shoot");
 
 	const filterPrimaryList = () => {
 		return metalist.map(e => ({ text: e.name, value: e.name }));
@@ -66,58 +76,40 @@ export const PreMatch = props => {
 		openContents(ContentTypes.Match);
 	}
 
-	const renderTelemComp = (title, name) => {
-		return (
-			<div className="telem-item">
-				<div className="telem-title">
-					{title}	
-				</div>
-				<div className={`telem-primary${prematchData.isPrimary[name] ? " active" : ""}`}>
-					{prematchData.primary[name]}
-				</div>
-				<div className={`telem-secondary${prematchData.isPrimary[name] ? "" : " active"}`}>
-					{prematchData.secondary[name]}
-				</div>
-			</div>
-		);
-	}
+	const renderCategory = categoryName => ({
+		menuItem: (
+			<Menu.Item as="div" className="tab-menu-item">
+				<div className={"custom-icon large " + categoryName + (activeCategory === categoryName ? " primary" : "")} />
+				<span> {statCategories[categoryName].title} </span>
+			</Menu.Item>
+		),
+		render: () => statCategories[categoryName].charts.map(chartName => <ChartCard name={chartName} />)
+	});
 
 	const primaryOptions = useMemo(filterPrimaryList, [listHash])
 	const secondaryOptions = useMemo(filterSecondaryList, [listHash])
 	const isEngaged = useMemo(() => primaryList !== null && secondaryList !== null, [listHash])
-	const height = useMemo(() => windowCtx ? ((((windowCtx.clientHeight * 0.95) / 2) - 100) + "px"): "80%", [ windowCtx && windowCtx.clientHeight]);
+	const panes = useMemo(() => mainCategoryNames.map(categoryName => renderCategory(categoryName)), [activeCategory]);
+
+	const cardStyle = useMemo(() => ({
+		width: "100%",
+		height: Math.min(Math.max(height * 0.4, 100), 400)
+	}), [ height, width ]);
 
 	return (
 		<React.Fragment>
-			<div className="horiz-button-container">
-				<Button className="primaryButton" disabled={!isEngaged} onClick={startMatch} > Start Match </Button>
+			<div className="bot-right-container">
+				<Button className="prematch-start primaryButton" disabled={!isEngaged} onClick={startMatch} > Start Match </Button>
 			</div>
 
+			<Divider horizontal> <h2>Forces</h2> </Divider>
 			<Grid>
-				<Grid.Row>
-					<Grid.Column>
-						<BarChart data={[
-							{ a: 4, b: 2},
-							{ a: 2, b: 3},
-							{ a: 12, b: 10},
-							{ a: 3, b: 9},
-							{ a: 15, b: 8},
-							{ a: 6, b: 3}
-						]} />
-					</Grid.Column>
-				</Grid.Row>
-				<Grid.Row>
-				</Grid.Row>
-			</Grid>
-
-			{/* Stats */}
-			{/* Compared Telemetry */}
-			<div className="telemetry-comp-container">
-				<Step.Group className="prematch-launch-conditions neu">
-	 				<Step>
+				<Grid.Row className="prematch-header-row" centered>
+					<Grid.Column width={8}>
 	 					<Dropdown
 	 						labeled
 	 						text="First Force..."
+	 						className="neu"
 	 						button
 	 						options={primaryOptions}
 	 						selection
@@ -127,12 +119,12 @@ export const PreMatch = props => {
 	 						value={primaryList ? primaryList.name : undefined}
 	 						onChange={handleArmySelection}
 	 					/>
-	 				</Step>
-
-	 				<Step>
+					</Grid.Column>
+					<Grid.Column width={8}>
 	 					<Dropdown 
 	 						labeled
 	 						text="Second Force..."
+	 						className="neu"
 	 						button
 	 						options={secondaryOptions}
 	 						selection
@@ -143,21 +135,24 @@ export const PreMatch = props => {
 	 						disabled={primaryList === null}
 	 						onChange={handleArmySelection}
 	 					/>
-	 				</Step>
-				</Step.Group>
-				<div className="scrollable-box" style={{height}}>
-					{renderTelemComp("Speed", "speed" )}
-					{renderTelemComp("Weapon Skill", "ws")}
-					{renderTelemComp("Ballistic Skill", "bs")}
-					{renderTelemComp("Strength", "strength")}
-					{renderTelemComp("Toughness", "toughness")}
-					{renderTelemComp("Wounds", "wounds")}
-					{renderTelemComp("Attacks", "attacks")}
-					{renderTelemComp("Saves", "saves")}
-					{renderTelemComp("Range", "range")}
-					{renderTelemComp("AP", "ap")}
-				</div>
-			</div>
+					</Grid.Column>
+				</Grid.Row>
+
+				<Grid.Row className="prematch-force-row" centered>
+					<Grid.Column width={8}>
+						<ForceCard key={"primary-force-card"} style={cardStyle} force={primaryList} />
+					</Grid.Column>
+					<Grid.Column width={8}>
+						<ForceCard key={"primary-force-card"} style={cardStyle} force={secondaryList} />
+					</Grid.Column>
+				</Grid.Row>
+
+					<Divider horizontal> <h2>Analysis</h2> </Divider>
+
+				<Grid.Row>
+					<Tab menu={{secondary: true }} panes={panes} onTabChange={(e, { activeIndex }) => {console.log("tab changed!"); setActiveCategory(mainCategoryNames[activeIndex])}} />
+				</Grid.Row>
+			</Grid>
  		</React.Fragment>
 	);
 }

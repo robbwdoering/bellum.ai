@@ -3,13 +3,22 @@
 	background: ;
 	position: absolute;
 	width: auto;
-	padding: 1rem;
+	padding: 1rem !important;
 	border-radius: 5px;
 	text-align: left;
+	overflow: auto;
 }
 
-.contents-container.splash h3 {
+.contents-container > .grid {
+	margin: 0 !important;
+}
+
+.contents-container.Splash h2 {
 	margin: 0;	
+}
+
+.contents-container.Splash ul {
+	margin-top: 0.5rem !important;	
 }
 
 .contents-container div.ui.buttons {
@@ -20,9 +29,6 @@
 	background-color: var(--primaryFive);
 }
 
-.contents-container .prematch-launch-conditions {
-}
-
 .contents-container .horiz-button-container {
 	position: absolute;
 	right: 0;
@@ -30,9 +36,14 @@
 	height: 3rem !important;
 }
 
+.contents-container .bot-right-container {
+	position: absolute;
+	bottom: 1rem;
+	right: 1rem;
+}
+
 .contents-container .telemetry-comp-container {
-	float: right;
-	height: 100%;
+	width: 100%;
 }
 
 .telemetry-comp-container div.scrollable-box  {
@@ -40,12 +51,69 @@
 }
 
 .scrollable-box .telem-item {
-	box-shadow: 3px 3px 6px #b8b9be, -3px -3px 6px #fff;
+	box-shadow: 4px 4px 8px #b8b9be, -4px -4px 8px #fff;
 	margin-bottom: 0.5rem;
 	border: 1px solid var(--greyThree);
 	border-radius: 3px;
 	padding: 0 0.25rem;
 }
+
+.contents-container svg.bar-chart-container {
+	box-shadow: 4px 4px 8px #b8b9be, -4px -4px 8px #fff;
+}
+
+.contents-container.PreMatch .ui.menu  {
+	text-align: center !important;
+}
+
+.ui.menu div.tab-menu-item  {
+	vertical-align: top !important;
+    display: inline-block !important;
+    text-align: center;	
+	box-shadow: 4px 4px 8px #b8b9be, -4px -4px 8px #fff !important;
+	margin: 0 2rem !important;
+	border: 1px solid var(--greyTwo) !important;
+	width: 7.5rem;
+	height: 7.5rem;
+	font-weight: bold;
+	color: var(--primaryOne);
+	cursor: pointer;
+}
+
+.ui.menu div.tab-menu-item:hover   {
+	background: rgba(0,0,0,0.05) !important;
+}
+
+.ui.menu div.tab-menu-item.active {
+	/*background: none !important;*/
+}
+
+.ui.menu div.tab-menu-item.active span {
+	color: var(--primaryFive);
+	font-weight: bold;
+}
+
+.tab-menu-item .custom-icon {
+	margin: 0.5rem auto 0.5rem auto;
+}
+
+.tab-menu-item span {
+	display: block;
+}
+
+.ui.force-card.card {
+	box-shadow: 6px 6px 12px #b8b9be, -6px -6px 12px #fff !important;
+	display: inline-block;
+}
+
+div.row.prematch-header-row {
+	padding: 0 !important;
+}
+
+div.row.prematch-force-row {
+	padding-top: 0 !important;
+}
+
 /*
 .contents-container .horiz-button-container .button:not(.disabled):after {
 	border-color: var(--primaryFive)

@@ -3,6 +3,7 @@ import React from 'react';
 import { render } from 'react-dom';
 import { Provider } from 'react-redux';
 import { createStore, combineReducers } from 'redux';
+import { Auth0Provider } from '@auth0/auth0-react';
 
 /* Local Modules */
 import App from './app/App';
@@ -27,7 +28,13 @@ const store = createStore(rootReducer);
 render(
 	(
 		<Provider store={store}>
-			<App />
+			<Auth0Provider
+				domain="bellum.us.auth0.com"
+				clientId="Un24eSvE9XDEbTIVAo9PkCf7bMLzBdiZ"
+				redirectUri={window.location.origin}
+			>
+				<App />
+			</Auth0Provider>
 		</Provider>
 	),
 	document.getElementById('root')
