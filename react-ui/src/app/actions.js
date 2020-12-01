@@ -42,3 +42,11 @@ export const setDemoState = payload => {
 		payload
 	};
 };
+
+export const setAuthStatus = payload => {
+	console.debug('[reducer] SET_AUTH_STATUS dispatched');
+	return {
+		type: AppActions.SET_AUTH_STATUS,
+		payload
+	};
+};

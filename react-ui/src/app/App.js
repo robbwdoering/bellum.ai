@@ -1,6 +1,7 @@
 /* Node Modules */
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { connect } from 'react-redux';
+import { useAuth0 } from "@auth0/auth0-react";
 // import { library } from '@fortawesome/fontawesome-svg-core';
 // import { faCheckSquare, faChevronCircleRight, faChevronCircleDown } from '@fortawesome/free-solid-svg-icons';
 
@@ -8,28 +9,24 @@ import { connect } from 'react-redux';
 import Dashboard from './../navigation/dashboard';
 import logo from './logo.svg';
 import { AppActions } from './constants';
-import { testAction, configPane, openCanvas } from './actions';
+import { testAction, configPane, openCanvas, setAuthStatus } from './actions';
 import { ProfileActions } from './../profile/constants';
 import { modifyProfile, setPaneProfile } from './../profile/actions';
 import { WarActions } from './../war/constants';
 import { processWarAction } from './../war/actions';
+import { useApi } from "./../app/useApi";
 
 import './App.css';
 import 'react-semantic-ui-datepickers/dist/react-semantic-ui-datepickers.css';
 import 'semantic-ui-css/semantic.min.css';
 
-const App = ({ testAction, configPane, openCanvas, modifyProfile, setPaneProfile, processWarAction }) => {
+const App = props => {
+	const { testAction, configPane, openCanvas, modifyProfile, setPaneProfile, processWarAction } = props;
+
+	const { user, isAuthenticated, isLoading } = useAuth0();
 	const [message, setMessage] = useState(null);
 	const [isFetching, setIsFetching] = useState(false);
-	const [url, setUrl] = useState('/api');
 	const [userId, setUserId] = useState(1);
-
-	// TODO - this doesn't seem like it's going to support multiple concurrent requests... I don't think we should just hope that doesn't happen,
-	// especially if future functionality requires frequent handshakes
-	// TODO - move this to 'common'
-	// TODO - add splash pages to market to different groups, i.e. educators, friends, employers, etc.
-	// TODO - add ability to batch add planned contacts, like for example, in a school with class schedules
-	// TODO - customizable toolbar to the right, or maybe on the bottom of the left sidebar? Mabe not neccessary if the UX is good enogugh (i.e. small enough # of clicks per story)
 
 	const sendMsg = (url, method, data) => {
 		setIsFetching(true);
@@ -96,19 +93,66 @@ const App = ({ testAction, configPane, openCanvas, modifyProfile, setPaneProfile
 			});
 	};
 
+	/**
+	 * This callback understands every redux-oritented response from the server, storing the relevant data in redux
+	 * through the use of package-specific reducers.
+	 */
+	const handleFetch = useMemo(() => (json) => {
+		console.log("Handling fetch!", json);
+		if (!json) {
+			return;
+		}
+		switch (json.type) {
+			case AppActions.TEST_ACTION:
+				testAction(json.payload);
+				break;
+			case AppActions.CONFIG_PANE:
+				configPane(json.payload);
+				break;
+			case AppActions.OPEN_CANVAS:
+				openCanvas(json.payload);
+				break;
+			case ProfileActions.MODIFY_PROFILE:
+				modifyProfile(json.payload);
+				break;
+			case ProfileActions.SET_PANE_PROFILE:
+				setPaneProfile(json.payload);
+				break;
+			case WarActions.SET_PRIMARY_LIST:
+			case WarActions.SET_SECONDARY_LIST:
+			case WarActions.SET_METALIST:
+			case WarActions.SET_UNSET_PROFILES:
+			case WarActions.SET_CHART_DATA:
+				processWarAction(json.type, json.payload);
+				break;
+			case 'DB_ACTION':
+				console.log('[sendMsg] DB action json: ', json);
+				break;
+			default:
+				throw new Error(`Unrecognized Type: ${json.type}`);
+		}
+	}, []);
+
 	// -------
 	// EFFECTS
 	// -------
 	// Request startup data
 	useEffect(() => {
-		sendMsg('/api/map/init', 'GET');
+		if (isAuthenticated) {
+			console.log("We're already authenticated!");
+			setAuthStatus(isAuthenticated);
+		} else {
+			console.log("not authenticated...", isAuthenticated, isLoading)
+		}
+		// sendMsg('/api/map/init', 'GET');
+
 	}, []);
 
 	return (
 		<div className="App">
-			<Dashboard fetchAt={() => console.warn('STUB - got fetchAt() call')} sendMsg={sendMsg} />
+			<Dashboard fetchAt={() => console.warn('STUB - got fetchAt() call')} sendMsg={sendMsg} handleFetch={handleFetch} />
 		</div>
 	);
 };
 
-export default connect(null, { testAction, configPane, openCanvas, modifyProfile, setPaneProfile, processWarAction })(App);
+export default connect(null, { testAction, configPane, openCanvas, modifyProfile, setPaneProfile, processWarAction, setAuthStatus })(App);

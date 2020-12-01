@@ -8,7 +8,8 @@ const initialState = {
 	demoState: {
 		step: -1,
 		knowldege: 1
-	}
+	},
+	authStatus: false
 };
 
 export const appReducer = (state = initialState, action) => {
@@ -54,6 +55,11 @@ export const appReducer = (state = initialState, action) => {
 		case AppActions.SET_DEMO_STATE:
 			return Object.assign({}, state, {
 				demoState: Object.assign({}, state.demoState, action.payload)
+			});
+
+		case AppActions.SET_AUTH_STATUS:
+			return Object.assign({}, state, {
+				authStatus: action.payload 
 			});
 	}
 

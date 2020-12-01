@@ -54,10 +54,12 @@ export const parsePlainText = str => {
 			lines.findIndex(line => line.match(regex.detachmentHeader));
 
 		// Find the end of this detachment, which is either the start of another or the profile section
-		endLine = lines.slice(startLine).findIndex(line => line.match(dIdx === (numDetachments - 1) ? regex.profile : regex.detachmentHeader));
+		endLine = lines.slice(startLine).findIndex(line => line.match((dIdx === numDetachments - 1) ? regex.profile : regex.detachmentHeader));
 
 		console.log(`Starting parsing of detachment in line range (${startLine}, ${endLine})`, lines);
-		newArmy.detachments.push(parseDetachment(lines.slice(startLine, endLine)));
+		if (endLine !== -1) {
+			newArmy.detachments.push(parseDetachment(lines.slice(startLine, endLine)));
+		}
 	}
 
 	newArmy.profile = parseProfile(lines.slice(endLine));
@@ -160,6 +162,7 @@ const parseDetachment = (lines) => {
 	};
 
 	let idx, tmpArr;
+	console.log("Parsiong detachment w/ lines...", lines);
 
 	// Parse type and faction
 	idx = lines[0].indexOf(" Detachment");

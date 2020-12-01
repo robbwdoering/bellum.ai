@@ -1,8 +1,7 @@
 //  ---------------------------
 //  ------- START PANES -------
 //  ---------------------------
-export const Panes = {
-	AddEvent: "ADD_EVENT",
+export const Panes = {AddEvent: "ADD_EVENT",
 	Regulations: "REGULATIONS",
 	PlanContact: "PLAN_CONTACT",
 
@@ -135,3 +134,8 @@ export const eventSocDistOptions = [
 	{ text: 'Mostly', value: 2},
 	{ text: 'Strictly', value: 3},
 ];
+
+export const apiOpts = {
+    audience: `http://www.mytine.io/`,
+    scope: 'read:profile write:profile',
+};

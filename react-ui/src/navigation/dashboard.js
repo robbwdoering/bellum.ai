@@ -13,6 +13,7 @@ import { connect } from 'react-redux';
 import { withAuth0 } from '@auth0/auth0-react';
 import { Button, Grid, Header, Tab, Input, Icon, Loading, Menu, Sidebar } from 'semantic-ui-react';
 
+import { HeaderContainer } from './Header';
 import { testAction, openCanvas } from './../app/actions';
 import Pane from './../common/pane';
 import AddEventPane from "./../common/addEvent";
@@ -23,7 +24,7 @@ import ListManager from "./../war/listManager";
 import { UnitDeck, ArmyDetails, ProfileEditor } from "./../war/strategy"; 
 
 import { ContentContainer } from "./../contents/Content";
-import './dashboard.css';
+import './navigation.css';
 
 export class Dashboard extends Component {
 	constructor(props) {
@@ -116,24 +117,6 @@ export class Dashboard extends Component {
 		}
 	};
 
-    renderSidebarMenu = (vertical) => (
-		<Menu
-			className='db-sidebar-menu'
-			vertical={vertical}
-			fluid={vertical}
-		>
-			<Menu.Item> <h2> MainPanels </h2> </Menu.Item>
-
-			<Menu.Item as='a' onClick={() => this.props.openContent(ContentTypes.ForceRoster)}>
-				Force Roster	
-			</Menu.Item>
-
-			<Menu.Item as='a' onClick={() => this.props.auth0.logout({ returnTo: window.location.origin })}>
-				Logout
-			</Menu.Item>
-		</Menu>
-    );
-
     configPane = (name, action, config) => {
     	const { curPanes } = this.state;
 		let newPanes = action === "CLEAR" ? {} : Object.assign({}, curPanes);
@@ -170,7 +153,7 @@ export class Dashboard extends Component {
     };
 
     renderPane = name => {
-	  	const { showSidebar, showLogin, user, pass, curPanes, curCanvas } = this.state;
+	  	const { showLogin, user, pass, curPanes, curCanvas } = this.state;
 	  	const { testsReceived, sendMsg, fetchAt } = this.props;
 		switch(name) {
 			case Panes.UnitDeck:
@@ -187,7 +170,7 @@ export class Dashboard extends Component {
     }
 
   	render() {
-	  	const { showSidebar, showLogin, user, pass, curPanes, curCanvas, selectedMain } = this.state;
+	  	const { showLogin, user, pass, curPanes, curCanvas, selectedMain } = this.state;
 	  	const { testsReceived, fetchAt, sendMsg, curContent } = this.props;
 	  	console.log("[db|render]", curPanes, this.props.hoverItems)
 
@@ -222,63 +205,8 @@ export class Dashboard extends Component {
 
 	    return (
 	    	<div className="dashboard" ref={this.dbRef}>
-				<Menu
-					className='db-header'
-					style={{zIndex: '1000'}}
-				>
-					<Menu.Item position="left">
-						<div className="custom-icon logo large" />
-					</Menu.Item>
-
-					<Menu.Item className="header-item" name='showSidebar' position="right">
-						<Button
-	    					icon
-	    					circular
-	    					onClick={() => this.setState({showSidebar: !showSidebar}) }
-						>
-		    				<Icon name={'chevron ' + (showSidebar ? 'down' : 'left')} />
-						</Button>
-						{!showSidebar && false && (this.renderSidebarMenu(false))}
-					</Menu.Item>
-				</Menu>
-
+	    		<HeaderContainer />
 				{/* Sidebar menu that overlays on the app */}
-				<Sidebar
-					animation='overlay'
-					className="db-sidebar"
-					visible={showSidebar}
-					// width='very wide'
-					direction='top'
-				>
-					<Pane compact className='db-sidebar-menu'>
-						{this.renderSidebarMenu(true)}
-					</Pane>
-
-			    	{/* Render the panes that can appear over the main canvas */}
-			    	<Grid>
-			    		<Grid.Row>
-					    	{/* The main display, which uses tabs*/}
-			    			<Grid.Column width={12}>
-			    				<Tab value={selectedMain} onChange={e => this.setState({selectedMain: e.target.value })} menu={{secondary: true, pointing: true}} panes={tmpPanels} />
-			    			</Grid.Column>
-
-					    	{/* The right sidebar of small items */}
-			    			<Grid.Column width={4} className="db-small-pane-container">
-				    			{sidePanels && sidePanels.length > 0 && sidePanels.slice(0, 3).map(name => 
-				    				<Grid.Row> <Pane compact> {this.renderPane(name)} </Pane> </Grid.Row>
-			    				)}
-			    			</Grid.Column>
-			    		</Grid.Row>
-
-				    	{/* The bottom sidebar of small items */}
-			    		<Grid.Row className="db-small-pane-container">
-			    			{sidePanels && sidePanels.length > 3 && sidePanels.slice(3, 7).map(name => 
-			    				<Grid.Column width={4}> <Pane compact> {this.renderPane(name)} </Pane> </Grid.Column>
-		    				)}
-			    		</Grid.Row>
-			    	</Grid>
-				</Sidebar>
-
 				{/* Main Content */}
 				{this.props.hoverItems && Object.keys(this.props.hoverItems).map(key => {
 					return this.props.hoverItems[key];
@@ -286,7 +214,7 @@ export class Dashboard extends Component {
 
     			{this.renderCanvas(curCanvas)}
 
-    			<ContentContainer sendMsg={this.props.sendMsg} windowCtx={this.dbRef.current} />
+    			<ContentContainer sendMsg={this.props.sendMsg} windowCtx={this.dbRef.current} handleFetch={this.props.handleFetch} />
 
 	    	</div>
 		);

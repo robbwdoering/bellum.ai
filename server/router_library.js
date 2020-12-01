@@ -1,14 +1,21 @@
 const express = require('express');
 const path = require('path');
+// Database
+const { sql } = require('pg');
+// Authentication - auth0 JWT libraries
+var jwt = require('express-jwt');
+var jwks = require('jwks-rsa');
+// Local files
 const map = require('./map');
 const config = require('./config');
 const constants = require('./constants');
-const { sql } = require('pg');
 
 const sendMsg = (res, msg) => {
 	res.set('Content-Type', 'application/json');
 	res.send(JSON.stringify(msg));
+	console.log("Sending message: ", JSON.stringify(msg));
 };
+exports.sendMsg = sendMsg;
 
 const queryDB = async(pool, query) => {
 	try {
@@ -20,144 +27,7 @@ const queryDB = async(pool, query) => {
 		return { results: null }
 	}
 };
-
-
-class MytRouter {
-	constructor(app, pool) {
-		// HACK - post requests of type 'application/json' are having their types overriden by the mode somehow.
-		// This changes them back to json. Fix when the overriding is fixed - see https://stackoverflow.com/questions/54016068/empty-body-in-fetch-post-request
-		// NOTE: plain text requests will NOT function while this is being executed
-		app.use(
-			express.json({
-				type: ['application/json', 'text/plain']
-			})
-		);
-
-		/**
-		 * Fetch Metalist
-		 * Gets the metalist for this user, returning all of that user's lists. NOTE: Does not return actual list contents, just header info for each.
-		 */
-		app.get('/api/calc/chartData/:listId/:chartName', async (req, res) => {
-			console.log("Fetching metalist.");
-
-			let results = await queryDB(pool, "SELECT (name, points, faction, rating, id) from war_list WHERE userId = " + req.params.userId + ";");
-			sendMsg(res, {type: "SET_METALIST", payload: results});
-		});
-
-		/**
-		 * Fetch Metalist
-		 * Gets the metalist for this user, returning all of that user's lists. NOTE: Does not return actual list contents, just header info for each.
-		 */
-		app.get('/api/stats/war/metalist/:userId', async (req, res) => {
-			console.log("Fetching metalist.");
-
-			let results = await queryDB(pool, "SELECT (name, points, faction, rating, id) from war_list WHERE userId = " + req.params.userId + ";");
-			sendMsg(res, {type: "SET_METALIST", payload: results});
-		});
-
-		/**
-		 * Fetch Unset Profiles
-		 * Gets the unset profiles that still need custom meaning objects created.
-		 */
-		app.get('/api/war/profiles/:type/unset/:userId', async (req, res) => {
-			console.log("Fetching unset profiles");
-
-			let fields = "";
-			switch (req.params.type) {
-				case "desc":
-					fields = "description, meaning";
-					break;
-				case "power":
-					fields = "details, meaning";
-					break;
-				case "weapon":
-					fields = "abilities, meaning";
-					break;
-				default:
-					console.error("Received unset profile request of unknown type: ", req.params.type);
-					return;
-			}
-
-			let results = await queryDB(pool, `SELECT (name, ${fields} ) from war_${req.params.type}_profile;`);
-			// console.log("RESULTS", results);
-			sendMsg(res, {type: "SET_UNSET_PROFILES", payload: results});
-		});
-
-		/**
-		 * Fetch List Details
-		 * Gets the contents of a list, along with all the relevant profile information. 
-		 */
-		app.get('/api/db/war/list/:isPrimary/:listId/:userId', async (req, res) => {
-			console.log("Fetching list for user", req.params.userId, req.params.listId);
-
-			// Get the list from the database
-			let results = await queryDB(pool, "SELECT (json) from war_list WHERE userId = " + req.params.userId + " AND id = " + req.params.listId + ";");
-			// console.log("Dealing with results: ", results);
-			if (results && results.results && results.results.length && results.results[0].json) {
-				// console.log("Massaging list.");
-				results = massageList(results.results[0].json);
-			}
-
-			// Fetch the profiles that are needed to understand this list, and 
-			const profiles = await getProfilesForList(pool, results);
-			massageProfile(pool, profiles, results);
-
-			sendMsg(res, {type: req.params.isPrimary === "true" ? "SET_PRIMARY_LIST" : "SET_SECONDARY_LIST", payload: {profiles, results}});
-		});
-
-		/**
-		 * Fetch List Details
-		 * Gets the contents of a list, along with all the relevant profile information. 
-		 */
-		app.post('/api/db/war/list', async (req, res) => {
-			console.log("Posting list from user.");
-			const units = processUnits(pool, req.body.detachments);
-			let query = `INSERT INTO war_list (userId, name, points, faction, rating, json)
-				VALUES (${req.body.userId}, '${req.body.name}', ${req.body.points}, '${req.body.detachments[0].faction}', 0, '${JSON.stringify({units: units, cp: req.body.cp, name: req.body.name}).replace(/'/gm, "")}');`;
-			console.log("enterying query: ", query);
-			let results = await queryDB(pool, query);
-
-			if (!req.body.profile) {
-				console.log("This army doesn't have a profile - please attach one next time.");
-			}  else {
-				processProfile(pool, req.body.profile);
-			}
-
-			results = await queryDB(pool, "SELECT (name, points, faction, rating, id) from war_list WHERE userId = " + req.params.userId + ";");
-			sendMsg(res, {type: "SET_METALIST", payload: results});
-		});
-
-		app.post('/api/db', async (req, res) => {
-			console.log("got a db post...");
-		});
-
-		// app.get('/api/map/init', function (req, res) {
-		// 	console.error('[connection] Received GET request.');
-		// 	sendMsg(res, {type: "INIT_MAP_DATA", payload: {
-		// 		oceans: this.mapGen.oceans,
-		// 		hexRad: config.RAD,
-		// 		gridSize: config.SIZE
-		// 	}});
-		// });
-
-		app.get('/api', function (req, res) {
-			console.error('[connection] Received GET request.');
-			sendMsg(res, {type: "TEST_ACTION", payload: "Responding to a GET request."});
-		});
-
-		app.post('/api', function (req, res) {
-			console.error('[connection] Received POST request. BODY:', req.body);
-			sendMsg(res, {type: "TEST_ACTION", payload: "Responding to a POST request."});
-		});
-
-		// All remaining requests return the React app, so it can handle routing.
-		app.get('*', function (request, response) {
-			console.error('Got another request...');
-			response.sendFile(path.resolve(__dirname, '../react-ui/build', 'index.html'));
-		});
-
-	}
-}
+exports.queryDB = queryDB;
 
 const processProfile = async(pool, profile) => {
 	let str;
@@ -171,10 +41,10 @@ const processProfile = async(pool, profile) => {
 
 		if (str.length) {
 			str = "INSERT INTO war_power_profile (name, warp_charge, range, details, `meaning) VALUES " + str + " ON CONFLICT (name) DO NOTHING RETURNING name;";
-			console.log("enterying query: ", query);
+			// console.log("enterying query: ", query);
 
 			results = await queryDB(pool, query);
-			console.log("Got results: ", results);
+			// console.log("Got results: ", results);
 		}
 	}
 
@@ -187,10 +57,10 @@ const processProfile = async(pool, profile) => {
 
 		if (str.length) {
 			str = "INSERT INTO war_desc_profile (name, description, meaning) VALUES " + str + " ON CONFLICT (name, description) DO NOTHING RETURNING name;";
-			console.log("enterying query: ", str);
+			// console.log("enterying query: ", str);
 
 			results = await queryDB(pool, str);
-			console.log("Got results: ", results);
+			// console.log("Got results: ", results);
 		}
 	}
 
@@ -202,10 +72,10 @@ const processProfile = async(pool, profile) => {
 
 		if (str.length) {
 			str = "INSERT INTO war_psyker_profile (name, castNum, deny, other, powers_known) VALUES " + str + " ON CONFLICT (name) DO NOTHING RETURNING name;";
-			console.log("enterying query: ", str);
+			// console.log("enterying query: ", str);
 
 			results = await queryDB(pool, str);
-			console.log("Got results: ", results);
+			// console.log("Got results: ", results);
 		}
 	}
 
@@ -218,10 +88,10 @@ const processProfile = async(pool, profile) => {
 
 		if (str.length) {
 			str = "INSERT INTO war_stat_profile (name, attacks, ballistics, weapons, move, save, invuln, toughness, wounds, leadership) VALUES " + str + " ON CONFLICT (name) DO NOTHING RETURNING name;";
-			console.log("enterying query: ", str);
+			// console.log("enterying query: ", str);
 
 			results = await queryDB(pool, str);
-			console.log("Got results: ", results);
+			// console.log("Got results: ", results);
 		}
 	}
 
@@ -250,17 +120,17 @@ const processProfile = async(pool, profile) => {
 
 		if (str.length) {
 			str = "INSERT INTO war_weapon_profile (name, ap, damage, range, strength, weaponType, abilities, meaning) VALUES " + str + " ON CONFLICT (name) DO NOTHING RETURNING name;";
-			console.log("enterying query: ", str);
+			// console.log("enterying query: ", str);
 
 			results = await queryDB(pool, str);
-			console.log("Got results: ", results);
+			// console.log("Got results: ", results);
 		}
 	}
 }
+exports.processProfile = processProfile;
 
 const massageProfile = (pool, profile, army) => {
 	let idx;
-	// console.log("Massaging profile:", profile);
 
 	profile.weapons && profile.weapons.forEach(obj => {
 		// Parse shots from a string to a float after loading
@@ -286,6 +156,7 @@ const massageProfile = (pool, profile, army) => {
 		}
 	});
 };
+exports.massageProfile = massageProfile;
 
 const getAllDetailsFromNode = (ret, node) => {
 	node.abilities && node.abilities.forEach(ability => {
@@ -303,7 +174,7 @@ const getAllDetailsFromNode = (ret, node) => {
 			ret.stats.push(model.name);
 		}
 	});
-	node.psyker && node.psykers.forEach(psyker => {
+	node.psykers && node.psykers.forEach(psyker => {
 		if (!ret.psykers.includes(psyker)) {
 			ret.psykers.push(psyker);
 		}
@@ -321,7 +192,6 @@ const getProfilesForList = async(pool, army) => {
 	army.units.forEach(unit => {
 		getAllDetailsFromNode(ret, unit);
 		unit.models.forEach(model => {
-			// console.log("model: ", model);
 			getAllDetailsFromNode(ret, model);
 		});
 	});
@@ -330,11 +200,13 @@ const getProfilesForList = async(pool, army) => {
 
 	return ret;
 };
+exports.getProfilesForList = getProfilesForList;
 
 // Translates the database entry into a fully fleshed out object
 const massageList = (list) => {
 	return list;
 };
+exports.massageList = massageList;
 
 const processUnits = (pool, detachments) => {
 	// If the unit has no model children, or it's a special case that's missing a model for itself (vehicles and characters) add the model
@@ -342,7 +214,7 @@ const processUnits = (pool, detachments) => {
 	detachments.forEach(detach => {
 		detach.units.forEach(unit => {
 			if (unit.equipment) {
-				console.log("FIXING ENTRY FOR UNIT ", unit.name, "MODELS: ", unit.models);
+				console.log("Fixing entry for unit ", unit.name, "models: ", unit.models.length);
 
 				unit.models = unit.models || [];
 				unit.models.push({
@@ -398,8 +270,9 @@ const processUnits = (pool, detachments) => {
 
 	]*/
 
-
 	return ret;
 };
+exports.processUnits = processUnits;
 
-exports.MytRouter = MytRouter;
+const userid = req => req.user.sub.split("|")[1];
+exports.userid = userid;

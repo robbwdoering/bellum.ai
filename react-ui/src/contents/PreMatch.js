@@ -5,17 +5,19 @@
  */
 
 // React + Redux
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useMemo, useRef, useState, useEffect } from 'react';
 import { connect } from 'react-redux';
 import { Button, Grid, Step, Divider, Dropdown, Header, Tab, Input, Icon, Loading, Menu, Sidebar } from 'semantic-ui-react';
+import { useAuth0 } from "@auth0/auth0-react";
 
 import { openContents, setDemoState } from './../app/actions';
 import Pane from './../common/pane';
-import { ContentTypes } from './../common/constants';
+import { ContentTypes, apiOpts } from './../common/constants';
 import { BarChart } from './../stats/BarChart';
 import { ForceCard } from './../stats/ForceCard';
 import { ChartCard } from './../stats/ChartCard';
 import { statCategories, mainCategoryNames } from './../stats/constants';
+import { useApi } from "./../app/useApi";
 import './contents.css';
 
 const minChartSize = 300;
@@ -33,6 +35,7 @@ export const PreMatch = props => {
 		name,
 		height,
 		width,
+		handleFetch,
 
 		// Redux
 		metalist,
@@ -41,15 +44,21 @@ export const PreMatch = props => {
 		secondaryList,
 		listHash,
 		prematchData,
+		primaryProfile,
+		secondaryProfile,
 
 		// Dispatched Actions
 		openContents
 	} = props;
 
 	const ref = useRef(); 
+	const userLists = useRef({primary: null, secondary: null});
 	const [activeCategory, setActiveCategory] = useState("shoot");
 
+	const { loginWithRedirect, user, isAuthenticated, getAccessTokenSilently } = useAuth0();
+
 	const filterPrimaryList = () => {
+		console.log("filtering primary list", metalist, primaryList); 
 		return metalist.map(e => ({ text: e.name, value: e.name }));
 	};
 
@@ -59,14 +68,22 @@ export const PreMatch = props => {
 		}
 
 		const item = metalist.find(e => e.name === primaryList.name);
-		console.log("filtering second list", metalist, item, primaryList); 
+		console.log("filtering second list", metalist, item, secondaryList); 
 		return metalist.filter(e => (e.name !== primaryList.name) && (e.points > item.points - 100) && (e.points < item.points + 100)).map(e => ({ text: e.name, value: e.name }));
 	};
 
 	const handleArmySelection = (e, { name, value }) => {
 		const item = metalist.find(e => e.name === value);
-		if (item) {
-			sendMsg(`/api/db/war/list/${name === "primary" ? "true" : "false"}/${item.id}`, 'GET');
+		if (item && userLists.current) {
+			// Record this name
+			userLists.current[name] = value;
+
+			// Fetch data for this list
+			if (name === "primary") {
+				primaryListApi.refresh();
+			} else {
+				secondaryListApi.refresh();
+			}
 		} else {
 			console.error("Couldn't find item", value);
 		}
@@ -86,8 +103,12 @@ export const PreMatch = props => {
 		render: () => statCategories[categoryName].charts.map(chartName => <ChartCard name={chartName} />)
 	});
 
-	const primaryOptions = useMemo(filterPrimaryList, [listHash])
-	const secondaryOptions = useMemo(filterSecondaryList, [listHash])
+	const metalistApi = useApi('/api/static/metalist', 'GET', apiOpts, handleFetch);
+	const primaryListApi = useApi('/api/static/list/true/'+userLists.current.primary, 'GET', apiOpts, handleFetch);
+	const secondaryListApi = useApi('/api/static/list/false/'+userLists.current.secondary, 'GET', apiOpts, handleFetch);
+
+	const primaryOptions = useMemo(filterPrimaryList, [metalistHash])
+	const secondaryOptions = useMemo(filterSecondaryList, [metalistHash])
 	const isEngaged = useMemo(() => primaryList !== null && secondaryList !== null, [listHash])
 	const panes = useMemo(() => mainCategoryNames.map(categoryName => renderCategory(categoryName)), [activeCategory]);
 
@@ -95,6 +116,10 @@ export const PreMatch = props => {
 		width: "100%",
 		height: Math.min(Math.max(height * 0.4, 100), 400)
 	}), [ height, width ]);
+
+	useEffect(() => {
+		metalistApi.refresh();
+	}, []);
 
 	return (
 		<React.Fragment>
@@ -108,7 +133,7 @@ export const PreMatch = props => {
 					<Grid.Column width={8}>
 	 					<Dropdown
 	 						labeled
-	 						text="First Force..."
+	 						text={primaryList ? undefined : "First Force..."}
 	 						className="neu"
 	 						button
 	 						options={primaryOptions}
@@ -123,7 +148,7 @@ export const PreMatch = props => {
 					<Grid.Column width={8}>
 	 					<Dropdown 
 	 						labeled
-	 						text="Second Force..."
+	 						text={primaryList ? undefined : "Second Force..."}
 	 						className="neu"
 	 						button
 	 						options={secondaryOptions}
@@ -140,10 +165,10 @@ export const PreMatch = props => {
 
 				<Grid.Row className="prematch-force-row" centered>
 					<Grid.Column width={8}>
-						<ForceCard key={"primary-force-card"} style={cardStyle} force={primaryList} />
+						<ForceCard key={"primary-force-card"} style={cardStyle} data={primaryList} profile={primaryProfile}/>
 					</Grid.Column>
 					<Grid.Column width={8}>
-						<ForceCard key={"primary-force-card"} style={cardStyle} force={secondaryList} />
+						<ForceCard key={"primary-force-card"} style={cardStyle} data={secondaryList} profile={secondaryProfile}/>
 					</Grid.Column>
 				</Grid.Row>
 
@@ -166,6 +191,8 @@ export const mapStateToProps = (state, props) => {
 		listHash: state.warReducer.listHash,
 	  	demoState: state.appReducer.demoState,
 	  	prematchData: state.warReducer.prematchData,
+	  	primaryProfile: state.warReducer.primaryProfile,
+	  	secondaryProfile: state.warReducer.secondaryProfile
     };
 };
 

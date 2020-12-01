@@ -23,10 +23,10 @@ import { MatchContainer } from "./Match";
 import './contents.css';
 
 export const Content = props => {
-	const { curContent, windowCtx, demoState, chartQueue, clearChartQueue, sendMsg } = props;
+	const { curContent, windowCtx, demoState, chartQueue, clearChartQueue, handleFetch, sendMsg } = props;
 
-	const [w, setWidth] = useState(0);
-	const [h, setHeight] = useState(0);
+	const [w, setWidth] = useState(600);
+	const [h, setHeight] = useState(175);
 	const [isHoriz, setIsHoriz] = useState(false);
 	const [fetchInterval, setFetchInterval] = useState(-1);
 
@@ -95,7 +95,7 @@ export const Content = props => {
     	switch(curContent) {
 			case ContentTypes.Splash:
 				return (
-					<SplashContainer />
+					<SplashContainer handleFetch={handleFetch} />
 				);
 
 			case ContentTypes.DemoTransition:
@@ -104,7 +104,7 @@ export const Content = props => {
 				);
 			case ContentTypes.PreMatch:
 				return (
-					<PreMatchContainer height={h} width={w} />
+					<PreMatchContainer height={h} width={w}  handleFetch={handleFetch} />
 				);
 			case ContentTypes.Match:
 				return (
