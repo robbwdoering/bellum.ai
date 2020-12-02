@@ -5,6 +5,8 @@ const initialState = {
 	metalistHash: 0,
 	primaryList: null,
 	secondaryList: null,
+	primaryProfile: null,
+	secondaryProfile: null,
 	listHash: 0,
 	profiles: {
 		weapons: [],
@@ -44,14 +46,14 @@ export const warReducer = (state = initialState, action) => {
 		case WarActions.SET_PRIMARY_LIST:
 			console.log("Setting primary list: ", action.payload.results);
 			newState.primaryList = action.payload.results;
-			newState.primaryProfile = action.payload.profile;
+			newState.primaryProfile = action.payload.profiles;
 			newState.listHash++;
 			return newState;
 
 		case WarActions.SET_SECONDARY_LIST:
 			console.log("Setting secondary list: ", action.payload.results);
 			newState.secondaryList = action.payload.results;
-			newState.secondaryProfile = action.payload.profile;
+			newState.secondaryProfile = action.payload.profiles;
 			newState.listHash++;
 			return newState;
 

@@ -25,6 +25,11 @@ div.ui.overlay.top.visible.sidebar.db-sidebar {
 	margin-top: 5rem !important;
 	z-index: 2 !important;
 	box-shadow: none;
+	pointer-events: none;
+}
+
+div.ui.overlay.top.visible.sidebar.db-sidebar div {
+	pointer-events: auto;
 }
 
 .db-sidebar .myt-pane.db-sidebar-menu {

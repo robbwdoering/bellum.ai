@@ -87,7 +87,7 @@ export const Header = props => {
 								{isAuthenticated ? (
 									<React.Fragment> 
 										<Menu.Item> <h3> Welcome Back </h3> <br/> Logged in as {user.name} </Menu.Item>
-										<Menu.Item as='a' onClick={() => openContents(ContentTypes.ForceRoster)}>
+										<Menu.Item as='a' onClick={() => openContents(ContentTypes.ForceManager)}>
 											Manage Forces	
 										</Menu.Item>
 										<Menu.Item as='a' onClick={() => toggleAddForce(!showAddForce)}>
@@ -100,7 +100,7 @@ export const Header = props => {
 
 											</Menu.Item>
 										)}
-										<Menu.Item as='a' onClick={() => openContents(ContentTypes.ForceRoster)}>
+										<Menu.Item as='a' onClick={() => openContents(ContentTypes.PreMatch)}>
 											Start Match	
 										</Menu.Item>
 										<Menu.Item as='a' onClick={() => logout({ returnTo: window.location.origin })}>

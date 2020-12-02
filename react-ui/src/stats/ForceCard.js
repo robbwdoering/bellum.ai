@@ -94,17 +94,17 @@ export const ForceCard = props => {
 
 	return (
 		<Card className={"force-card" + (data ? "" : " empty")} style={style}>
-			{data && (
+			{data && profile && (
 				<Grid>
 					<Grid.Row key="force-card-header">
-						<Grid.Column>
+						<Grid.Column width={6}>
 							[mainStatusHere]	
 						</Grid.Column>
-						<Grid.Column>
-							<Table>
+						<Grid.Column width={10}>
+							<Table style={{width: "100%"}}>
 								<Table.Header>
 							      <Table.Row>
-							        <Table.HeaderCell>Unit</Table.HeaderCell>
+							        <Table.HeaderCell>UNIT</Table.HeaderCell>
 							        <Table.HeaderCell>M</Table.HeaderCell>
 							        <Table.HeaderCell>WS</Table.HeaderCell>
 							        <Table.HeaderCell>BS</Table.HeaderCell>
@@ -112,18 +112,45 @@ export const ForceCard = props => {
 							        <Table.HeaderCell>T</Table.HeaderCell>
 							        <Table.HeaderCell>W</Table.HeaderCell>
 							        <Table.HeaderCell>A</Table.HeaderCell>
-							        <Table.HeaderCell>Ld</Table.HeaderCell>
-							        <Table.HeaderCell>Sv</Table.HeaderCell>
+							        <Table.HeaderCell>LD</Table.HeaderCell>
+							        <Table.HeaderCell>SV</Table.HeaderCell>
 							      </Table.Row>
 							    </Table.Header>
-								{data.units.map(unit => (
-									<Table.Row>
-										<Table.Cell>{unit.name}</Table.Cell>
-										<Table.Cell>{unit.fight || 0}</Table.Cell>
-										<Table.Cell>{unit.control || 0}</Table.Cell>
-										<Table.Cell>{unit.vuln || 0}</Table.Cell>
+								{data.units.map(unit => {
+									const stat = profile.stats.find(statBlock => statBlock.name === unit.name);
+									if (!stat) return null;
+
+									return (
+										<Table.Row>
+											<Table.Cell>{unit.name}</Table.Cell>
+											<Table.Cell>{stat.m || 0}</Table.Cell>
+											<Table.Cell>{stat.ws || 0}</Table.Cell>
+											<Table.Cell>{stat.bs || 0}</Table.Cell>
+											<Table.Cell>{stat.s || 0}</Table.Cell>
+											<Table.Cell>{stat.t || 0}</Table.Cell>
+											<Table.Cell>{stat.a || 0}</Table.Cell>
+											<Table.Cell>{stat.ld || 0}</Table.Cell>
+											<Table.Cell>{stat.sv || 0}</Table.Cell>
+										</Table.Row>
+									);
+								})}
+								{(!data.units || !data.units.length) && [
+									<Table.Row key={1}>
+										<Placeholder>
+											<Placeholder.Line />
+										</Placeholder>
+									</Table.Row>,
+									<Table.Row key={2}>
+										<Placeholder>
+											<Placeholder.Line />
+										</Placeholder>
+									</Table.Row>,
+									<Table.Row key={3}>
+										<Placeholder>
+											<Placeholder.Line />
+										</Placeholder>
 									</Table.Row>
-								))}
+								]}
 							</Table>
 						</Grid.Column>
 					</Grid.Row>

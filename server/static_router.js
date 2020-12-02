@@ -43,14 +43,19 @@ class StaticRouter {
 			console.log("[GET list]");
 
 			// Get the list from the database
-			let results = await lib.queryDB(pool, "SELECT (json) from war_list WHERE userId = '" + lib.userid(req) + "' AND name = '" + req.params.listName + "';");
+			// let results = await lib.queryDB(pool, "SELECT (json) from war_list WHERE userId = '" + lib.userid(req) + "' AND name = '" + req.params.listName + "';");
+			let profiles = [];
+			let results = await lib.queryDB(pool, "SELECT (json) from war_list WHERE userId = $1 AND name = $2;",  [lib.userid(req), req.params.listName]);
+			console.log("GOT RESULTS: ", results);
 			if (results && results.results && results.results.length && results.results[0].json) {
+				console.log("massaging results...", results);
 				results = lib.massageList(results.results[0].json);
-			}
 
-			// Fetch the profiles that are needed to understand this list, and massage them
-			const profiles = await lib.getProfilesForList(pool, results);
-			lib.massageProfile(pool, profiles, results);
+				// Fetch the profiles that are needed to understand this list, and massage them
+				profiles = await lib.getProfilesForList(pool, results);
+				lib.massageProfile(pool, profiles, results);
+				console.log("done massagign", results);
+			}
 
 			lib.sendMsg(res, {type: req.params.isPrimary === "true" ? "SET_PRIMARY_LIST" : "SET_SECONDARY_LIST", payload: {profiles, results}});
 		});
@@ -60,17 +65,34 @@ class StaticRouter {
 		 * Updates the list by this name for this user.
 		 */
 		app.post('/api/static/list', jwtCheck, async (req, res) => {
-			console.log("[POST List]");
-			const units = lib.processUnits(pool, req.body.detachments);
-			let query = `INSERT INTO war_list (userId, name, points, faction, rating, json)
-				VALUES ('${lib.userid(req)}', '${req.body.name}', ${req.body.points}, '${req.body.detachments[0].faction}', 0, '${JSON.stringify({units: units, cp: req.body.cp, name: req.body.name}).replace(/'/gm, "")}');`;
-			let results = await lib.queryDB(pool, query);
+			console.log("[POST List]", req.body);
+			let query, results;
 
-			if (!req.body.profile) {
-				console.log("This army doesn't have a profile - please attach one next time.");
-			}  else {
-				lib.processProfile(pool, req.body.profile);
+			// OPTION 1 - DELETE A LIST
+			if (req.body.toDelete && req.body.toDelete.length) {
+				req.body.toDelete.forEach(async (name) => {
+					query = `DELETE FROM war_list WHERE name = '${name}';`;
+					results = await lib.queryDB(pool, query);
+				});
+
+			// OPTION 2 - ADD A LIST
+			} else {
+				const units = lib.processUnits(pool, req.body.detachments);
+				// query = `INSERT INTO war_list (userId, name, points, faction, rating, json)
+				// 	VALUES ('${lib.userid(req)}', '${req.body.name}', ${req.body.points}, '${req.body.detachments[0].faction}', 0, '${JSON.stringify({units: units, cp: req.body.cp, name: req.body.name}).replace(/'/gm, "")}');`;
+				query = 'INSERT INTO war_list (userId, name, points, faction, rating, json) VALUES ($1, $2, $3, $4, 0, $5);';
+				const values = [lib.userid(req), lib.sanitizeStr(req.body.name), req.body.points, req.body.detachments[0].faction, lib.sanitizeStr(JSON.stringify({units: units, cp: req.body.cp, name: req.body.name}))];
+				results = await lib.queryDB(pool, query, values);
+
+				if (!req.body.profile) {
+					console.log("This army doesn't have a profile - please attach one next time.");
+				}  else {
+					lib.processProfile(pool, req.body.profile);
+				}
 			}
+
+			// OPTION 3 - MOD A LIST
+			// TODO - no "add and replace" in POSTGRESQL, use ON CONFLICT UPDATE SET... syntax
 
 			results = await lib.queryDB(pool, "SELECT (name, points, faction, rating, id) from war_list WHERE userId = '" + lib.userid(req) + "';");
 			lib.sendMsg(res, {type: "SET_METALIST", payload: results});

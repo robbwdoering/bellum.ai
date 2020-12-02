@@ -20,6 +20,7 @@ import { DemoTransitionContainer } from "./DemoTransition";
 import { PreMatchContainer } from "./PreMatch";
 import { PostMatchContainer } from "./PostMatch";
 import { MatchContainer } from "./Match";
+import { ForceManagerContainer } from "./ForceManager";
 import './contents.css';
 
 export const Content = props => {
@@ -72,12 +73,17 @@ export const Content = props => {
 				setIsHoriz(true);
 			}
 				break;
+
+			// Half screen - for when we want to show the map too
 			case ContentTypes.Match:
 			case ContentTypes.PostMatch:
 				setHeight(midH);
 				setWidth(midW * 2);
 				setIsHoriz(true);
 				break;
+
+			// Full Screen
+			case ContentTypes.ForceManager:
 			case ContentTypes.PreMatch:
 			case ContentTypes.Auth:
 				setHeight((midH * 2) - 40);
@@ -114,10 +120,9 @@ export const Content = props => {
 				return (
 					<PostMatchContainer />
 				);
-			case ContentTypes.Auth:
+			case ContentTypes.ForceManager:
 				return (
-					// <AuthContainer />
-					null
+					<ForceManagerContainer handleFetch={handleFetch} />
 				);
 		}
     };

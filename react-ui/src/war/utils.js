@@ -14,6 +14,8 @@
 
  import { regex } from "./constants";
 
+export const sanitizeString = str => str.toLowerCase().replace(/[- ]/g, "_").replace(/'/g, "");
+
 export const parsePlainText = str => {
 	if (!str) {
 		console.error("Can't parse plain text, no string provided.");
@@ -66,9 +68,7 @@ export const parsePlainText = str => {
 
 	console.log("Storing newArmy", newArmy)
 	return newArmy;
-}
-
-const sanitizeString = str => str.toLowerCase().replace(/[- ]/g, "_").replace(/'/g, "");
+};
 
 const parseUnit = (lines) => {
 	let newUnit = { models: [] };
@@ -154,7 +154,7 @@ const parseUnit = (lines) => {
 
 	console.log("adding unit: ", newUnit);
 	return newUnit;
-}
+};
 
 const parseDetachment = (lines) => {
 	let ret = {
@@ -199,7 +199,7 @@ const parseDetachment = (lines) => {
 
 	console.log("Adding detachment: ", ret);
 	return ret;
-}
+};
 
 const parseProfile = lines => {
 	let tmpStr, tmpArr, idx;
@@ -282,5 +282,4 @@ const parseProfile = lines => {
 
 		return acc;
 	}, { desc: {}, power: {}, stats: {}, weapons: {}, psykers: {}});
-}
-
+};

@@ -104,6 +104,7 @@
 .ui.force-card.card {
 	box-shadow: 6px 6px 12px #b8b9be, -6px -6px 12px #fff !important;
 	display: inline-block;
+	height: 100% !important;
 }
 
 div.row.prematch-header-row {
@@ -119,3 +120,9 @@ div.row.prematch-force-row {
 	border-color: var(--primaryFive)
 }
 */
+
+.table-control.button {
+	float: left;
+	padding: 0.4rem 1rem !important;
+	margin-bottom: 0.5rem;
+}

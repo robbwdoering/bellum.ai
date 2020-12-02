@@ -19,7 +19,7 @@ export const ContentTypes = {
 	Match: "Match",
 	PostMatch: "PostMatch",
 	DemoTransition: "DemoTransition",
-	Auth: "Auth"
+	ForceManager: "ForceManager"
 };
 
 export const contentStyles = {

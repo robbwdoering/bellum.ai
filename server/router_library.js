@@ -10,6 +10,9 @@ const map = require('./map');
 const config = require('./config');
 const constants = require('./constants');
 
+/**
+ * Convenience function for sending reponses to clients
+ */
 const sendMsg = (res, msg) => {
 	res.set('Content-Type', 'application/json');
 	res.send(JSON.stringify(msg));
@@ -17,10 +20,22 @@ const sendMsg = (res, msg) => {
 };
 exports.sendMsg = sendMsg;
 
-const queryDB = async(pool, query) => {
+/**
+ * query the database - supply values parameters to use prepared statements.
+ */
+const queryDB = async(pool, query, values) => {
 	try {
 		const client = await pool.connect();
-		const result = await client.query(query);
+		let result;
+
+		// Prepared statement
+		if (values) {
+			result = await client.query(query, values);
+
+		// Non-prepared statement
+		} else {
+			result = await client.query(query);
+		}
 		return { results: result ? result.rows : null};
 	} catch (err) {
 		console.error(err);
@@ -29,6 +44,10 @@ const queryDB = async(pool, query) => {
 };
 exports.queryDB = queryDB;
 
+/**
+ * Take in a profile from the front end, and do all the translations we need before storing it.
+ * Also consists of santitizing strings and inserting each part of the profile into it's respective table.
+ */
 const processProfile = async(pool, profile) => {
 	let str;
 	const curSec = Math.floor(Date.now / 1000)
@@ -187,7 +206,7 @@ const getAllDetailsFromNode = (ret, node) => {
 }
 
 const getProfilesForList = async(pool, army) => {
-	console.log("getProfilesForList init processing ", army.units.length, " units.");
+	console.log("[getProfilesForList]", army);
 	let ret = new constants.Profile();
 	army.units.forEach(unit => {
 		getAllDetailsFromNode(ret, unit);
@@ -276,3 +295,6 @@ exports.processUnits = processUnits;
 
 const userid = req => req.user.sub.split("|")[1];
 exports.userid = userid;
+
+const sanitizeStr = str => str.replace(/'/gm, "");
+exports.sanitizeStr = sanitizeStr;

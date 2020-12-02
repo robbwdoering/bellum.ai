@@ -18,6 +18,7 @@ import { ForceCard } from './../stats/ForceCard';
 import { ChartCard } from './../stats/ChartCard';
 import { statCategories, mainCategoryNames } from './../stats/constants';
 import { useApi } from "./../app/useApi";
+import { sanitizeString } from "./../war/utils";
 import './contents.css';
 
 const minChartSize = 300;
@@ -141,10 +142,11 @@ export const PreMatch = props => {
 	 						search
 	 						floating
 	 						name="primary"
-	 						value={primaryList ? primaryList.name : undefined}
+	 						defaultValue={primaryList ? primaryList.name : undefined}
 	 						onChange={handleArmySelection}
 	 					/>
 					</Grid.Column>
+
 					<Grid.Column width={8}>
 	 					<Dropdown 
 	 						labeled
@@ -156,7 +158,7 @@ export const PreMatch = props => {
 	 						search
 	 						floating
 	 						name="secondary"
-	 						value={secondaryList ? secondaryList.name : undefined}
+	 						defaultValue={secondaryList ? secondaryList.name : undefined}
 	 						disabled={primaryList === null}
 	 						onChange={handleArmySelection}
 	 					/>
@@ -167,12 +169,13 @@ export const PreMatch = props => {
 					<Grid.Column width={8}>
 						<ForceCard key={"primary-force-card"} style={cardStyle} data={primaryList} profile={primaryProfile}/>
 					</Grid.Column>
+
 					<Grid.Column width={8}>
 						<ForceCard key={"primary-force-card"} style={cardStyle} data={secondaryList} profile={secondaryProfile}/>
 					</Grid.Column>
 				</Grid.Row>
 
-					<Divider horizontal> <h2>Analysis</h2> </Divider>
+				<Divider horizontal> <h2>Analysis</h2> </Divider>
 
 				<Grid.Row>
 					<Tab menu={{secondary: true }} panes={panes} onTabChange={(e, { activeIndex }) => {console.log("tab changed!"); setActiveCategory(mainCategoryNames[activeIndex])}} />
