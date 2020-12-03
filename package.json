@@ -3,7 +3,7 @@
   "version": "3.0.0",
   "description": "Persistent server for the MyTine application.",
   "engines": {
-    "node": "10.x"
+    "node": "12.x"
   },
   "scripts": {
     "start": "node server",

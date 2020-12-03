@@ -53,14 +53,13 @@ export const PreMatch = props => {
 	} = props;
 
 	const ref = useRef(); 
-	const userLists = useRef({primary: null, secondary: null});
 	const [activeCategory, setActiveCategory] = useState("shoot");
 
 	const { loginWithRedirect, user, isAuthenticated, getAccessTokenSilently } = useAuth0();
 
 	const filterPrimaryList = () => {
 		console.log("filtering primary list", metalist, primaryList); 
-		return metalist.map(e => ({ text: e.name, value: e.name }));
+		return metalist.map(e => ({ text: e.name, value: e.id }));
 	};
 
 	const filterSecondaryList = () => {
@@ -68,22 +67,20 @@ export const PreMatch = props => {
 			return [];
 		}
 
-		const item = metalist.find(e => e.name === primaryList.name);
-		console.log("filtering second list", metalist, item, secondaryList); 
-		return metalist.filter(e => (e.name !== primaryList.name) && (e.points > item.points - 100) && (e.points < item.points + 100)).map(e => ({ text: e.name, value: e.name }));
+		// const item = metalist.find(e => e.name === primaryList.name);
+		console.log("filtering second list", metalist, primaryList, secondaryList); 
+		return metalist.filter(e => e.name !== primaryList.name).map(e => ({ text: e.name, value: e.id }));
 	};
 
-	const handleArmySelection = (e, { name, value }) => {
-		const item = metalist.find(e => e.name === value);
-		if (item && userLists.current) {
-			// Record this name
-			userLists.current[name] = value;
-
-			// Fetch data for this list
+	const handleForceSelection = (e, { name, value }) => {
+		const item = metalist.find(e => e.id === value);
+		console.log("Handling force selection", item, value)
+		// Fetch data for this list if it's a legal id 
+		if (item) {
 			if (name === "primary") {
-				primaryListApi.refresh();
+				primaryListApi.refresh(value);
 			} else {
-				secondaryListApi.refresh();
+				secondaryListApi.refresh(value);
 			}
 		} else {
 			console.error("Couldn't find item", value);
@@ -105,20 +102,20 @@ export const PreMatch = props => {
 	});
 
 	const metalistApi = useApi('/api/static/metalist', 'GET', apiOpts, handleFetch);
-	const primaryListApi = useApi('/api/static/list/true/'+userLists.current.primary, 'GET', apiOpts, handleFetch);
-	const secondaryListApi = useApi('/api/static/list/false/'+userLists.current.secondary, 'GET', apiOpts, handleFetch);
+	const primaryListApi = useApi('/api/static/list/true/', 'GET', apiOpts, handleFetch);
+	const secondaryListApi = useApi('/api/static/list/false/', 'GET', apiOpts, handleFetch);
 
 	const primaryOptions = useMemo(filterPrimaryList, [metalistHash])
-	const secondaryOptions = useMemo(filterSecondaryList, [metalistHash])
+	const secondaryOptions = useMemo(filterSecondaryList, [metalistHash, primaryList])
 	const isEngaged = useMemo(() => primaryList !== null && secondaryList !== null, [listHash])
 	const panes = useMemo(() => mainCategoryNames.map(categoryName => renderCategory(categoryName)), [activeCategory]);
 
 	const cardStyle = useMemo(() => ({
-		width: "100%",
 		height: Math.min(Math.max(height * 0.4, 100), 400)
 	}), [ height, width ]);
 
 	useEffect(() => {
+		console.log("PREMATCH MOUNTED!")
 		metalistApi.refresh();
 	}, []);
 
@@ -134,23 +131,24 @@ export const PreMatch = props => {
 					<Grid.Column width={8}>
 	 					<Dropdown
 	 						labeled
-	 						text={primaryList ? undefined : "First Force..."}
+	 						placeholder="First Force..."
 	 						className="neu"
 	 						button
 	 						options={primaryOptions}
 	 						selection
 	 						search
 	 						floating
+	 						loading={metalistApi.loading}
+	 						disabled={metalistApi.loading}
 	 						name="primary"
-	 						defaultValue={primaryList ? primaryList.name : undefined}
-	 						onChange={handleArmySelection}
+	 						onChange={handleForceSelection}
 	 					/>
 					</Grid.Column>
 
 					<Grid.Column width={8}>
 	 					<Dropdown 
 	 						labeled
-	 						text={primaryList ? undefined : "Second Force..."}
+	 						placeholder="Second Force..."
 	 						className="neu"
 	 						button
 	 						options={secondaryOptions}
@@ -158,20 +156,20 @@ export const PreMatch = props => {
 	 						search
 	 						floating
 	 						name="secondary"
-	 						defaultValue={secondaryList ? secondaryList.name : undefined}
+	 						loading={metalistApi.loading}
 	 						disabled={primaryList === null}
-	 						onChange={handleArmySelection}
+	 						onChange={handleForceSelection}
 	 					/>
 					</Grid.Column>
 				</Grid.Row>
 
 				<Grid.Row className="prematch-force-row" centered>
-					<Grid.Column width={8}>
-						<ForceCard key={"primary-force-card"} style={cardStyle} data={primaryList} profile={primaryProfile}/>
+					<Grid.Column width={8} style={cardStyle} >
+						<ForceCard key={"primary-force-card"} data={primaryList} profile={primaryProfile} handleFetch={handleFetch}/>
 					</Grid.Column>
 
-					<Grid.Column width={8}>
-						<ForceCard key={"primary-force-card"} style={cardStyle} data={secondaryList} profile={secondaryProfile}/>
+					<Grid.Column width={8} style={cardStyle} >
+						<ForceCard key={"primary-force-card"} data={secondaryList} profile={secondaryProfile} handleFetch={handleFetch}/>
 					</Grid.Column>
 				</Grid.Row>
 

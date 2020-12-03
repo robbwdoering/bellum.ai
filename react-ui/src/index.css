@@ -97,14 +97,14 @@ div.custom-icon.shoot.secondary {
   background-image: url('/shoot_secondary.png');
 }
 
-div.custom-icon.vuln {
-  background-image: url('/vuln.png');
+div.custom-icon.resil {
+  background-image: url('/resil.png');
 }
-div.custom-icon.vuln.primary {
-  background-image: url('/vuln_primary.png');
+div.custom-icon.resil.primary {
+  background-image: url('/resil_primary.png');
 }
-div.custom-icon.vuln.secondary {
-  background-image: url('/vuln_secondary.png');
+div.custom-icon.resil.secondary {
+  background-image: url('/resil_secondary.png');
 }
 
 div.custom-icon.control {
@@ -129,14 +129,27 @@ div.custom-icon.control.secondary {
 table.ui.table {
   position: block;
   width: 100%;
-  background-color: var(--greyOne) !important;
+  background-color: var(--greyZero) !important;
 }
 
 table.ui.table thead th {
-  background-color: var(--greyOne) !important;
+  background-color: var(--greyZero) !important;
   color: var(--greyThree);
   font-weight: bold;
   font-size: 0.9rem;
+  position: sticky;
+  top: 0;
+  text-align: center;
+  box-shadow: 4px 4px 4px #b8b9be;
+}
+
+table.ui.table tr td {
+  background-color: none !important;
+
+}
+
+.ui.card {
+  background-color: var(--greyZero);
 }
 
 .neu.dropdown.button.floating {
@@ -155,8 +168,8 @@ table.ui.table thead th {
 
 /* THEME COLORS */
 :root {
+  --greyZero: #fcfcff; /* cards */
   --greyOne: #f7f3f3; /* background */
-  --greyTwo: #d8d2d3;
   --greyTwo: #c9c3c4;
   --greyThree: #bab5b5;
   --greyFour: #807d7d;

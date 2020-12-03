@@ -97,7 +97,7 @@ export const ForceManager = props => {
 								<Table.Cell> {e.shoot} </Table.Cell>
 								<Table.Cell> {e.fight} </Table.Cell>
 								<Table.Cell> {e.control} </Table.Cell>
-								<Table.Cell> {e.vuln} </Table.Cell>
+								<Table.Cell> {e.resil} </Table.Cell>
 								<Table.Cell> 
 								</Table.Cell>
 							</Table.Row>

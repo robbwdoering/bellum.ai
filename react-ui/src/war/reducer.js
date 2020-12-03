@@ -37,6 +37,7 @@ const initialState = {
 
 export const warReducer = (state = initialState, action) => {
 	const msg = action.payload;
+	let metaEntry;
 	let newState = Object.assign({}, state);
 	if (typeof state === 'undefined') {
 		return initialState;
@@ -47,6 +48,14 @@ export const warReducer = (state = initialState, action) => {
 			console.log("Setting primary list: ", action.payload.results);
 			newState.primaryList = action.payload.results;
 			newState.primaryProfile = action.payload.profiles;
+
+			// Parse id
+			metaEntry = newState.metalist.find(item => item.name === newState.primaryList.name);
+			if (metaEntry) {
+				console.log("Setting force id: ", metaEntry.id)
+				newState.primaryList.id = metaEntry.id;
+
+			}
 			newState.listHash++;
 			return newState;
 
@@ -54,6 +63,13 @@ export const warReducer = (state = initialState, action) => {
 			console.log("Setting secondary list: ", action.payload.results);
 			newState.secondaryList = action.payload.results;
 			newState.secondaryProfile = action.payload.profiles;
+
+			metaEntry = newState.metalist.find(item => item.name === newState.secondaryList.name);
+			if (metaEntry) {
+				console.log("Setting force id: ", metaEntry.id)
+				newState.primaryList.id = metaEntry.id;
+
+			}
 			newState.listHash++;
 			return newState;
 

@@ -1,11 +1,19 @@
 const express = require('express');
 const path = require('path');
 
+
+/** 
+ * Derivation Library
+ * 
+ * These functions return outputs that can be deterministically determined from the inputs with minimal assumptions necessary.
+ * Some examples are the "Scorecard" values for forces, or the phase status indicators.
+ * If it requires positioning information, it shouldn't be handled here.
+ */
 const isNormalGun = weapon => {
 	return weapon.type === "Pistol" || weapon.type === "Grenade";
 }
 
-const deriveCommand = army => {
+const drvCommandPhase = army => {
 	let ret = {
 		numUnits: 0, 
 		numModels: 0, 
@@ -60,7 +68,7 @@ const deriveCommand = army => {
 	return ret;
 };
 
-const deriveMove = army => {
+const drvMovePhase = army => {
 	let ret = {
 		totalMove: 0,
 		movePerWound: 0,
@@ -124,41 +132,98 @@ const deriveMove = army => {
 	return ret;
 };
 
-const derivePsychic = army => {
+const drvPsychicPhase = army => {
 	return {
 	};
 };
 
-const deriveShooting = army => {
+const drvShootingPhase = army => {
 	return {
 	};
 };
 
-const deriveCharge = army => {
+const drvChargePhase = army => {
 	return {
 	};
 };
 
-const deriveFight = army => {
+const drvFightPhase = army => {
 	return {
 	};
 };
 
-const deriveMorale = army => {
+const drvMoralePhase = army => {
 	return {
 	};
 };
+
+const drvShootScorecard = (unit, ret) => {
+
+};
+
+const drvScorecardVals = (army ) => {
+	let ret = {
+		shoot: {
+			avg: 0,
+			var: 0,
+			attrCount: 0,
+			dmgBuckets: [],
+		},
+		fight: {
+			avg: 0,
+			var: 0,
+			attrCount: 0,
+			dmgBuckets: [],
+		},
+		control: {
+			avg: 0,
+			var: 0,
+			move: [],
+			range: [],
+			screen: 0, //MSUs
+			attrCount: 0
+		},
+		fight: {avg: 0, var: 0},
+		control: {avg: 0, var: 0},
+		resil: {avg: 0, var: 0},
+	};
+
+	let stats;
+
+	console.log("Calculating scorecard values...")
+	army.units.forEach(unit => {
+		if (unit.models && unit.models.length) {
+			stats = army.profile.stats[unit.models[0].name];
+			console.log("Stats", stats)
+
+			// Loop through every model
+			unit.models.forEach(model => {
+				// Shoot
+					// Attribute count
+
+					// Damage 
+
+				// Fight
+
+				// Control
+
+				// Resilience
+
+			});
+
+	return ret;	
+} 
 
 exports.deriveArmyStats = orig => {
 	let army = Object.assign({}, orig);
 	return ({
 		name: army.name,
-		command: deriveCommand(army),
-		move: deriveMove(army),
-		psychic: derivePsychic(army),
-		shooting: deriveShooting(army),
-		charge: deriveCharge(army),
-		fight: deriveFight(army),
-		morale: deriveMorale(army)
+		command: drvCommandPhase(army),
+		move: drvMovePhase(army),
+		psychic: drvPsychicPhase(army),
+		shooting: drvShootingPhase(army),
+		charge: drvChargePhase(army),
+		fight: drvFightPhase(army),
+		morale: drvMoralePhase(army)
 	});
 };

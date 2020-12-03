@@ -39,17 +39,19 @@ class StaticRouter {
 		 * Fetch List Details
 		 * Gets the contents of a list, along with all the relevant profile information. 
 		 */
-		app.get('/api/static/list/:isPrimary/:listName', jwtCheck, async (req, res) => {
+		app.get('/api/static/list/:isPrimary/:listId', jwtCheck, async (req, res) => {
 			console.log("[GET list]");
 
 			// Get the list from the database
-			// let results = await lib.queryDB(pool, "SELECT (json) from war_list WHERE userId = '" + lib.userid(req) + "' AND name = '" + req.params.listName + "';");
 			let profiles = [];
-			let results = await lib.queryDB(pool, "SELECT (json) from war_list WHERE userId = $1 AND name = $2;",  [lib.userid(req), req.params.listName]);
+			let results = await lib.queryDB(pool, "SELECT (json) from war_list WHERE userId = $1 AND id = $2;",  [lib.userid(req), req.params.listId]);
 			console.log("GOT RESULTS: ", results);
-			if (results && results.results && results.results.length && results.results[0].json) {
+			if (results && results.results && results.results.length && results.results[0]) {
 				console.log("massaging results...", results);
+				let tmp = results.results[0].id;	
 				results = lib.massageList(results.results[0].json);
+				results.id = tmp;
+
 
 				// Fetch the profiles that are needed to understand this list, and massage them
 				profiles = await lib.getProfilesForList(pool, results);

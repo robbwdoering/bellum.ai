@@ -6,11 +6,11 @@
  * OWNER: RWD
  */
 
-export const mainCategoryNames = [ "shoot", "fight", "control", "vuln"];
+export const mainCategoryNames = [ "shoot", "fight", "control", "resil"];
 
 export const statCategories = {
 	mainPreMatch: {
-		charts: ['categoryRatios', 'vulnRatios', 'damageRatios']
+		charts: ['categoryRatios', 'resilRatios', 'damageRatios']
 	},
 	mainPostMatch: {
 		charts: ['categoryRatios', 'survivabilityRatios', 'damageRatios']
@@ -25,10 +25,10 @@ export const statCategories = {
 	},
 	control: {
 		title: "Control",
-		charts: ['move', 'range']
+		charts: ['controlAttrCount', 'move', 'range', 'screen']
 	},
-	vuln: {
-		title: "Vulnerability",
-		charts: ['invuln', 'toughtness', 'feelNoPain', 'vulnAttrCount']
+	resil: {
+		title: "Resiliance",
+		charts: ['invuln', 'toughtness', 'feelNoPain', 'resilAttrCount']
 	},
 }

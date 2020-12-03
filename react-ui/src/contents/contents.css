@@ -78,6 +78,7 @@
 	font-weight: bold;
 	color: var(--primaryOne);
 	cursor: pointer;
+	background-color: var(--greyZero);
 }
 
 .ui.menu div.tab-menu-item:hover   {
@@ -103,16 +104,30 @@
 
 .ui.force-card.card {
 	box-shadow: 6px 6px 12px #b8b9be, -6px -6px 12px #fff !important;
-	display: inline-block;
 	height: 100% !important;
+	width: 100%;
+	display: flex;
+	flex-direction: row !important;
+	padding: 0.5rem;
+}
+
+.ui.force-card.card .fc-header-container {
+	width: 300;
+	height: 100%;
+}
+
+.ui.force-card.card .fc-table-container {
+	overflow-y: auto;
+	flex-grow: 1;
 }
 
 div.row.prematch-header-row {
 	padding: 0 !important;
 }
 
-div.row.prematch-force-row {
-	padding-top: 0 !important;
+div.row.prematch-force-row .column {
+	min-height: 
+	/*padding-top: 0 !important;*/
 }
 
 /*

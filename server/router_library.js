@@ -10,6 +10,20 @@ const map = require('./map');
 const config = require('./config');
 const constants = require('./constants');
 
+
+/** 
+ * Router Library
+ * 
+ * Stores conveince code for routers that relates to IO (db connections or rest calls) or data translation.
+ * Any divination/derivation should go in the respected war library.
+ */
+
+const userid = req => req.user.sub.split("|")[1];
+exports.userid = userid;
+
+const sanitizeStr = str => str.replace(/'/gm, "");
+exports.sanitizeStr = sanitizeStr;
+
 /**
  * Convenience function for sending reponses to clients
  */
@@ -24,9 +38,9 @@ exports.sendMsg = sendMsg;
  * query the database - supply values parameters to use prepared statements.
  */
 const queryDB = async(pool, query, values) => {
+	let client, result;
 	try {
-		const client = await pool.connect();
-		let result;
+		client = await pool.connect();
 
 		// Prepared statement
 		if (values) {
@@ -36,11 +50,14 @@ const queryDB = async(pool, query, values) => {
 		} else {
 			result = await client.query(query);
 		}
-		return { results: result ? result.rows : null};
 	} catch (err) {
-		console.error(err);
-		return { results: null }
+		// client.release();
+		console.error("[PGSQL ERR]", err);
+	} finally {
+		client ? client.release() : null;
 	}
+
+	return { results: result ? result.rows : null};
 };
 exports.queryDB = queryDB;
 
@@ -191,6 +208,9 @@ const getAllDetailsFromNode = (ret, node) => {
 	node.models && node.models.forEach(model => {
 		if (!ret.stats.includes(model.name)) {
 			ret.stats.push(model.name);
+			if (model.name.endsWith("s")) {
+				ret.stats.push(model.name.substring(0, model.name.length - 1));
+			}
 		}
 	});
 	node.psykers && node.psykers.forEach(psyker => {
@@ -206,16 +226,18 @@ const getAllDetailsFromNode = (ret, node) => {
 }
 
 const getProfilesForList = async(pool, army) => {
-	console.log("[getProfilesForList]", army);
+	// console.log("[getProfilesForList]");
 	let ret = new constants.Profile();
 	army.units.forEach(unit => {
 		getAllDetailsFromNode(ret, unit);
 		unit.models.forEach(model => {
 			getAllDetailsFromNode(ret, model);
 		});
+		// console.log("Finished unit", unit.name, ret.stats);
 	});
 
 	await ret.fetchAllFromDb(pool, queryDB);
+	// console.log("returning: ", ret.stats)
 
 	return ret;
 };
@@ -233,7 +255,7 @@ const processUnits = (pool, detachments) => {
 	detachments.forEach(detach => {
 		detach.units.forEach(unit => {
 			if (unit.equipment) {
-				console.log("Fixing entry for unit ", unit.name, "models: ", unit.models.length);
+				// console.log("Fixing entry for unit ", unit.name, "models: ", unit.models.length);
 
 				unit.models = unit.models || [];
 				unit.models.push({
@@ -292,9 +314,3 @@ const processUnits = (pool, detachments) => {
 	return ret;
 };
 exports.processUnits = processUnits;
-
-const userid = req => req.user.sub.split("|")[1];
-exports.userid = userid;
-
-const sanitizeStr = str => str.replace(/'/gm, "");
-exports.sanitizeStr = sanitizeStr;

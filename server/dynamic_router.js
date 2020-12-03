@@ -43,10 +43,27 @@ class DynamicRouter {
 		 * Fetch Chart 
 		 * Get chart data for the chart identified.
 		 */
-		app.get('/api/calc/chart/:listId', jwtCheck, async (req, res) => {
-			console.log("[GET Chart]");
+		app.get('/api/synamic/forcePolar/:listId', jwtCheck, async (req, res) => {
+			console.log("[GET forcePolar]");
 
-			let results = await queryDB(pool, "SELECT (name, points, faction, rating, id) from war_list WHERE userId = '" + req.params.userId + "';");
+			let results = await queryDB(pool, "SELECT (name, points, faction, rating, id) from war_list WHERE userId = $1 AND id = $2;", [lib.userid(req), req.params.listId]);
+			console.log("Got results: ", results);
+
+			if (results && results.rows.length) {
+				results = results.rows[0];
+
+				// DEBBUG -- TODO HERE
+				// DEBBUG -- TODO HERE
+				// DEBBUG -- TODO HERE
+				// DEBBUG -- TODO HERE
+				// DEBBUG -- TODO HERE
+				// DEBBUG -- TODO HERE
+				// DEBBUG -- TODO HERE
+				// DEBBUG -- TODO HERE
+				// DEBBUG -- TODO HERE
+
+			}	
+
 			lib.sendMsg(res, {type: "SET_METALIST", payload: results});
 		});
 	}

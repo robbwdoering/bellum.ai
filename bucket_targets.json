@@ -1,0 +1,85 @@
+// Troops
+Unit				M 	WS	BS	S 	T 	W 	A 	LD 	SV
+Battle Sister		6"	4+	3+	3	3	1	1	7	3+
+Dire Avenger        7"  3+  3+  3   3   1   1   8   4
+Skitarii Vanguard	6"	4+	3+	3	3	1	1	6	4+
+Fire Warrior		6"	5+	4+	3	3	1	1	6	4+
+Guardsman			6"	4+	4+	3	3	1	1	6	5+
+Kabalite Warrior	7"	3+	3+	3	3	1	1	7	5+
+Player				8"	3+	3+	3	3	1	4	8	6+
+Chaos Cultist		6"	4+	4+	3	3	1	1	5	6+
+Termagant			6"	4+	4+	3	3	1	1	5	6+
+
+Bloodletter			6"	3+	3+	4	3	1	1	7	6+
+Tyranid Warrior		6"	3+	4+	4	4	3	3	9	4+
+Plague Marine		5"	3+	3+	4	5	1	1	7	3+
+Chaos Space Marine	6"	3+	3+	4	4	1	1	7	3+
+Necron Warrior		5"	3+	3+	4	4	1	1	10	4+
+Ork Boy				5"	3+	5+	4	4	1	2	6	6+
+Bloodletter			6"	3+	3+	4	3	1	1	7	6+
+
+
+// Five of each!
+
+// Light Resil
+Battle Sister		6"	4+	3+	3	3	1	1	7	3+
+Dire Avenger        7"  3+  3+  3   3   1   1   8   4
+Skitarii Vanguard	6"	4+	3+	3	3	1	1	6	4+
+Fire Warrior		6"	5+	4+	3	3	1	1	6	4+
+Guardsman			6"	4+	4+	3	3	1	1	6	5+
+Kabalite Warrior	7"	3+	3+	3	3	1	1	7	5+
+Player				8"	3+	3+	3	3	1	4	8	6+
+Chaos Cultist		6"	4+	4+	3	3	1	1	5	6+
+Termagant			6"	4+	4+	3	3	1	1	5	6+
+
+// Med Resil
+Ork Boy				5"	3+	5+	4	4	1	2	6	6+
+Tyranid Warrior		6"	3+	4+	4	4	3	3	9	4+
+Necron Warrior		5"	3+	3+	4	4	1	1	10	4+
+Chaos Space Marine	6"	3+	3+	4	4	1	1	7	3+
+Plague Marine		5"	3+	3+	4	5	1	1	7	3+
+
+// Tough Resil
+Aberrant			6"	3+	6+	5	4	2	2	7	5+
+Custodian			6"	2+	2+	5	5	3	3	8	2+
+Broadside Shas'ui 	5"	5+	4+	5	5	6	2	7	2+
+
+// Tank Resil
+Carnifex			7"	4+	4+	6	7	8	4	6	3+
+Leman Russ			10" 6+	4+	7	8	12	3	7	3+
+Riptide				12"	5+ 	4+ 	6	7	14	4	8	2+
+Riptide				12"	5+ 	4+ 	6	7	14	4	8	2+
+
+// 
+
+
+// Weak Threats 
+					R 	Type			S 	AP 	D 	Abilities
+Lasgun				24"	Rapid Fire 1	3	0	1	-
+Shuriken Pistol		12"	Pistol 1		4	0	1	Each time you make a wound roll of 6+ for this weapon, that hit is resolved with an AP of -3.
+Slugga				12"	Pistol 1		4	0	1	-
+Autogun				24"	Rapid Fire 1	3	0	1	-
+Boltgun				24"	Rapid Fire 1	4	0	1	-
+Gauss Flayer		24"	Rapid Fire 1	4	-1	1	-
+Pulse rifle			30"	Rapid Fire 1	5	0	1	-
+Fleshborer			12"	Assault 1		4	0	1	-
+Shotgun				12"	Assault 2		4	0	1
+Radium Carbine		18"	Assault 3		3	0	1	Each time you make a wound roll of 6+ for this weapon, that hit inflicts 2 damage instead of 1.
+
+// Med Threats 
+Heavy Bolter		36"	Heavy 3			5	-1	1
+Battle Cannon		72"	Heavy D6		8	-2	D3
+Heavy Burst Cannon	36"	Heavy 12		6	-1	2
+Burst Cannon		18"	Heavy 4			5	0	1
+
+// Anti-Personell Threats \
+Heavy Mining Laser	36"	Heavy D3		9	-3	D6	Blast
+Blasting Charge		6"	Grenade D6		3	0	1	Blast	
+
+// Anti-Tank Threats 
+Missle Pod 			36" Assault 2		7	-1	D3
+Heavy Rail Rifle 	60"	Heavy 2			8	-4	D6	For each roll of 6+, target unit suffers a mortal wound
+
+
+
+
