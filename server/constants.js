@@ -77,39 +77,44 @@ class Profile {
 };
 exports.Profile = Profile;
 
-exports.defaultBucketUnits = {
+// NOTE: ORdering of this list matters - searched top to bottom, and takes the first it finds
+exports.nameSuffixMarkers = [
+	/ [wW]\/ /g, // abbreviation for with, describes equipment
+	/ s$\/ /g, // S at end of line could indicate an unnecessary plural
+];
+
+exports.defBucketTargets = {
 	// Resilience stat are used to determine the damage profile of a unit
-	lightResilience = [
+	lightResilience: [
 		{toughness: 3, save: 4, weight: 2},
 		{toughness: 3, save: 5},
 		{toughness: 3, save: 6, weight: 2},
 	],
-	medResilience = [
+	medResilience: [
 		{toughness: 4, save: 3, weight: 1},
 		{toughness: 4, save: 4, weight: 2},
-		{toughness: 4, save: 6, weight: 0.5},
+		{toughness: 4, save: 6, weight: 1},
 		{toughness: 4, save: 5, weight: 1},
 		{toughness: 5, save: 4, weight: 1},
 		{toughness: 5, save: 6, weight: 0.5}
 	],
-	toughResilience = [
+	toughResilience: [
 		{toughness: 5, save: 3, weight: 1},
 		{toughness: 4, sav: 2, weight: 1},
-		{toughness: 6, sav: 4, weight: 1}
+		{toughness: 6, sav: 4, weight: 1},
 		{toughness: 6, sav: 5, weight: 1}
 	],
-
-	tankResilience = [
+	tankResilience: [
 		{toughness: 7, save: 3},
 		{toughness: 8, save: 3},
 		{toughness: 7, save: 2},
 		{toughness: 8, save: 2},
 		{toughness: 9, save: 4},
-		{toughness: 10, save: 4, weight; 0.5},
+		{toughness: 10, save: 4, weight: 0.5},
 	],
 
 	// Threats are used to determine the resilience of a unit
-	lightThreats = [
+	lightThreats: [
 		{type: "Rapid Fire", shots: 1, strength: 3, AP:	0, damage: 1},
 		{type: "Rapid Fire", shots: 1, strength: 4, AP:	0, damage: 1},
 		{type: "Rapid Fire", shots: 1, strength: 5, AP:	0, damage: 1},
@@ -117,19 +122,24 @@ exports.defaultBucketUnits = {
 		{type: "Assault", shots: 1, strength: 3, AP:	0, damage: 1},
 		{type: "Assault", shots: 2, strength: 4, AP:	0, damage: 1},
 	], 
-	medThreats = [
+	medThreats: [
 		{type: "Heavy", shots: 3, strength: 5, AP:	-1, damage: 1},
 		{type: "Heavy", shots: "D6", strength: 8, AP:	-2, damage: "D3"},
 		{type: "Heavy", shots: 12, strength: 6, AP:	-1, damage: 2},
 		{type: "Heavy", shots: 4, strength: 5, AP:	0, damage: 1},
 	],
-	antiInfantryThreats = [
-		{type: "Greanade", shots: "D6", strength: 3, AP: 0, damage: "1"},
+	antiInfantryThreats: [
+		{type: "Grenade", shots: "D6", strength: 3, AP: 0, damage: 1},
+		{type: "Rapid Fire", shots: 4, strength: 4, AP: 0, damage: 1},
+		{type: "Heavy", shots: "D6", strength: 5, AP: -1, damage: 1}, 
+		{type: "Heavy", shots: "D3", strength: 5, AP: -2, damage: 2}, // BLAST
 	],
-	antiTankThreats = [
+	antiTankThreats: [
 		{type: "Heavy", shots: "D3", strength: 9, AP:	-3, damage: "D6"},
-		{type: "Assault", shots: "2", strength: 7, AP:	-1, damage: "D3"},
-		{type: "Heavy", shots: "2", strength: 8, AP:	-4, damage: "D6"},
+		{type: "Assault", shots: 2, strength: 7, AP:	-1, damage: "D3"},
+		{type: "Heavy", shots: 2, strength: 8, AP:	-4, damage: "D6"},
+		{type: "Heavy", shots: 2, strength: 9, AP:	-3, damage: "D6"}, //MELTA
+		{type: "Heavy", shots: 1, strength: 8, AP:	-3, damage: "D6"}
 	]
 };
 

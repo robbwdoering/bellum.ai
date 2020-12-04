@@ -32,3 +32,19 @@ export const statCategories = {
 		charts: ['invuln', 'toughtness', 'feelNoPain', 'resilAttrCount']
 	},
 }
+
+export const ChartTypes = {
+	ForceScorecard: "ForceScorecard",
+	LightDmg: "LightDmg",
+	MedDmg: "MedDmg",
+	ToughDmg: "ToughDmg",
+	TankDmg: "TankDmg",
+	LightResil: "LightResil",
+	MedResil: "MedResil",
+	ToughResil: "ToughResil",
+	TankResil: "TankResil",
+	Move: "Move",
+	Range: "Range",
+	Screen: "Screen",
+	Toughness: "Toughness"
+};

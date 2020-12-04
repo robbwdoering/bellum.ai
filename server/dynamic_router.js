@@ -14,6 +14,8 @@ const config = require('./config');
 const constants = require('./constants');
 const lib = require('./router_library');
 
+const derive = require("./derive");
+
 const sendMsg = (res, msg) => {
 	res.set('Content-Type', 'application/json');
 	res.send(JSON.stringify(msg));
@@ -43,25 +45,16 @@ class DynamicRouter {
 		 * Fetch Chart 
 		 * Get chart data for the chart identified.
 		 */
-		app.get('/api/synamic/forcePolar/:listId', jwtCheck, async (req, res) => {
+		app.get('/api/dynamic/forceScorecard/:listId', jwtCheck, async (req, res) => {
 			console.log("[GET forcePolar]");
 
 			let results = await queryDB(pool, "SELECT (name, points, faction, rating, id) from war_list WHERE userId = $1 AND id = $2;", [lib.userid(req), req.params.listId]);
-			console.log("Got results: ", results);
 
 			if (results && results.rows.length) {
 				results = results.rows[0];
+				console.log("Got results: ", results);
 
-				// DEBBUG -- TODO HERE
-				// DEBBUG -- TODO HERE
-				// DEBBUG -- TODO HERE
-				// DEBBUG -- TODO HERE
-				// DEBBUG -- TODO HERE
-				// DEBBUG -- TODO HERE
-				// DEBBUG -- TODO HERE
-				// DEBBUG -- TODO HERE
-				// DEBBUG -- TODO HERE
-
+				// values = derive.drvScorecardVals(results);
 			}	
 
 			lib.sendMsg(res, {type: "SET_METALIST", payload: results});

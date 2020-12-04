@@ -76,20 +76,20 @@ export const warReducer = (state = initialState, action) => {
 		case WarActions.SET_METALIST:
 			console.log("Metalist received: ", action.payload);
 			if (!action.payload || !action.payload.results || action.payload.results.length === 0) {
-				console.error("Cannot parse metalist - null.");
+				newState.metalist = [];
 			} else {
-				newState.metalistHash++;
 				newState.metalist = action.payload.results.map(e => {
 					let tmpArr = e.row.substring(1, e.row.length - 1).split(",");
 					return {
-						name: tmpArr[0],
+						name: cleanStrInput(tmpArr[0]),
 						points: parseInt(tmpArr[1]),
-						faction: tmpArr[2],
+						faction: cleanStrInput(tmpArr[2]),
 						rating: tmpArr[3],
 						id: tmpArr[4]
 					}
 				});
 			}
+			newState.metalistHash++;
 			return newState;
 
 		case WarActions.SET_UNSET_PROFILES:
@@ -129,4 +129,14 @@ export const warReducer = (state = initialState, action) => {
 	return state;
 };
 
+// Cleans strings that we got from the database, doing things like removing wrapping quotes.
+const cleanStrInput = str => {
+	let ret = str;
 
+	// Check for wrapping quotes
+	if (ret.match(/^\".*\"$/g)) {
+		ret = ret.substring(1, ret.length - 1);
+	}
+
+	return ret;
+};

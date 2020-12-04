@@ -17,22 +17,33 @@ export const WarActions = {
 };
 
 export const regex = {
-	slotHeader: /^\+ (HQ|Troops|Fast Attack|Elites|Heavy Support|Flyer) .*\+/g,
+	roleHeader: /^\+ (HQ|Troops|Fast Attack|Elites|Heavy Support|Flyer) .*\+/g,
 	detachmentHeader: /\+\+ [A-z]+ Detachment .+ \+\+/g,
 	profile: /^\+\+ Profile Summary \+\+/g,
-	subsection: /^\. [A-z].+/g,
-	secSection: /^\. \. [A-z].+/g,
-	tertSection: /^\. \. \. [A-z].+/g,
+	subsection: /^\. .*.+/g,
+	secSection: /^\. \. .*.+/g,
+	tertSection: /^\. \. \. .*.+/g,
 	quantifiedModel: /^\. [0-9]+x .+/g,
 	detailsHeader: / Psychic Power: | Weapon: | Unit: | Abilities: | Psyker: | Wound Track( -)* [\/\,\(\)AWTSMBS]+: | Stat Damage( -)* [\/\,\(\)AWTSMBS]+: /g,
+	rulesHeader: /^\. Rules: .+/g,
 	profileDescription: /^\. .+: Description:/g,
+	profileRules: /^\. .+: Rules:/g,
 	profilePower: /^\. .+: Warp Charge:/g,
 	profileStats: /^\. .+: M:/g,
 	profileWeapon: /^\. .+: Range:/g,
 	profilePsyker: /^\. .+: Cast:/g,
 	profileEffect: /^\. .+: Effect:/g,
 	profileWoundTrack: /^\. .+: Remaining W:/g,
+	parenthesisName: /^.+ (.+).*/g
 };
+
+export const datasheetFields = ['move', 'weapons', 'ballistics', 'strength', 'toughness', 'wounds', 'attacks', 'leadership', 'save'];
+
+export const typoMap = {
+	["big_mek_in_mega_armour_(da_kleverest_boss)"]: "big_mek_in_mega_armour",
+	["ghazghkul_thraka"]: "ghazghkull_thraka"
+}
 
 export const demoData = {
 };
+

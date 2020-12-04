@@ -1,4 +1,3 @@
-DROP TABLE IF EXISTS "events";
 DROP TABLE IF EXISTS "war_list";
 DROP TABLE IF EXISTS "profile";
 DROP TABLE IF EXISTS "war_desc_profile";
@@ -20,6 +19,10 @@ CREATE TABLE war_list (
     name TEXT NOT NULL,
     points INT,
     faction TEXT NOT NULL,
+    shoot INT,
+    fight INT,
+    control INT,
+    resil INT,
     rating INT,
     json JSONB,
     PRIMARY KEY (name, userId)
@@ -55,6 +58,7 @@ CREATE TABLE war_stat_profile (
     weapons INT,
     move INT,
     save INT,
+    strength INT,
     invuln INT,
     toughness INT,
     wounds INT,

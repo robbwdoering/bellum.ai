@@ -33,7 +33,7 @@ export const ForceManager = props => {
 	const startDeleteForce = () => {
 		setShowDeleteModal(true);
 
-		// Tell the API to POST data
+		// Set the data we'll use if we call the API
 		postData.current = {
 			toDelete: metalist.filter((e, i) => selectedList[i]).map(e => e.name)
 		};
@@ -46,6 +46,7 @@ export const ForceManager = props => {
 		if (postData.current) {
 			listApi.refresh();
 		}
+		setSelectedList(selectedList.map(() => false));
 	};
 
 	const selectForce = i => {
@@ -60,11 +61,10 @@ export const ForceManager = props => {
 	// Request a new list on mount
 	useEffect(metalistApi.refresh, []);
 
-	console.log("metalist: ", metalist)
 	return (
 		<div>
 			<Divider horizontal> <h2>Forces</h2> </Divider>
-			<Button icon labelPosition="left" className="table-control" onClick={() => {
+			<Button icon labelPosition="left" disabled={!selectedList.some(e => e)} className="table-control" onClick={() => {
 				startDeleteForce();
 			}}>
 				<Icon name="trash" />
@@ -80,7 +80,7 @@ export const ForceManager = props => {
 						<Table.HeaderCell> SHOOT </Table.HeaderCell>
 						<Table.HeaderCell> FIGHT </Table.HeaderCell>
 						<Table.HeaderCell> CONTROL </Table.HeaderCell>
-						<Table.HeaderCell> VULN </Table.HeaderCell>
+						<Table.HeaderCell> RESILIENCE </Table.HeaderCell>
 					</Table.Row>
 				</Table.Header>
 
@@ -104,7 +104,7 @@ export const ForceManager = props => {
 						);
 
 					})}
-					{(!metalist || !metalist.length) && (
+					{!metalist && (
 						<Placeholder>
 							<Placeholder.Line />
 							<Placeholder.Line />
@@ -114,6 +114,11 @@ export const ForceManager = props => {
 					)}
 				</Table.Body>
 			</Table>
+			{!metalist.length && (
+				<div className="table-empty-message">
+					To add your first force, use the "Add Force" option in the top right.
+				</div>
+			)}
 
 			<Modal open={showDeleteModal}>
 				<Modal.Header> Are you sure you want to delete this force? </Modal.Header>

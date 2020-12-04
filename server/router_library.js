@@ -77,10 +77,8 @@ const processProfile = async(pool, profile) => {
 
 		if (str.length) {
 			str = "INSERT INTO war_power_profile (name, warp_charge, range, details, `meaning) VALUES " + str + " ON CONFLICT (name) DO NOTHING RETURNING name;";
-			// console.log("enterying query: ", query);
 
 			results = await queryDB(pool, query);
-			// console.log("Got results: ", results);
 		}
 	}
 
@@ -93,10 +91,8 @@ const processProfile = async(pool, profile) => {
 
 		if (str.length) {
 			str = "INSERT INTO war_desc_profile (name, description, meaning) VALUES " + str + " ON CONFLICT (name, description) DO NOTHING RETURNING name;";
-			// console.log("enterying query: ", str);
 
 			results = await queryDB(pool, str);
-			// console.log("Got results: ", results);
 		}
 	}
 
@@ -108,26 +104,42 @@ const processProfile = async(pool, profile) => {
 
 		if (str.length) {
 			str = "INSERT INTO war_psyker_profile (name, castNum, deny, other, powers_known) VALUES " + str + " ON CONFLICT (name) DO NOTHING RETURNING name;";
-			// console.log("enterying query: ", str);
 
 			results = await queryDB(pool, str);
-			// console.log("Got results: ", results);
 		}
 	}
 
 	if (profile.stats) {
+		let args = [];
+		console.log("------------------")
+		console.log("PROCESSING STATS: ")
+		console.log("------------------")
+		let pC = 0; // paramCount
 		str = Object.keys(profile.stats).reduce((acc, e, i ) => {
 			let obj = profile.stats[e];
-			acc += `${i > 0 ? "," : ""} ('${e}', '${obj.a}', ${parseInt(obj.bs) || -1}, ${parseInt(obj.ws) || -1}, ${parseInt(obj.m) || -1}, ${parseInt(obj.save) || -1}, ${obj.save.match && obj.save.match(/[0-9]+\+\/[0-9]+\+\+/g) ? parseInt(obj.save.substring(obj.save.indexOf("/") + 1)) : 0}, ${parseInt(obj.t)}, ${parseInt(obj.w)}, ${parseInt(obj.ld)})`
+			acc += `${i > 0 ? "," : ""} ($${++pC}, $${++pC}, $${++pC}, $${++pC}, $${++pC}, $${++pC}, $${++pC}, $${++pC}, $${++pC}, $${++pC}, $${++pC})`;
+			 
+			 args = args.concat([
+				obj.name,
+		 		obj.a,
+			 	parseInt(obj.bs) || -1,
+			 	parseInt(obj.ws) || -1,
+			 	parseInt(obj.strength) || -1,
+			 	parseInt(obj.m) || -1,
+			 	parseInt(obj.save) || -1,
+			 	(obj.save.match && obj.save.match(/[0-9]+\+\/[0-9]+\+\+/g)) ? parseInt(obj.save.substring(obj.save.indexOf("/") + 1)) : 0,
+			 	parseInt(obj.t),
+			 	parseInt(obj.w),
+			 	parseInt(obj.ld)
+		 	]);
 			return acc;
 		}, "");
 
-		if (str.length) {
-			str = "INSERT INTO war_stat_profile (name, attacks, ballistics, weapons, move, save, invuln, toughness, wounds, leadership) VALUES " + str + " ON CONFLICT (name) DO NOTHING RETURNING name;";
-			// console.log("enterying query: ", str);
+		if (str.length && pC == args.length) {
+			str = "INSERT INTO war_stat_profile (name, attacks, ballistics, weapons, strength, move, save, invuln, toughness, wounds, leadership) VALUES " + str + " ON CONFLICT (name) DO NOTHING RETURNING name;";
 
-			results = await queryDB(pool, str);
-			// console.log("Got results: ", results);
+			console.log("issued request ", str)
+			results = await queryDB(pool, str, args);
 		}
 	}
 
@@ -156,10 +168,8 @@ const processProfile = async(pool, profile) => {
 
 		if (str.length) {
 			str = "INSERT INTO war_weapon_profile (name, ap, damage, range, strength, weaponType, abilities, meaning) VALUES " + str + " ON CONFLICT (name) DO NOTHING RETURNING name;";
-			// console.log("enterying query: ", str);
 
 			results = await queryDB(pool, str);
-			// console.log("Got results: ", results);
 		}
 	}
 }
@@ -194,6 +204,10 @@ const massageProfile = (pool, profile, army) => {
 };
 exports.massageProfile = massageProfile;
 
+/**
+ * Given a "Node", which basically means a unit or a model, check all of it's properties to build a series of arrays of strings.
+ * These arrays contain all the database entries that we should request to use this list.
+ */
 const getAllDetailsFromNode = (ret, node) => {
 	node.abilities && node.abilities.forEach(ability => {
 		if (!ret.desc.includes(ability)) {
@@ -207,10 +221,12 @@ const getAllDetailsFromNode = (ret, node) => {
 	});
 	node.models && node.models.forEach(model => {
 		if (!ret.stats.includes(model.name)) {
-			ret.stats.push(model.name);
-			if (model.name.endsWith("s")) {
-				ret.stats.push(model.name.substring(0, model.name.length - 1));
-			}
+			getModelOrUnitDetails(model.name, ret);
+		}
+	});
+	node.unit && node.unit.forEach(unit => {
+		if (!ret.stats.includes(unit)) {
+			getModelOrUnitDetails(unit, ret);
 		}
 	});
 	node.psykers && node.psykers.forEach(psyker => {
@@ -223,17 +239,18 @@ const getAllDetailsFromNode = (ret, node) => {
 			ret.powers.push(power);
 		}
 	});
-}
+};
 
-const getProfilesForList = async(pool, army) => {
-	// console.log("[getProfilesForList]");
+const getProfilesForList = async (pool, army) => {
+	console.log("[getProfilesForList]");
 	let ret = new constants.Profile();
 	army.units.forEach(unit => {
+		console.log("---Starting unit", unit.name, unit)
 		getAllDetailsFromNode(ret, unit);
 		unit.models.forEach(model => {
 			getAllDetailsFromNode(ret, model);
 		});
-		// console.log("Finished unit", unit.name, ret.stats);
+		console.log("---Finished unit", ret.stats);
 	});
 
 	await ret.fetchAllFromDb(pool, queryDB);
@@ -242,6 +259,26 @@ const getProfilesForList = async(pool, army) => {
 	return ret;
 };
 exports.getProfilesForList = getProfilesForList;
+
+/**
+ * Reads the name of a unit or model and accounts for all sorts of weird inconsistencies between these
+ * names and the names found in the profiles (and thus the strings that we need to feed into the database).
+ */
+const getModelOrUnitDetails = (name, ret) => {
+	ret.stats.push(name);
+	let val;
+
+	// Find the index of a any substring that indicates this might have a "suffix", such as a plural "s"
+	let marker = constants.nameSuffixMarkers.find(regex => name.match(regex));
+	if (marker) {
+		let markerIdx = name.indexOf(marker);
+		let tmpStr = name.substring(0, markerIdx);
+		if (!ret.stats.includes(tmpStr)) {
+			ret.stats.push(tmpStr);
+		}
+	}
+};
+exports.getModelOrUnitDetails = getModelOrUnitDetails;
 
 // Translates the database entry into a fully fleshed out object
 const massageList = (list) => {

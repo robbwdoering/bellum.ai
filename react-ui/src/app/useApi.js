@@ -35,7 +35,7 @@ export const useApi = (url, method, options = {}, handleFetch, data, execute = t
 
         // Append data if it was passed
         if (overrideValues) {
-          msg.body = JSON.stringify(data);
+          msg.body = JSON.stringify(overrideValues);
 
         // 
         } else if (data && method !== "GET") {

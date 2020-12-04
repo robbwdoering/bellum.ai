@@ -70,12 +70,15 @@ class StaticRouter {
 			console.log("[POST List]", req.body);
 			let query, results;
 
+
 			// OPTION 1 - DELETE A LIST
 			if (req.body.toDelete && req.body.toDelete.length) {
-				req.body.toDelete.forEach(async (name) => {
-					query = `DELETE FROM war_list WHERE name = '${name}';`;
-					results = await lib.queryDB(pool, query);
-				});
+				// Build the query to delete all lists in the passed array
+				query = req.body.toDelete.reduce((acc, name, i) => (
+					acc + (i ? " OR " : "") + `name = $${i+1}`
+				), 'DELETE FROM war_list WHERE ');
+				query += ";";
+				results = await lib.queryDB(pool, query, req.body.toDelete);
 
 			// OPTION 2 - ADD A LIST
 			} else {

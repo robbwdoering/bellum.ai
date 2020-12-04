@@ -24,10 +24,8 @@ export const Header = props => {
 	const [showSidebar, toggleSidebar] = useState(false);
 	const [showAddForce, toggleAddForce] = useState(false);
 	const [tmpForce, setTmpForce] = useState("");
-	const [requestVal, setRequestVal] = useState("");
 
-
-	const { loading, error, refresh } = useApi('/api/static/list', 'POST', apiOpts, handleFetch, requestVal, false);
+	const { loading, error, refresh } = useApi('/api/static/list', 'POST', apiOpts, handleFetch);
 
 	/**
 	 * Callback to turn the contents of the copy/paste box into a new force in  the database.
@@ -36,18 +34,14 @@ export const Header = props => {
 		if (tmpForce && tmpForce.length) {
 			setTmpForce(null);
 			const json = parsePlainText(tmpForce);
-			console.log('got ', json);
 			if (json) {
 				toggleAddForce(false);
-				setRequestVal(json);
 
 				// Perform the POST
-				refresh();
+				refresh(null, json);
 			} else {
 				console.error("Could not parse pasted text.")
 			}
-
-
 		}
 	}
 
@@ -101,7 +95,7 @@ export const Header = props => {
 											</Menu.Item>
 										)}
 										<Menu.Item as='a' onClick={() => openContents(ContentTypes.PreMatch)}>
-											Start Match	
+											Enter Match	
 										</Menu.Item>
 										<Menu.Item as='a' onClick={() => logout({ returnTo: window.location.origin })}>
 											Logout

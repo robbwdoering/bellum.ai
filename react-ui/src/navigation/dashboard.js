@@ -205,7 +205,7 @@ export class Dashboard extends Component {
 
 	    return (
 	    	<div className="dashboard" ref={this.dbRef}>
-	    		<HeaderContainer />
+	    		<HeaderContainer handleFetch={this.props.handleFetch} />
 				{/* Sidebar menu that overlays on the app */}
 				{/* Main Content */}
 				{this.props.hoverItems && Object.keys(this.props.hoverItems).map(key => {

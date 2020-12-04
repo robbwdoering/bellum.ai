@@ -1,5 +1,6 @@
 const express = require('express');
 const path = require('path');
+const constants = require('constants');
 
 
 /** 
@@ -210,6 +211,8 @@ const drvScorecardVals = (army ) => {
 				// Resilience
 
 			});
+		}
+	});
 
 	return ret;	
 } 
