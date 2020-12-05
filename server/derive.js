@@ -162,7 +162,7 @@ const drvShootScorecard = (unit, ret) => {
 
 };
 
-const drvScorecardVals = (army ) => {
+exports.drvScorecardVals = (army, profile, testData, ) => {
 	let ret = {
 		shoot: {
 			avg: 0,
@@ -181,12 +181,17 @@ const drvScorecardVals = (army ) => {
 			var: 0,
 			move: [],
 			range: [],
+			ptsTransports: 0,
 			screen: 0, //MSUs
 			attrCount: 0
 		},
-		fight: {avg: 0, var: 0},
-		control: {avg: 0, var: 0},
-		resil: {avg: 0, var: 0},
+		resil: {
+			invuln: 0,
+			toughness: 0,
+			feelNoPain: 0,
+			resilAttrCount: 0,
+			resilBuckers: []
+		}
 	};
 
 	let stats;
@@ -200,6 +205,7 @@ const drvScorecardVals = (army ) => {
 			// Loop through every model
 			unit.models.forEach(model => {
 				// Shoot
+					let shootRes = divine.fireSalvo(model, )
 					// Attribute count
 
 					// Damage 
@@ -215,7 +221,7 @@ const drvScorecardVals = (army ) => {
 	});
 
 	return ret;	
-} 
+};
 
 exports.deriveArmyStats = orig => {
 	let army = Object.assign({}, orig);

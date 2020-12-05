@@ -28,7 +28,7 @@ class StaticRouter {
 		 * Gets the metalist for this user, returning all of that user's lists. NOTE: Does not return actual list contents, just header info for each.
 		 */
 		app.get('/api/static/metalist', jwtCheck, async (req, res) => {
-			console.log("[fetch metalist]");
+			console.log("[GET metalist]");
 
 			let results = await lib.queryDB(pool, "SELECT (name, points, faction, rating, id) from war_list WHERE userId = '" + lib.userid(req) + "';");
 			console.log("returning: ", results);
@@ -45,18 +45,14 @@ class StaticRouter {
 			// Get the list from the database
 			let profiles = [];
 			let results = await lib.queryDB(pool, "SELECT (json) from war_list WHERE userId = $1 AND id = $2;",  [lib.userid(req), req.params.listId]);
-			console.log("GOT RESULTS: ", results);
 			if (results && results.results && results.results.length && results.results[0]) {
-				console.log("massaging results...", results);
 				let tmp = results.results[0].id;	
 				results = lib.massageList(results.results[0].json);
 				results.id = tmp;
 
-
 				// Fetch the profiles that are needed to understand this list, and massage them
 				profiles = await lib.getProfilesForList(pool, results);
 				lib.massageProfile(pool, profiles, results);
-				console.log("done massagign", results);
 			}
 
 			lib.sendMsg(res, {type: req.params.isPrimary === "true" ? "SET_PRIMARY_LIST" : "SET_SECONDARY_LIST", payload: {profiles, results}});
@@ -92,7 +88,7 @@ class StaticRouter {
 				if (!req.body.profile) {
 					console.log("This army doesn't have a profile - please attach one next time.");
 				}  else {
-					lib.processProfile(pool, req.body.profile);
+					lib.processProfile(pool, req.body.profile, req.body.detachments);
 				}
 			}
 

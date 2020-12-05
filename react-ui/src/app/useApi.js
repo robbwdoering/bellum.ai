@@ -18,7 +18,6 @@ export const useApi = (url, method, options = {}, handleFetch, data, execute = t
       }
       */
 
-      console.log("[CALLING API] ", url + (urlSuffix || ""), method, data, overrideValues);
 
       try {
         const { audience, scope, ...fetchOptions } = options;
@@ -44,6 +43,7 @@ export const useApi = (url, method, options = {}, handleFetch, data, execute = t
         setState(Object.assign({}, state, { loading: true }))
 
         // Perform the fetch asynchrounously
+        console.log("[CALLING API] ", url + (urlSuffix || ""), msg.method, msg.body);
         fetch(url + (urlSuffix || ""), msg)
           .then(response => {
             if (!response.ok) {
@@ -54,7 +54,11 @@ export const useApi = (url, method, options = {}, handleFetch, data, execute = t
           })
           .then((json) => {
             // This line handles all responses - created at app root to hook into redux
-            handleFetch(json);
+            if (handleFetch) {
+              handleFetch(json);
+            }
+
+            setState(Object.assign({}, state, {data: json}))
 
             // Turn off loading indicator
             setState(Object.assign({}, state, { loading: false }));

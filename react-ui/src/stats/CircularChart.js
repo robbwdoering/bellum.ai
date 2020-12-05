@@ -5,18 +5,41 @@
  */
 
 // React + Redux
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useMemo, useRef, useEffect, useState } from 'react';
 import { connect } from 'react-redux';
 import { Accordion, Placeholder, Card, Button, Grid, Step, Dropdown, Header, Tab, Input, Icon, Loading, Menu, Sidebar } from 'semantic-ui-react';
 import Radar from 'react-d3-radar';
 
 import { openContents, setDemoState } from './../app/actions';
 import Pane from './../common/pane';
-import { ContentTypes } from './../common/constants';
+import { ContentTypes, apiOpts  } from './../common/constants';
 import { BarChart } from './../stats/BarChart';
 import { statCategories } from './constants';
+import { useApi } from './../app/useApi';
 import './stats.css';
 
+
+// RADAR FORMAT: 
+/*
+	{variables: [
+		{ key: 'shoot', label: "" },
+		{ key: 'fight', label: '' },
+		{ key: 'control', label: '' },
+		{ key: 'resil', label: '' }
+	],
+	sets: [
+		{
+			key: 1,
+			label: 'Force Scores',
+			values: {
+				shoot: 40,
+				fight: 60,
+				control: 30,
+				resil: 70
+			}
+		}
+	]}
+*/
 
 export const CircularChart = props => {
 	const {
@@ -27,17 +50,16 @@ export const CircularChart = props => {
 
 		// Parent
 		key,
+		type,
 		height,
 		width,
 		force,
+		profile,
+		listId,
+		defaultValue,
+		data,
 
 		// Redux
-		metalist,
-		metalistHash,
-		primaryList,
-		secondaryList,
-		listHash,
-		prematchData,
 
 		// Dispatched Actions
 		openContents
@@ -45,11 +67,11 @@ export const CircularChart = props => {
 
 	const ref = useRef(); 
 
-	const [currentChart, setCurrentChart] = useState();
+	const [currentChart, setCurrentChart] = useState(defaultValue || "radar");
 
 	return (
 		<div ref={ref} className="circular-chart-container">
-			{currentChart === "radar" && (
+			{currentChart === "radar" && data && (
 				<Radar
 					width={height}
 					height={width}
@@ -63,26 +85,10 @@ export const CircularChart = props => {
 							console.log('not over anything');
 						}
 					}}
-					data={{
-						variables: [
-							{ key: 'shoot', label: "" },
-							{ key: 'fight', label: '' },
-							{ key: 'control', label: '' },
-							{ key: 'resil', label: '' }
-						],
-						sets: [
-							{
-								key: 1,
-								label: 'Force Scores',
-								values: {
-									shoot: 40,
-									fight: 60,
-									control: 30,
-									resil: 70
-								}
-							}
-						]
-					}}
+					data={data}
+						/*
+					}
+						*/
 				/>
 			)}
 		</div>
@@ -90,11 +96,7 @@ export const CircularChart = props => {
 }
 
 export const mapStateToProps = (state, props) => {
-  return {
-		primaryList: state.warReducer.primaryList,
-		listHash: state.warReducer.listHash,
-	  	prematchData: state.warReducer.prematchData,
-    };
+  return {};
 };
 
 export const CircularChartContainer = connect(mapStateToProps, { setDemoState, openContents })(CircularChart);

@@ -28,8 +28,8 @@ export const statCategories = {
 		charts: ['controlAttrCount', 'move', 'range', 'screen']
 	},
 	resil: {
-		title: "Resiliance",
-		charts: ['invuln', 'toughtness', 'feelNoPain', 'resilAttrCount']
+		title: "Resilience",
+		charts: ['invuln', 'toughness', 'feelNoPain', 'resilAttrCount']
 	},
 }
 
@@ -46,5 +46,17 @@ export const ChartTypes = {
 	Move: "Move",
 	Range: "Range",
 	Screen: "Screen",
-	Toughness: "Toughness"
+	Toughness: "Toughness",
+	SummaryRadar: "SummaryRadar"
 };
+
+export const chartConfigs = {
+	[ChartTypes.SummaryRadar]: {
+		variables: [
+			{ key: 'shoot', label: '' },
+			{ key: 'fight', label: '' },
+			{ key: 'control', label: '' },
+			{ key: 'resil', label: '' }
+		]
+	}
+}

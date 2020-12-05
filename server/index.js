@@ -81,9 +81,9 @@ if (!isDev && cluster.isMaster) {
     algorithms: ['RS256']
   });
 
-  // Setup routers
-  let staticRouter = new StaticRouter(app, pool, jwtCheck);
+  // Setup routers - order matters. StaticRouter contains the final, "default", response block
   let dynamicRouter = new DynamicRouter(app, pool, jwtCheck);
+  let staticRouter = new StaticRouter(app, pool, jwtCheck);
 
   app.listen(PORT, function () {
     console.log(`Node ${isDev ? 'dev server' : 'cluster worker '+process.pid}: listening on port ${PORT}`);

@@ -59,7 +59,7 @@ export const ForceManager = props => {
 	useEffect(() => setSelectedList(metalist ? metalist.map(force => false) : []), [metalist]);
 
 	// Request a new list on mount
-	useEffect(metalistApi.refresh, []);
+	useEffect(() => { metalistApi.refresh(); }, []);
 
 	return (
 		<div>

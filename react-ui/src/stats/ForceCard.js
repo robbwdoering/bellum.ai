@@ -33,7 +33,7 @@ import { CircularChartContainer } from './../stats/CircularChart';
 import { sanitizeString } from './../war/utils';
 import { datasheetFields } from './../war/constants';
 import { useApi } from './../app/useApi';
-import { statCategories, ChartTypes } from './constants';
+import { statCategories, ChartTypes, chartConfigs } from './constants';
 import './stats.css';
 
 export const ForceCard = props => {
@@ -45,16 +45,14 @@ export const ForceCard = props => {
 
 		// Parent
 		key,
+		data,
 		style,
-		force,
 		profile,
 		handleFetch,
 
 		// Redux
-		data,
 		metalist,
 		metalistHash,
-		primaryList,
 		secondaryList,
 		listHash,
 		prematchData,
@@ -87,35 +85,39 @@ export const ForceCard = props => {
 		);
 	};
 
-	// const forcePolarApi = useApi('/api/dynamic/forcePolar/', 'GET', apiOpts, handleFetch);
-
-	/*
-	useEffect(() => {
-		if (force && force.id) {
-			forcePolarApi.refresh(force.id);
-		}
-	}, [force && force.id]);
-	*/
-
-	const isEngaged = useMemo(() => primaryList !== null, [listHash]);
+	const header = useMemo(() => metalist && metalist.find(e => e.id === data.id), [data && data.id, metalistHash]);
 
 	// Fetch Data
 	const polarConfig = useMemo(() => {
-		const retSize = style ? style.width * 0.4 : 250;
-		return {
+		const retSize = style ? style.width * 0.2 : 250;
+
+		return !header ? {} : {
 			height: retSize,
-			width: retSize
+			width: retSize,
+			data: {
+				variables: chartConfigs[ChartTypes.SummaryRadar],
+				sets: [{
+					key: 1,
+					label: 'Force Scores',
+					values: {
+						shoot: header.shoot,
+						fight: header.fight,
+						control: header.control,
+						resil: header.resil 
+					}
+				}]
+			}
 		};
-	}, [style]);
+	}, [style, listHash]);
 
 	console.log('Current profile: ', profile);
 
 	return (
 		<Card className={'force-card' + (data ? '' : ' empty')} style={style}>
 			{data &&
-				profile && [
+				(profile && profile.stats.find) && [
 					<div key={'fcheader'} className="fc-header-container">
-						<CircularChartContainer type={ChartTypes.ForceScorecard} height={120} width={120} data={primaryList} />
+						<CircularChartContainer type={ChartTypes.SummaryRadar} {...polarConfig} />
 					</div>,
 					<div key={'fctable'} className="fc-table-container">
 						<Table sortable basic="very" style={{ width: '100%' }}>
@@ -152,16 +154,27 @@ export const ForceCard = props => {
 										stat = profile.stats.find(statBlock => stemName.startsWith(statBlock.name)) || {};
 									}
 
-									// Massage the statblock here
-									if (datasheetFields.some(field => !stat[field] || stat[field] === -1 || stat[field] === "*")) {
-										// Find the description item for this unit at full health
-										let descItem = profile.desc.find(e => e.name == (sanitizeString(stemName) + "1"));
-
-										// Override some fields of stat, that were probably all empty anyway
-										if (descItem && descItem.meaning) {
-											stat = Object.assign({}, stat, descItem.meaning);
+									// Get wound track full health info
+									if (unit.wound_track && unit.wound_track.length) {
+										const target = sanitizeString(unit.wound_track[0]);
+										let woundStat = profile.stats.find(statBlock => statBlock.name === target) || {};
+										if (woundStat) {
+											Object.assign(stat, Object.keys(woundStat).reduce((acc, key) => {
+												if (woundStat[key] && woundStat[key] !== -1 && key !== "name") {
+													acc[key] = woundStat[key];
+												}
+												return acc;
+											}, {}));
 										}
 									}
+
+									// NOTE: Example of how to get description fields here
+									// if (datasheetFields.some(field => !stat[field] || stat[field] === -1 || stat[field] === "*")) {
+										// let descItem = profile.desc.find(e => e.name == (sanitizeString(stemName) + "1"));
+										// if (descItem && descItem.meaning) {
+										// 	stat = Object.assign({}, stat, descItem.meaning);
+										// }
+									// }
 
 									return (
 										<Table.Row>
@@ -200,7 +213,8 @@ export const ForceCard = props => {
 
 export const mapStateToProps = (state, props) => {
 	return {
-		primaryList: state.warReducer.primaryList,
+		metalist: state.warReducer.metalist,
+		metalistHash: state.warReducer.metalistHash,
 		listHash: state.warReducer.listHash,
 		prematchData: state.warReducer.prematchData
 	};

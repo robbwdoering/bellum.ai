@@ -10,7 +10,6 @@ const map = require('./map');
 const config = require('./config');
 const constants = require('./constants');
 
-
 /** 
  * Router Library
  * 
@@ -23,6 +22,13 @@ exports.userid = userid;
 
 const sanitizeStr = str => str.replace(/'/gm, "");
 exports.sanitizeStr = sanitizeStr;
+
+const formatStr = str => {
+	return str.toLowerCase()
+		.replace(/[- ]/g, "_")
+		.replace(/'/g, "");
+};
+exports.formatStr = formatStr;
 
 /**
  * Convenience function for sending reponses to clients
@@ -61,11 +67,17 @@ const queryDB = async(pool, query, values) => {
 };
 exports.queryDB = queryDB;
 
+
+// ---------------
+// INPUT FUNCTIONS
+// ---------------
+
+
 /**
  * Take in a profile from the front end, and do all the translations we need before storing it.
  * Also consists of santitizing strings and inserting each part of the profile into it's respective table.
  */
-const processProfile = async(pool, profile) => {
+const processProfile = async(pool, profile, detachments) => {
 	let str;
 	const curSec = Math.floor(Date.now / 1000)
 	// Handle Psychic Powers
@@ -111,26 +123,44 @@ const processProfile = async(pool, profile) => {
 
 	if (profile.stats) {
 		let args = [];
-		console.log("------------------")
-		console.log("PROCESSING STATS: ")
-		console.log("------------------")
 		let pC = 0; // paramCount
 		str = Object.keys(profile.stats).reduce((acc, e, i ) => {
 			let obj = profile.stats[e];
 			acc += `${i > 0 ? "," : ""} ($${++pC}, $${++pC}, $${++pC}, $${++pC}, $${++pC}, $${++pC}, $${++pC}, $${++pC}, $${++pC}, $${++pC}, $${++pC})`;
+
+			// Handle wound tracks that need info filled in
+			if (obj.characteristic_1) {
+				let unit = detachments.reduce((acc, d) => d.units.find(u => u.wound_track && u.wound_track.map(formatStr).includes(e)) || acc, null);
+				if (unit && profile.stats[formatStr(unit.name)]) {
+					const stat = profile.stats[formatStr(unit.name)];
+
+					// characterestic_1 gets the first null value, _2 the second, etc.
+					constants.statFields	
+						.filter(field => !stat[field] || stat[field] === -1 || stat[field] === "*")
+						.forEach((field, i) => {
+							obj[field] = obj["characteristic_"+(i+1)];
+							delete obj["characteristic_"+(i+1)];
+						});
+					profile.stats[e] = obj;
+					// console.log("processed wound track for: ", obj, stat);
+				} else {
+					console.warn("Unable to process wound track for ", unit, profile.stats)
+				}
+			}
 			 
-			 args = args.concat([
-				obj.name,
-		 		obj.a,
-			 	parseInt(obj.bs) || -1,
-			 	parseInt(obj.ws) || -1,
-			 	parseInt(obj.strength) || -1,
-			 	parseInt(obj.m) || -1,
-			 	parseInt(obj.save) || -1,
-			 	(obj.save.match && obj.save.match(/[0-9]+\+\/[0-9]+\+\+/g)) ? parseInt(obj.save.substring(obj.save.indexOf("/") + 1)) : 0,
-			 	parseInt(obj.t),
-			 	parseInt(obj.w),
-			 	parseInt(obj.ld)
+			const saveVal = obj.save || obj.sv;
+			args = args.concat([
+				e,
+		 		obj.a || obj.attacks || -1,
+			 	parseInt(obj.bs) || parseInt(obj.ballistics) || -1,
+			 	parseInt(obj.ws) || parseInt(obj.weapons) || -1,
+			 	parseInt(obj.s) || parseInt(obj.strength) || -1,
+			 	parseInt(obj.m) || parseInt(obj.move) || -1,
+			 	parseInt(saveVal) || -1,
+			 	(saveVal && saveVal.match && saveVal.match(/[0-9]+\+\/[0-9]+\+\+/g)) ? parseInt(saveVal.substring(saveVal.indexOf("/") + 1)) : -1,
+			 	parseInt(obj.t) || parseInt(obj.toughness) || -1,
+			 	parseInt(obj.w) || parseInt(obj.wounds) || -1,
+			 	parseInt(obj.ld) || parseInt(obj.leadership) || -1
 		 	]);
 			return acc;
 		}, "");
@@ -138,7 +168,7 @@ const processProfile = async(pool, profile) => {
 		if (str.length && pC == args.length) {
 			str = "INSERT INTO war_stat_profile (name, attacks, ballistics, weapons, strength, move, save, invuln, toughness, wounds, leadership) VALUES " + str + " ON CONFLICT (name) DO NOTHING RETURNING name;";
 
-			console.log("issued request ", str)
+			// console.log("issued request ", str)
 			results = await queryDB(pool, str, args);
 		}
 	}
@@ -204,6 +234,13 @@ const massageProfile = (pool, profile, army) => {
 };
 exports.massageProfile = massageProfile;
 
+
+
+// ----------------
+// OUTPUT FUNCTIONS
+// ----------------
+
+
 /**
  * Given a "Node", which basically means a unit or a model, check all of it's properties to build a series of arrays of strings.
  * These arrays contain all the database entries that we should request to use this list.
@@ -221,14 +258,16 @@ const getAllDetailsFromNode = (ret, node) => {
 	});
 	node.models && node.models.forEach(model => {
 		if (!ret.stats.includes(model.name)) {
-			getModelOrUnitDetails(model.name, ret);
+			getModelOrUnitDetails(model, ret);
 		}
 	});
+	/*
 	node.unit && node.unit.forEach(unit => {
 		if (!ret.stats.includes(unit)) {
 			getModelOrUnitDetails(unit, ret);
 		}
 	});
+	*/
 	node.psykers && node.psykers.forEach(psyker => {
 		if (!ret.psykers.includes(psyker)) {
 			ret.psykers.push(psyker);
@@ -239,18 +278,25 @@ const getAllDetailsFromNode = (ret, node) => {
 			ret.powers.push(power);
 		}
 	});
+
+	// If this unit has a wound track, push those names as well
+	node.wound_track && node.wound_track.map(formatStr).forEach(name => {
+		if (!ret.stats.includes(name)) {
+			ret.stats.push(name);
+		}
+	})
 };
 
 const getProfilesForList = async (pool, army) => {
-	console.log("[getProfilesForList]");
+	// console.log("[getProfilesForList]");
 	let ret = new constants.Profile();
 	army.units.forEach(unit => {
-		console.log("---Starting unit", unit.name, unit)
+		// console.log("---Starting unit", unit.name, unit)
 		getAllDetailsFromNode(ret, unit);
 		unit.models.forEach(model => {
 			getAllDetailsFromNode(ret, model);
 		});
-		console.log("---Finished unit", ret.stats);
+		// console.log("---Finished unit", ret.stats);
 	});
 
 	await ret.fetchAllFromDb(pool, queryDB);
@@ -264,16 +310,18 @@ exports.getProfilesForList = getProfilesForList;
  * Reads the name of a unit or model and accounts for all sorts of weird inconsistencies between these
  * names and the names found in the profiles (and thus the strings that we need to feed into the database).
  */
-const getModelOrUnitDetails = (name, ret) => {
-	ret.stats.push(name);
+const getModelOrUnitDetails = (obj, ret) => {
 	let val;
 
-	// Find the index of a any substring that indicates this might have a "suffix", such as a plural "s"
-	let marker = constants.nameSuffixMarkers.find(regex => name.match(regex));
+	// Push the name it came in - this will catch 95% of cases
+	ret.stats.push(obj.name);
+
+	// Find the index of a any substring that indicates this might have a "suffix", such as a plural "s", and push the root
+	let marker = constants.nameSuffixMarkers.find(regex => obj.name.match(regex));
 	if (marker) {
-		let markerIdx = name.indexOf(marker);
-		let tmpStr = name.substring(0, markerIdx);
-		if (!ret.stats.includes(tmpStr)) {
+		let markerIdx = obj.name.indexOf(marker);
+		let tmpStr = obj.name.substring(0, markerIdx);
+		if (!ret.stats.includes(tmpStr) && tmpStr && tmpStr.length) {
 			ret.stats.push(tmpStr);
 		}
 	}
@@ -291,20 +339,18 @@ const processUnits = (pool, detachments) => {
 	let ret = [];
 	detachments.forEach(detach => {
 		detach.units.forEach(unit => {
-			if (unit.equipment) {
-				// console.log("Fixing entry for unit ", unit.name, "models: ", unit.models.length);
+			if (!unit.models.length) {
+				// console.log("[processUnits] Transforming implied unit into model", unit)
 
-				unit.models = unit.models || [];
-				unit.models.push({
-					name: unit.name || "UNKNOWN_NAME",
+				unit.models = [{
+					name: (unit.unit && unit.unit[0]) || unit.name || "UNKNOWN_NAME",
 					quantity: unit.quantity || 1,
 					// abilities: unit.abilities || [],
 					// categories: unit.categories || [],
-					// weapon: unit.weapon || []
-					equipment: unit.equipment
-				});
+					// weapon: unit.weapon || [],
+					equipment: unit.equipment || []
+				}];
 
-				delete unit.unit;
 				delete unit.quantity;
 				delete unit.equipment;
 			}

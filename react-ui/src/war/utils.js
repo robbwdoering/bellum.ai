@@ -8,7 +8,14 @@
 
 import { regex, typoMap } from "./constants";
 
-export const sanitizeString = str => str.toLowerCase().replace(/[- ]/g, "_").replace(/'/g, "");
+export const sanitizeString = str => {
+	let ret = str.toLowerCase()
+		.replace(/[- ]/g, "_")
+		.replace(/'/g, "");
+
+	// Return the formatted value, or an override value if one is found
+	return typoMap[ret] || ret;
+};
 
 /**
  * Takes in a string that's directly from battlescribe, and turns it into a JSON object.
@@ -63,7 +70,7 @@ export const parsePlainText = str => {
 		}
 	}
 
-	newArmy.profile = parseProfile(lines.slice(endLine));
+	newArmy.profile = parseProfile(lines.slice(endLine), newArmy.detachments);
 
 	console.log("Storing newArmy", newArmy)
 	return newArmy;
@@ -204,28 +211,18 @@ const parseDetachment = (lines) => {
  * Parse the profile section, which contains a variety of different pieces of information. They fall into the categories enumerated in the if/else
  * blocks below.
  */
-const parseProfile = lines => {
+const parseProfile = (lines, detachments) => {
 	console.log("[parseProfile]", lines);
 	let tmpStr, tmpArr, idx;
 
-	// Nested function used to take in a tockenized statblock string and output a JSON version of that stat block
+	// Nested function used to take in a tokenized statblock string and output a JSON version of that stat block
 	const handleEntry = arr => arr.reduce((subAcc, str, i) => {
 		idx = str.indexOf(":");
 		let name = sanitizeString(str.substring(0, idx));
 		let val = str.substring(idx + 1).replace(/'/g, "");
 
-		if (name === "remaining_w") {
+		if (name === "remaining_w" || name === "wounds") {
 			name = "w";
-
-			// If this is a wound track, add some init values since we won't fill out every field of the statblock
-			subAcc.m = -1;
-			subAcc.bs = -1;
-			subAcc.ws = -1;
-			subAcc.t = -1;
-			subAcc.s = -1;
-			subAcc.a = -1;
-			subAcc.save = "0";
-			subAcc.ld = 0;
 
 			// Update the val to be the minimum amount of wounds for every track
 			val = parseInt(str.substring(idx + 1, str.indexOf("-", idx)));
@@ -249,9 +246,11 @@ const parseProfile = lines => {
 		return subAcc;
 	}, {});
 
-	return lines.filter(line => line.match(regex.subsection)).reduce((acc, line, i) => {
+	return lines.filter(line => line.match(regex.subsection)).reduce((acc, rawLine, i) => {
 		let catName, propName;
+		let line = rawLine;
 
+		// These properties requiere "meaning" object to have effect on gameplay, and are just string:string pairs at this stage
 		if (line.match(regex.profileDescription)) {
 			idx = line.indexOf(": Description:");
 			propName = sanitizeString(line.substring(2, idx));
@@ -281,7 +280,6 @@ const parseProfile = lines => {
 		} else if (line.match(regex.profileWoundTrack)) {
 			idx = line.indexOf(": ");
 			catName = "stats";
-
 		// If we don't recognize this line, treat it as a description
 		} else {
 			idx = line.indexOf(": ");
@@ -293,6 +291,12 @@ const parseProfile = lines => {
 		// Deal with entitied memtioned above
 		if (catName) {
 			propName = sanitizeString(line.substring(2, idx));
+
+			// Handle special cases
+			// There's various kinds, like "transport_wound_track". ignore them - we want one unified field
+			// if (propName.includes("wound_track")) {
+			// 	propName = "wound_track";
+			// }
 
 			tmpArr = line.substring(idx + 2).split("|");
 			acc[catName][propName] = handleEntry(tmpArr);

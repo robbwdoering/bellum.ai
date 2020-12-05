@@ -130,6 +130,33 @@ const calcShootingOptions = (army, ctx, profile) => {
 	});
 };
 
+applyPdMods = (origVal, unit, modTypes, optional) => {
+	let ret = origVal, doBreak = false;
+
+	// Loop through every modification type, adding it's value if it's present
+	modTypes
+		.map(type => unit.mods.find(mod => mod.type === type))
+		.filter(mod => mod && (!mod.cond || mod.cond.isSatisfied(optional)))
+		.forEach(mod => {
+			if (doBreak) return;
+			switch(mod.type) {
+				case "REPLACE_SHOTS":
+				case "REPLACE_SHOTS_TARGET":
+					//todo
+					break;
+				case "ROLL_SHOTS_TWICE":
+					//todo
+					break;
+
+				default:
+					ret = ret.map(val => [val[0] + mod.params.value, val[1]]);
+					break;
+			}
+		});
+
+	return origVal + ret;
+}
+
 applyAddMods = (origVal, unit, modTypes, optional) => {
 	let ret = 0, doBreak = false;
 
@@ -156,8 +183,6 @@ applyAddMods = (origVal, unit, modTypes, optional) => {
 				case "REPLACE_AP_SHOOT":
 				case "REPLACE_AP_FIGHT":
 				case "REPLACE_AP_TARGET":
-				case "REPLACE_SHOTS":
-				case "REPLACE_SHOTS_TARGET":
 					// TODO: add support for multiple replaces overriding eachother. Don't just take the first one, take the best one (?)
 					ret = mod.params.value - origVal; // subtract origVal to cancel out addition in return statement
 					doBreak = true;
@@ -237,18 +262,46 @@ const calcToWound = (s, t) => {
 */
 
 const calcShots = (unit, wepProfile, ctx, profile, target) => {
-	let val = wepProfile.shots || 1;
 	if (!wepProfile.shots) console.error("Found a weapon that doesn't have shots defined", wepProfile);
+	let shots;
 
-	val = applyAddMods(val, unit, ["SHOTS", "REPLACE_SHOTS"], wepProfile);
-	val = applyAddMods(val, unit, ["SHOTS_TARGET", "REPLACE_SHOTS_TARGET"], wepProfile);
+	if (wepProfile.includes("D3")){
+		let rolls = parseInt(wepProfile);
+		if (rolls > 10) {
+			rolls = 10;
+		} else if (rolls < 1) {
+			rolls = 1;
+		}
 
+		// Get the pd
+		shots = contants.d3[rolls - 1];
+	} else if (wepProfile.includes("D6")){
+		let rolls = parseInt(wepProfile);
+		if (rolls > 20) {
+			rolls = 20;
+		} else if (rolls < 1) {
+			rolls = 1;
+		}
+
+		// Get the pd
+		shots = contants.d6[rolls - 1];
+
+	// Use a contant value - default case
+	} else if (parseInt(val)) {
+		shots = [parseInt(val), 1];
+	}
+
+	// Uncomment when we support shot mods
+	// val = applyPdMods(val, unit, ["SHOTS", "REPLACE_SHOTS"], wepProfile);
+	// val = applyPdMods(val, unit, ["SHOTS_TARGET", "REPLACE_SHOTS_TARGET"], wepProfile);
+
+	// If this is rapid fire within half range, double shots
 	if (wepProfile.type === "RAPID_FIRE" && ctx.board.distance(unit.boardId, target.boardId) <= (wepProfile.range / 2)) {
-		val *= 2;
+		shots = shots.map(e => [e[0] * 2, e[1]]);
 	}
 
 	return val;
-}
+};
 
 
 // HELPER
@@ -257,9 +310,8 @@ const calcShots = (unit, wepProfile, ctx, profile, target) => {
  * The building block upon which the shooting phase is built upon - treat with reverence and care.
  */
 const fireSalvo = (unit, wepProfile, ctx, profile, target) => {
-	let numShots, damagePr, hitPr, woundPr, savePr, avgDamage, tmpVal;
+	let shotPd, damagePr, hitPr, woundPr, savePr, avgDamage, tmpVal;
 
-	numShots = calcShots(wepProfile);
 
 	// Calculate probabilty of hitting the target
 	tmpVal = applyAddMods(profile.stats[unit.name].bs, unit, ["HIT", "HIT_SHOOT"], wepProfile);
@@ -292,10 +344,74 @@ const fireSalvo = (unit, wepProfile, ctx, profile, target) => {
 
 	savePr = tmpVal < 7 ? (7 - tmpVal) / 6.0 : 0; // Translate "n-up" value into probability
 
-	damagePr = numShots * hitPr * woundPr * (1 - savePr);
+	damagePr = hitPr * woundPr * (1 - savePr);
+	const missPr =  1 - damagePr;
+
+	// Build the coefficients of pascals triangle
+	// let dmgArr = fireAgain([], numShots - 1);
+
+	let coeffArr = null;
+
+	// 1. Calculate the PDF of how many shots we will take
+	shotPd = calcShots(wepProfile);
+
+	// 2. For every number of shots we could take, add our chances of sucess from that and multiply it by the shot probability 
+	let dmgPd = shotPd.reduce((acc, e, i) => {
+		// Get the coefficient array, which may involve computations if we go over our current stored limit
+		if (!i || e[0] < 15) {
+			coeffArr = constants.pascals[Math.min(e[0] - 1, 14)];
+			if (e[0] > 15) {
+				coeffArr = fireAgain(coeffArr, e[0] - 15);
+			}
+		} else {
+			coeffArr = fireAgain(coeffArr, e[0] - shotPd[i-1][0]);
+		}
+
+		// Translate from array of coefficents, to array of probabilities to get i number of successes
+		// Only remember those above a certain threshold to save computation
+		coeffArr
+			.map((coeff, j) => [j, coeff * Math.pow(missPr, coeffArr.length - j) * Math.pow(damagePr, j)])
+			.filter(pair => pair[1] > 0.001)
+			.forEach(pair => {
+				if (!acc[pair[0]]) {
+					acc[pair[0]] = pair[1] * e[1];
+				} else {
+					acc[pair[0]] += pair[1] * e[1];
+				}
+			});
+
+		return acc;
+	}, {});
+
+	// Transform into arrays
+	dmgPd = Object.keys(dmgPd).map(key => [key, dmgPd[key]]);
+	console.log("Got damage of ", dmgPd);
 };
 
 // HELPER
+const fireAgain = (arr, numRemaining) => {
+	let n = arr.length || 1;
+	let ret = []
+	let c;
+
+	for (let i = 0; i < n + 1; i++) {
+		if (i === 0 || i === n) {
+			c = 1
+		} else {
+			c = arr[i - 1] + arr[i];
+		}
+
+		ret.push(c);
+	}
+
+	if (numRemaining > 0) {
+		return fireAgain(ret, numRemaining - 1);
+	}
+
+	return ret;
+}
+
+
 const setShootingOptions = (unit, ctx, profile) => {
 };
 

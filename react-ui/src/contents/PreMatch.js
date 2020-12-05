@@ -16,7 +16,7 @@ import { ContentTypes, apiOpts } from './../common/constants';
 import { BarChart } from './../stats/BarChart';
 import { ForceCard } from './../stats/ForceCard';
 import { ChartCard } from './../stats/ChartCard';
-import { statCategories, mainCategoryNames } from './../stats/constants';
+import { statCategories, mainCategoryNames, ChartTypes } from './../stats/constants';
 import { useApi } from "./../app/useApi";
 import { sanitizeString } from "./../war/utils";
 import './contents.css';
@@ -101,9 +101,14 @@ export const PreMatch = props => {
 		render: () => statCategories[categoryName].charts.map(chartName => <ChartCard name={chartName} />)
 	});
 
+	// Static Apis - to fetch various json objects
 	const metalistApi = useApi('/api/static/metalist', 'GET', apiOpts, handleFetch);
 	const primaryListApi = useApi('/api/static/list/true/', 'GET', apiOpts, handleFetch);
 	const secondaryListApi = useApi('/api/static/list/false/', 'GET', apiOpts, handleFetch);
+
+	// Dyanmic Apis - for chart data
+	const primaryScorecardApi = useApi(`/api/dynamic/${ChartTypes.ForceScorecard}/`, 'POST', apiOpts);
+	const secondaryScorecardApi = useApi(`/api/dynamic/${ChartTypes.ForceScorecard}/`, 'POST', apiOpts);
 
 	const primaryOptions = useMemo(filterPrimaryList, [metalistHash])
 	const secondaryOptions = useMemo(filterSecondaryList, [metalistHash, primaryList])
@@ -118,6 +123,16 @@ export const PreMatch = props => {
 		console.log("PREMATCH MOUNTED!")
 		metalistApi.refresh();
 	}, []);
+
+	// Fetch scorecard data
+	useEffect(() => {
+		if (primaryList) {
+			primaryScorecardApi.refresh(primaryList.id, { force: primaryList, profile: primaryProfile });
+		} 
+		if (secondaryList) {
+			secondaryScorecardApi.refresh(secondaryList.id, { force: secondaryList, profile: secondaryProfile });
+		}
+	}, [ listHash ]);
 
 	return (
 		<React.Fragment>
