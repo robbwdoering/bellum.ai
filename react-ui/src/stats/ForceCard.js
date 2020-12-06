@@ -5,7 +5,7 @@
  */
 
 // React + Redux
-import React, { useMemo, useRef, useEffect } from 'react';
+import React, { useMemo, useRef, useState, useEffect } from 'react';
 import { connect } from 'react-redux';
 import {
 	Accordion,
@@ -24,6 +24,7 @@ import {
 	Menu,
 	Sidebar
 } from 'semantic-ui-react';
+import { useTransition, animated } from 'react-spring'
 
 import { openContents, setDemoState } from './../app/actions';
 import Pane from './../common/pane';
@@ -62,40 +63,87 @@ export const ForceCard = props => {
 	} = props;
 
 	const ref = useRef();
+	const [unitShowIdx, setShowIdx] = useState(-1); 
 
-	const renderStatCat = (name, chartCfg) => {
-		return (
-			<Accordion>
-				<Accordion.Title className="telem-item">
-					<div className="telem-title">{statCategories[name].title}</div>
-					<div className={`telem-primary${prematchData.isPrimary[name] ? ' active' : ''}`}>
-						{prematchData.primary[name]}
-					</div>
-					<div className={`telem-secondary${prematchData.isPrimary[name] ? '' : ' active'}`}>
-						{prematchData.secondary[name]}
-					</div>
-				</Accordion.Title>
+	const renderModel = (unit, model, i) => {
+		let stemName, stat;
+		stemName = sanitizeString(model.unit);
+		if (!stemName) {
+			return null;	
+		}
 
-				<Accordion.Content>
-					{statCategories[name].charts.map(chartName => {
-						return <BarChart config={chartCfg} name={chartName} />;
-					})}
-				</Accordion.Content>
-			</Accordion>
-		);
+		// Get the stat block for this name
+		stat = profile.stats.find(statBlock => statBlock.name === stemName) || {};
+
+		// A lot of models have an "s", like "Space Marines" need "space_marine" - no "s"
+		// So double check for that if we couln't find the first time
+		if (!Object.entries(stat).length && (stemName.endsWith('s') || stemName.endsWith('z'))) {
+			stat = profile.stats.find(statBlock => stemName.startsWith(statBlock.name)) || {};
+		}
+
+		// Get wound track full health info
+		if (unit.wound_track && unit.wound_track.length) {
+			const target = sanitizeString(unit.wound_track[0]);
+			let woundStat = profile.stats.find(statBlock => statBlock.name === target) || {};
+			if (woundStat) {
+				Object.assign(stat, Object.keys(woundStat).reduce((acc, key) => {
+					if (woundStat[key] && woundStat[key] !== -1 && key !== "name") {
+						acc[key] = woundStat[key];
+					}
+					return acc;
+				}, {}));
+			}
+		}
+
+		// Built return statement of cells
+		return [
+			stat,
+			<Table.Row className={"subrow" + (i ? "" : " first") + (i === unit.models.length - 1 ? " last" : "")}>
+				<Table.Cell> {model.quantity > 1 && (model.quantity + "x ")}<strong>{model.name}</strong> </Table.Cell>
+				{datasheetFields.map(field => <Table.Cell>{stat[field] || '-'}</Table.Cell>)}
+			</Table.Row>
+		];
 	};
 
-	const header = useMemo(() => metalist && metalist.find(e => e.id === data.id), [data && data.id, metalistHash]);
+	// Renders the table contents for one unit - the unit itself, then the sub rows which represent the individual models
+	const renderUnit = (unit, i) => {
 
-	// Fetch Data
-	const polarConfig = useMemo(() => {
-		const retSize = style ? style.width * 0.2 : 250;
+		// Render all the models in this unit, and store the stats of the one with the least leadership
+		const { stat, modelRows } = unit.models ? unit.models.reduce((acc, m, j) => {
+			let ret = renderModel(unit, m, j);
 
+			if (ret && ret.length === 2) {
+				// console.log("handling models", ret)
+				if (ret[0].leadership < acc.stat.leadership) {
+					acc.stat = ret[0];
+				}
+				acc.modelRows.push(ret[1]);
+			}
+
+			return acc;
+		}, {stat: {leadership: 100}, modelRows: [] }) : // init val
+		{stat: {}, modelRows: []}; // def val
+
+		// console.log("[render unit]", stat);
+
+		return [
+			<Table.Row onClick={() => setShowIdx(unitShowIdx === i ? -1 : i)}>
+				<Table.Cell> <strong>{unit.name}</strong> </Table.Cell>
+				{datasheetFields.map(field => ( <Table.Cell> {stat[field] || '-'} </Table.Cell> ))}
+			</Table.Row>
+		].concat(unitShowIdx === i ? modelRows : null);
+	};
+
+	const renderAllUnits = () => (
+		(data && data.units) ? data.units.reduce((acc, e, i) => acc.concat(renderUnit(e, i)), []) : []
+	);
+
+	const calcPolarConfig = () => {
 		return !header ? {} : {
-			height: retSize,
-			width: retSize,
+			height: 120,
+			width: 120,
 			data: {
-				variables: chartConfigs[ChartTypes.SummaryRadar],
+				variables: chartConfigs[ChartTypes.SummaryRadar].variables,
 				sets: [{
 					key: 1,
 					label: 'Force Scores',
@@ -108,12 +156,32 @@ export const ForceCard = props => {
 				}]
 			}
 		};
-	}, [style, listHash]);
+	}
 
-	console.log('Current profile: ', profile);
+	// LIFECYCLE
+
+
+	// Get the metalist entry for this list
+	const header = useMemo(() => data && metalist && metalist.find(e => e.id === data.id), [data && data.id, metalistHash]);
+
+	// Fetch data and size for the chart
+	const polarConfig = useMemo(calcPolarConfig, [style, listHash]);
+
+	// Populate the table
+	const unitRows = useMemo(renderAllUnits, [listHash, unitShowIdx] );
+
+	/*
+	const unitRowsTransitions = useTransition(unitRows, null, {
+		from: { transform: 'translate3d(0,-40px,0)' },
+		enter: { transform: 'translate3d(0,0px,0)' },
+		leave: { transform: 'translate3d(0,-40px,0)' },
+	});
+	console.log("render", unitRows, unitRowsTransitions);
+	*/
+
 
 	return (
-		<Card className={'force-card' + (data ? '' : ' empty')} style={style}>
+		<Card ref={ref} className={'force-card' + (data ? '' : ' empty')} style={style}>
 			{data &&
 				(profile && profile.stats.find) && [
 					<div key={'fcheader'} className="fc-header-container">
@@ -135,58 +203,10 @@ export const ForceCard = props => {
 									<Table.HeaderCell>SV</Table.HeaderCell>
 								</Table.Row>
 							</Table.Header>
-							{data.units &&
-								data.units.map(unit => {
-									// Set the name to use. Prefer the "Unit" field, since this is exactly what its for
-									// (i.e. to serve as a map key)
-									let stemName = (unit.unit && unit.unit[0]) || unit.name
-									stemName = sanitizeString(stemName);
-									if (!stemName) {
-										return null;	
-									}
-
-									// Get the stat block for this name
-									let stat = profile.stats.find(statBlock => statBlock.name === stemName) || {};
-
-									// A lot of units have an "s", like "Space Marines" need "space_marine" - no "s"
-									// So double check for that
-									if (!Object.entries(stat).length && (stemName.endsWith('s') || stemName.endsWith('z'))) {
-										stat = profile.stats.find(statBlock => stemName.startsWith(statBlock.name)) || {};
-									}
-
-									// Get wound track full health info
-									if (unit.wound_track && unit.wound_track.length) {
-										const target = sanitizeString(unit.wound_track[0]);
-										let woundStat = profile.stats.find(statBlock => statBlock.name === target) || {};
-										if (woundStat) {
-											Object.assign(stat, Object.keys(woundStat).reduce((acc, key) => {
-												if (woundStat[key] && woundStat[key] !== -1 && key !== "name") {
-													acc[key] = woundStat[key];
-												}
-												return acc;
-											}, {}));
-										}
-									}
-
-									// NOTE: Example of how to get description fields here
-									// if (datasheetFields.some(field => !stat[field] || stat[field] === -1 || stat[field] === "*")) {
-										// let descItem = profile.desc.find(e => e.name == (sanitizeString(stemName) + "1"));
-										// if (descItem && descItem.meaning) {
-										// 	stat = Object.assign({}, stat, descItem.meaning);
-										// }
-									// }
-
-									return (
-										<Table.Row>
-											<Table.Cell>
-												<strong>{unit.name}</strong>
-											</Table.Cell>
-											{datasheetFields.map(field => (
-												<Table.Cell>{stat[field] || '-'}</Table.Cell>
-											))}
-										</Table.Row>
-									);
-								})}
+							<Table.Body>
+								{/*unitRowsTransitions.map(({ unitRow, key, props }) => <animated.tr key={key} style={props}> {unitRow} </animated.tr>)*/}
+								{unitRows}
+							</Table.Body>
 						</Table>
 						{(!data.units || !data.units.length) && [
 							<Table.Row key={1}>
@@ -216,8 +236,7 @@ export const mapStateToProps = (state, props) => {
 		metalist: state.warReducer.metalist,
 		metalistHash: state.warReducer.metalistHash,
 		listHash: state.warReducer.listHash,
-		prematchData: state.warReducer.prematchData
 	};
 };
 
-export const PreMatchContainer = connect(mapStateToProps, { setDemoState, openContents })(ForceCard);
+export const ForceCardContainer = connect(mapStateToProps, { setDemoState, openContents })(ForceCard);

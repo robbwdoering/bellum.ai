@@ -13,7 +13,7 @@ import { openContents, setDemoState } from './../app/actions';
 import Pane from './../common/pane';
 import { ContentTypes } from './../common/constants';
 import { BarChart } from './../stats/BarChart';
-import { statCategories } from './constants';
+import { statCategories, ChartTypes } from './constants';
 import './stats.css';
 
 
@@ -21,47 +21,64 @@ export const ChartCard = props => {
 	const {
 		// Root 
 		config,
-		sendMsg,
-		fetchAt,
 
 		// Parent
-		key,
 		height,
 		width,
-		force,
+		chartName,
 
 		// Redux
-		metalist,
-		metalistHash,
-		primaryList,
-		secondaryList,
-		listHash,
-		prematchData,
+		chartData,
+		chartHash,
 
 		// Dispatched Actions
-		openContents
 	} = props;
 
 	const ref = useRef(); 
 
+	const getData = () => {
+		if (!chartName) {
+			return null;
+		}
+
+		switch(chartName) {
+			case ChartTypes.ShootLightDmg: 
+				return ( chartData && chartData.shoot && chartData.shoot.dmgBuckets) ? chartData.shoot.dmgBuckets.find(bucket => bucket.name === "light").pdf : null;
+			case ChartTypes.ShootMedDmg: 
+				return ( chartData && chartData.shoot && chartData.shoot.dmgBuckets) ? chartData.shoot.dmgBuckets.find(bucket => bucket.name === "med").pdf : null;
+			case ChartTypes.ShootEliteDmg: 
+				return ( chartData && chartData.shoot && chartData.shoot.dmgBuckets) ? chartData.shoot.dmgBuckets.find(bucket => bucket.name === "elite").pdf : null;
+			case ChartTypes.ShootHeavyDmg: 
+				return ( chartData && chartData.shoot && chartData.shoot.dmgBuckets) ? chartData.shoot.dmgBuckets.find(bucket => bucket.name === "heavy").pdf : null;
+			default:
+				return null;
+		}
+	};
+
+	const data = useMemo(getData, [chartHash])
+
 	return (
 		<Card>
-			<Placeholder>
-				<Placeholder.Header image>
-					<Placeholder.Line />
-					<Placeholder.Line />
-				</Placeholder.Header>
-			</Placeholder>
+			{data ? (
+				"Data populated!"
+			): (
+					<Placeholder>
+						<Placeholder.Header image>
+							<Placeholder.Line />
+							<Placeholder.Line />
+						</Placeholder.Header>
+					</Placeholder>
+				)
+			}
  		</Card>
 	);
 }
 
 export const mapStateToProps = (state, props) => {
-  return {
-		primaryList: state.warReducer.primaryList,
-		listHash: state.warReducer.listHash,
-	  	prematchData: state.warReducer.prematchData,
-    };
+	return {
+		chartData: state.warReducer.chartData,
+		chartHash: state.warReducer.chartHash
+	};
 };
 
 export const PreMatchContainer = connect(mapStateToProps, { setDemoState, openContents })(ChartCard);

@@ -9,6 +9,7 @@
 import { regex, typoMap } from "./constants";
 
 export const sanitizeString = str => {
+	if (!str) return null;
 	let ret = str.toLowerCase()
 		.replace(/[- ]/g, "_")
 		.replace(/'/g, "");
@@ -47,7 +48,7 @@ export const parsePlainText = str => {
 	newArmy.cp = parseInt(tmpArr[1]);
 	newArmy.points = parseInt(tmpArr[2].replace(/,/g, ""));
 
-	console.log("Parsed newArmy meta values: ", newArmy, tmpArr);
+	// console.log("Parsed newArmy meta values: ", newArmy, tmpArr);
 
 	// Count the number of detachment header lines
 	const numDetachments = lines.filter(line => line.match(regex.detachmentHeader)).length;
@@ -77,7 +78,7 @@ export const parsePlainText = str => {
 };
 
 const parseUnit = (lines, curRole) => {
-	console.log("[parseUnit]", lines);
+	// console.log("[parseUnit]", lines);
 	let newUnit = { models: [] };
 	let newModel = null; 
 	let curLine = 0;
@@ -115,8 +116,22 @@ const parseUnit = (lines, curRole) => {
 			processTokenHeader(line, newUnit, newModel, "rules");
 
 		// Handle "detail headers", which contain a lot of information concatenated onto one line
-		} else if (line.match(regex.detailsHeader)) {
+		// If we've started a model, these are headers for the model
+		} else if (line.match(regex.detailsHeader) && !newModel) {
 			processDetailsHeader(line, newUnit);
+
+		// Subsections are for models - only proceed if we've started one
+		} else if (newModel && line.match(regex.secSection)) {
+			// console.log('starting secondary section', line);
+			// If this line minues the first ". " looks like a details header, load it as one for the model
+			let tmpStr = line.substring(2)
+			if (tmpStr.match(regex.detailsHeader)) {
+				processDetailsHeader(tmpStr, newModel);
+			}
+
+		// Tertiary sections are a noop atm
+		} else if (newModel && line.match(regex.tertSection)) {
+			// console.log('Skipping tertiary section...');
 
 		// Interpret all other subsection lines as Models
 		} else if (line.match(regex.subsection)) {
@@ -136,31 +151,20 @@ const parseUnit = (lines, curRole) => {
 
 			newModel.name = line.substring(idx, line.indexOf(": ", idx + 1));
 			idx = line.indexOf(": ", idx + 1) + 2;
-			newModel.equipment = line.substring(idx).split(", ")
-
-		// Subsections are for models - only proceed if we've started one
-		} else if (line.match(regex.secSection) && newModel) {
-			console.log('starting secondary section', line);
-			// If this line minues the first ". " looks like a details header, load it as one for the model
-			tmpStr = line.substring(2)
-			if (tmpStr.match(regex.detailsHeader)) {
-				processDetailsHeader(tmpStr, newModel);
-			}
-
-		} else if (line.match(regex.tertSection)) {
-			console.log('Skipping tertiary section...');
+			newModel.equipment = line.substring(idx).split(", ");
 		}
+
 	});
 
 	// Store the last model
 	if (newModel != null) newUnit.models.push(newModel);
 
-	console.log("adding unit: ", newUnit);
+	// console.log("adding unit: ", newUnit);
 	return newUnit;
 };
 
 const parseDetachment = (lines) => {
-	console.log("[parseDetachment]", lines);
+	// console.log("[parseDetachment]", lines);
 	let ret = {
 		units: []
 	};
@@ -192,7 +196,7 @@ const parseDetachment = (lines) => {
 	let doBegin = !lines.join("").includes("+ Configuration");
 	pArr.forEach(para => {
 		const pLines = para.split("\n");
-		console.log("[paragraph]", pLines, doBegin, pLines[0].match(regex.slotHeader));
+		// console.log("[paragraph]", pLines, doBegin, pLines[0].match(regex.slotHeader));
 
 		// If this paragraph is a slot header, note that the configuration section is over
 		if (pLines[0].match(regex.roleHeader)) {
@@ -203,7 +207,7 @@ const parseDetachment = (lines) => {
 		}
 	});
 
-	console.log("Adding detachment: ", ret);
+	// console.log("Adding detachment: ", ret);
 	return ret;
 };
 
@@ -212,7 +216,7 @@ const parseDetachment = (lines) => {
  * blocks below.
  */
 const parseProfile = (lines, detachments) => {
-	console.log("[parseProfile]", lines);
+	// console.log("[parseProfile]", lines);
 	let tmpStr, tmpArr, idx;
 
 	// Nested function used to take in a tokenized statblock string and output a JSON version of that stat block
@@ -328,7 +332,6 @@ const processDetailsHeader = (line, obj) => {
 		const endIndex = (i + 1 < lineSectionHeaders.length) ? line.indexOf(lineSectionHeaders[i+1], idx) : undefined;
 
 		obj[propertyName] = line.substring(idx, endIndex).split(", ").filter(e => e.length).map(e => e.replace(/,/g, ""));
-		console.log("Adding line section ", e, propertyName, idx, endIndex, obj[propertyName]);
 	});
 }
 

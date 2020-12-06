@@ -17,7 +17,7 @@ export const WarActions = {
 };
 
 export const regex = {
-	roleHeader: /^\+ (HQ|Troops|Fast Attack|Elites|Heavy Support|Flyer) .*\+/g,
+	roleHeader: /^\+ (HQ|Troops|Fast Attack|Elites|Heavy Support|Flyer|Dedicated Transport|Transport) .*\+/g,
 	detachmentHeader: /\+\+ [A-z]+ Detachment .+ \+\+/g,
 	profile: /^\+\+ Profile Summary \+\+/g,
 	subsection: /^\. .*.+/g,
@@ -40,9 +40,9 @@ export const regex = {
 export const datasheetFields = ['move', 'weapons', 'ballistics', 'strength', 'toughness', 'wounds', 'attacks', 'leadership', 'save'];
 
 export const typoMap = {
-	["big_mek_in_mega_armour_(da_kleverest_boss)"]: "big_mek_in_mega_armour",
-	["ghazghkul_thraka"]: "ghazghkull_thraka"
-}
+	// ["big_mek_in_mega_armour_(da_kleverest_boss)"]: "big_mek_in_mega_armour",
+	// ["ghazghkul_thraka"]: "ghazghkull_thraka"
+};
 
 export const demoData = {
 };

@@ -1,4 +1,5 @@
 const express = require('express');
+const util = require('./utilities');
 
 const processResults = (results) => {
 	if (results && results.results && results.results.length) {
@@ -7,8 +8,6 @@ const processResults = (results) => {
 
 	return {};
 }
-
-const sanitizeString = str => str.toLowerCase().replace(/[- ]/g, "_").replace(/'/g, "");
 
 class Profile {
 	constructor() {
@@ -25,51 +24,41 @@ class Profile {
 		// Build queries
 		if (this.desc.length) {
 			query = (this.desc.reduce((acc, desc, i) => (
-				acc + (i > 0 ? " OR " : " ") + "name = '" + sanitizeString(desc) + "'" 
+				acc + (i > 0 ? " OR " : " ") + "name = '" + util.formatStr(desc) + "'" 
 			), "SELECT * FROM war_desc_profile WHERE ") + ";");
-			console.log("Sending Query: ", query);
 			results = await queryDB(pool, query);
-			// console.log("Received results for profile request: ", results);
 			this.desc = processResults(results);
 		}
 
 		if (this.weapons.length) {
 			query = (this.weapons.reduce((acc, wep, i) => (
-				acc + (i > 0 ? " OR " : " ") + "name = '" + sanitizeString(wep) + "'" 
+				acc + (i > 0 ? " OR " : " ") + "name = '" + util.formatStr(wep) + "'" 
 			), "SELECT * FROM war_weapon_profile WHERE ") + ";");
-			console.log("Sending Query: ", query);
 			results = await queryDB(pool, query);
-			// console.log("Received results for profile request: ", results);
 			this.weapons = processResults(results);
 		}
 
 		if (this.stats.length) {
 			query = (this.stats.reduce((acc, stat, i) => (
-				acc + (i > 0 ? " OR " : " ") + "name = '" + sanitizeString(stat) + "'" 
+				acc + (i > 0 ? " OR " : " ") + "name = '" + util.formatStr(stat) + "'" 
 			), "SELECT * FROM war_stat_profile WHERE ") + ";");
-			console.log("Sending Query: ", query);
 			results = await queryDB(pool, query);
-			// console.log("Received results for profile request: ", results);
 			this.stats = processResults(results);
 		}
 
 		if (this.psykers.length) {
 			query = (this.psykers.reduce((acc, psyker, i) => (
-				acc + (i > 0 ? " OR " : " ") + "name = '" + sanitizeString(psyker) + "'" 
+				acc + (i > 0 ? " OR " : " ") + "name = '" + util.formatStr(psyker) + "'" 
 			), "SELECT * FROM war_psyker_profile WHERE ") + ";");
-			console.log("Sending Query: ", query);
 			results = await queryDB(pool, query);
-			// console.log("Received results for profile request: ", results);
 			this.psykers = processResults(results);
 		}
 
 		if (this.powers.length) {
 			query = (this.powers.reduce((acc, power, i) => (
-				acc + (i > 0 ? " OR " : " ") + "name = '" + sanitizeString(power) + "'" 
+				acc + (i > 0 ? " OR " : " ") + "name = '" + util.formatStr(power) + "'" 
 			), "SELECT * FROM war_power_profile WHERE ") + ";");
-			console.log("Sending Query: ", query);
 			results = await queryDB(pool, query);
-			// console.log("Received results for profile request: ", results);
 			this.powers = processResults(results);
 		}
 	}
@@ -83,64 +72,59 @@ exports.nameSuffixMarkers = [
 	/ s$\/ /g, // S at end of line could indicate an unnecessary plural
 ];
 
-exports.defBucketTargets = {
-	// Resilience stat are used to determine the damage profile of a unit
-	lightResilience: [
-		{toughness: 3, save: 4, weight: 2},
-		{toughness: 3, save: 5},
-		{toughness: 3, save: 6, weight: 2},
-	],
-	medResilience: [
-		{toughness: 4, save: 3, weight: 1},
-		{toughness: 4, save: 4, weight: 2},
-		{toughness: 4, save: 6, weight: 1},
-		{toughness: 4, save: 5, weight: 1},
-		{toughness: 5, save: 4, weight: 1},
-		{toughness: 5, save: 6, weight: 0.5}
-	],
-	toughResilience: [
-		{toughness: 5, save: 3, weight: 1},
-		{toughness: 4, sav: 2, weight: 1},
-		{toughness: 6, sav: 4, weight: 1},
-		{toughness: 6, sav: 5, weight: 1}
-	],
-	tankResilience: [
-		{toughness: 7, save: 3},
-		{toughness: 8, save: 3},
-		{toughness: 7, save: 2},
-		{toughness: 8, save: 2},
-		{toughness: 9, save: 4},
-		{toughness: 10, save: 4, weight: 0.5},
-	],
+exports.defTestProfile = {
+	stats: [
+		{name: 'light_resil_1', toughness: 3, save: 4},
+		{name: 'light_resil_2', toughness: 3, save: 5},
+		{name: 'light_resil_3', toughness: 3, save: 6},
 
-	// Threats are used to determine the resilience of a unit
-	lightThreats: [
-		{type: "Rapid Fire", shots: 1, strength: 3, AP:	0, damage: 1},
-		{type: "Rapid Fire", shots: 1, strength: 4, AP:	0, damage: 1},
-		{type: "Rapid Fire", shots: 1, strength: 5, AP:	0, damage: 1},
-		{type: "Rapid Fire", shots: 1, strength: 4, AP:	-1, damage: 1},
-		{type: "Assault", shots: 1, strength: 3, AP:	0, damage: 1},
-		{type: "Assault", shots: 2, strength: 4, AP:	0, damage: 1},
-	], 
-	medThreats: [
-		{type: "Heavy", shots: 3, strength: 5, AP:	-1, damage: 1},
-		{type: "Heavy", shots: "D6", strength: 8, AP:	-2, damage: "D3"},
-		{type: "Heavy", shots: 12, strength: 6, AP:	-1, damage: 2},
-		{type: "Heavy", shots: 4, strength: 5, AP:	0, damage: 1},
+		{name: 'med_resil_1', toughness: 4, save: 3},
+		{name: 'med_resil_2', toughness: 4, save: 4},
+		{name: 'med_resil_3', toughness: 4, save: 6},
+		{name: 'med_resil_4', toughness: 4, save: 5},
+		{name: 'med_resil_5', toughness: 5, save: 4},
+		{name: 'med_resil_6', toughness: 5, save: 6},
+
+		{name: 'elite_resil_1', toughness: 4, save: 2},
+		{name: 'elite_resil_2', toughness: 5, save: 2, invuln: 4},
+		{name: 'elite_resil_3', toughness: 5, save: 3},
+		{name: 'elite_resil_4', toughness: 6, save: 3, invuln: 3},
+		{name: 'elite_resil_5', toughness: 6, save: 4, invuln: 4},
+		{name: 'elite_resil_6', toughness: 6, save: 5},
+
+		{name: 'heavy_resil_2', toughness: 7, save: 4},
+		{name: 'heavy_resil_3', toughness: 7, save: 2},
+		{name: 'heavy_resil_1', toughness: 8, save: 3},
+		{name: 'heavy_resil_4', toughness: 8, save: 3},
+		{name: 'heavy_resil_5', toughness: 9, save: 4},
+		{name: 'heavy_resil_6', toughness: 10, save: 5},
 	],
-	antiInfantryThreats: [
-		{type: "Grenade", shots: "D6", strength: 3, AP: 0, damage: 1},
-		{type: "Rapid Fire", shots: 4, strength: 4, AP: 0, damage: 1},
-		{type: "Heavy", shots: "D6", strength: 5, AP: -1, damage: 1}, 
-		{type: "Heavy", shots: "D3", strength: 5, AP: -2, damage: 2}, // BLAST
+	weapons: [
+		{name: 'light_1', type: "Rapid Fire", shots: 1, strength: 3, AP:	0, damage: 1},
+		{name: 'light_2', type: "Rapid Fire", shots: 1, strength: 4, AP:	0, damage: 1},
+		{name: 'light_3', type: "Rapid Fire", shots: 1, strength: 5, AP:	0, damage: 1},
+		{name: 'light_4', type: "Rapid Fire", shots: 1, strength: 4, AP:	-1, damage: 1},
+		{name: 'light_5', type: "Assault", shots: 1, strength: 3, AP:	0, damage: 1},
+		{name: 'light_6', type: "Assault", shots: 2, strength: 4, AP:	0, damage: 1},
+		{name: 'med_1', type: "Heavy", shots: 3, strength: 5, AP:	-1, damage: 1},
+		{name: 'med_2', type: "Heavy", shots: "D6", strength: 8, AP:	-2, damage: "D3"},
+		{name: 'med_3', type: "Heavy", shots: 12, strength: 6, AP:	-1, damage: 2},
+		{name: 'med_4', type: "Heavy", shots: 4, strength: 5, AP:	0, damage: 1},
+		{name: 'antihorde_1', type: "Grenade", shots: "D6", strength: 3, AP: 0, damage: 1},
+		{name: 'antihorde_2', type: "Rapid Fire", shots: 4, strength: 4, AP: 0, damage: 1},
+		{name: 'antihorde_3', type: "Heavy", shots: "D6", strength: 5, AP: -1, damage: 1}, 
+		{name: 'antihorde_4', type: "Heavy", shots: "D3", strength: 5, AP: -2, damage: 2}, // BLAST
+		{name: 'antitank_1', type: "Heavy", shots: "D3", strength: 9, AP:	-3, damage: "D6"},
+		{name: 'antitank_2', type: "Assault", shots: 2, strength: 7, AP:	-1, damage: "D3"},
+		{name: 'antitank_3', type: "Heavy", shots: 2, strength: 8, AP:	-4, damage: "D6"},
+		{name: 'antitank_4', type: "Heavy", shots: 2, strength: 9, AP:	-3, damage: "D6"}, //MELTA
+		{name: 'antitank_5', type: "Heavy", shots: 1, strength: 8, AP:	-3, damage: "D6"}
 	],
-	antiTankThreats: [
-		{type: "Heavy", shots: "D3", strength: 9, AP:	-3, damage: "D6"},
-		{type: "Assault", shots: 2, strength: 7, AP:	-1, damage: "D3"},
-		{type: "Heavy", shots: 2, strength: 8, AP:	-4, damage: "D6"},
-		{type: "Heavy", shots: 2, strength: 9, AP:	-3, damage: "D6"}, //MELTA
-		{type: "Heavy", shots: 1, strength: 8, AP:	-3, damage: "D6"}
-	]
+	context: {
+		board: {
+			distance: () => 0,
+		}
+	}
 };
 
 exports.statFields = ["m", "ws", "bs", "s", "t", "w", "a", "ld", "sv"];
@@ -175,7 +159,7 @@ exports.d3 = [
 	[[8,.00320], [9,.01280], [10,.03521], [11,.07362], [12, .12163], [13, .16324], [14, .17970], [15, .16324], [16, .12163], [17,.07362], [18,.03521], [19,.01280], [20,.00320]],
 	[[9,.00122], [10,.00549], [11,.01707], [12,.04054], [13,.07682], [14, .11949], [15, .15485], [16, .16872], [17, .15485], [18, .11949], [19,.07682], [20,.04054], [21,.01707], [22,.00549], [23,.00122]],
 	[[11,.00229], [12,.00793], [13,.02103], [14,.04481], [15,.07895], [16, .11706], [17, .14769], [18, .15948], [19, .14769], [20, .11706], [21,.07895], [22,.04481], [23,.02103], [24,.00793], [25,.00229]],
-	[[13,.00356], [14,.01042], [15,.02459], [16,.04827], [17,.08027], [18, .11457], [19, .14141], [20, .15162], [21, .14141], [22, .11457], [23,.08027], [24,.04827], [25,.02459], [26,.01042], [27,.00356],
+	[[13,.00356], [14,.01042], [15,.02459], [16,.04827], [17,.08027], [18, .11457], [19, .14141], [20, .15162], [21, .14141], [22, .11457], [23,.08027], [24,.04827], [25,.02459], [26,.01042], [27,.00356]]
 ];
 
 exports.d6 = [
@@ -202,3 +186,7 @@ exports.d6 = [
 	[[52,.00113], [53,.00161], [54,.00226], [55,.00311], [56,.00421], [57,.00558], [58,.00727], [59,.00930], [60,.01169], [61,.01445], [62,.01755], [63,.02097], [64,.02463], [65,.02845], [66,.03234], [67,.03616], [68,.03979], [69,.04308], [70,.04591], [71,.04814], [72,.04970], [73,.05049], [74,.05049], [75,.04970], [76,.04814], [77,.04591], [78,.04308], [79,.03979], [80,.03616], [81,.03234], [82,.02845], [83,.02463], [84,.02097], [85,.01755], [86,.01445], [87,.01169], [88,.00930], [89,.00727], [90,.00558], [91,.00421], [92,.00311], [93,.00226], [94,.00161], [95,.00113]]
 ];
 
+exports.typoMap = {
+	["big_mek_in_mega_armour_(da_kleverest_boss)"]: "big_mek_in_mega_armour",
+	["ghazghkul_thraka"]: "ghazghkull_thraka"
+};

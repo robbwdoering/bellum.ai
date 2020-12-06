@@ -104,6 +104,7 @@ export const warReducer = (state = initialState, action) => {
 			return newState;
 
 		case WarActions.SET_CHART_DATA:
+			console.log("SET_CHART_DATA received: ", action.payload)
 			Object.assign(newState.chartData, action.payload);
 			newState.chartHash++;
 			return newState;

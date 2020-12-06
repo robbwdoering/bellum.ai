@@ -1,5 +1,7 @@
 const express = require('express');
 const path = require('path');
+const util = require("./utilities");
+const constants = require('./constants');
 
 
 
@@ -36,11 +38,8 @@ const divineMove = (army, rhs) => {
 };
 
 const divinePsychic = (army, rhs) => {
-	const 
 
-	return {
-
-	};
+	return {};
 };
 // TODO: Really solid hotkey support for Assist mode (whole app?)
 // 	VIM CHAING? 1f2 !!!
@@ -162,7 +161,7 @@ applyAddMods = (origVal, unit, modTypes, optional) => {
 
 	// Loop through every modification type, adding it's value if it's present
 	modTypes
-		.map(type => unit.mods.find(mod => mod.type === type))
+		.map(type => unit.mods && unit.mods.find(mod => mod.type === type))
 		.filter(mod => mod && (!mod.cond || mod.cond.isSatisfied(optional)))
 		.forEach(mod => {
 			if (doBreak) return;
@@ -201,7 +200,7 @@ applyRerollMods = (origVal, unit, modTypes, optional) => {
 
 	// Loop through every modification type, adding it's value if it's present
 	tmpArr = modTypes
-		.map(type => unit.mods.find(mod => mod.type === type))
+		.map(type => unit.mods && unit.mods.find(mod => mod.type === type))
 		.filter(mod => mod && (!mod.cond || mod.cond.isSatisfied(optional)));
 
 	if (tmpArr.length > 1) {
@@ -260,117 +259,164 @@ const calcToWound = (s, t) => {
 5
 6
 */
+const calcDamage = (unit, wepProfile, ctx, profile, target) => {
+	if (!wepProfile.damage) console.error("Found a weapon that doesn't have damage defined", wepProfile);
+	let dmgPdf;
+
+	if (wepProfile.damage.includes("D3")){
+		let rolls = parseInt(wepProfile.damage);
+		if (rolls > 10) {
+			rolls = 10;
+		} else if (!rolls || rolls < 1) {
+			rolls = 1;
+		}
+
+		// Get the pdf
+		dmgPdf = constants.d3[rolls - 1];
+	} else if (wepProfile.damage.includes("D6")){
+		let rolls = parseInt(wepProfile.damage);
+		if (rolls > 20) {
+			rolls = 20;
+		} else if (!rolls || rolls < 1) {
+			rolls = 1;
+		}
+
+		// Get the pdf
+		dmgPdf = constants.d6[rolls - 1];
+
+	// Use a contant value - default case
+	} else if (parseInt(wepProfile.damage)) {
+		dmgPdf = [[parseInt(wepProfile.damage), 1]];
+	}
+
+	// Uncomment when we support damage mods
+	// val = applyPdMods(val, unit, ["DAMAGE", "REPLACE_DAMAGE"], wepProfile);
+	// val = applyPdMods(val, unit, ["DAMAGE_TARGET", "REPLACE_DAMAGE_TARGET"], wepProfile);
+
+	return dmgPdf;
+};
 
 const calcShots = (unit, wepProfile, ctx, profile, target) => {
 	if (!wepProfile.shots) console.error("Found a weapon that doesn't have shots defined", wepProfile);
-	let shots;
+	let shotPdf = [];
 
-	if (wepProfile.includes("D3")){
-		let rolls = parseInt(wepProfile);
+	if (wepProfile.shots.includes("D3")) {
+		let rolls = parseInt(wepProfile.shot);
 		if (rolls > 10) {
 			rolls = 10;
-		} else if (rolls < 1) {
+		} else if (!rolls || rolls < 1) {
 			rolls = 1;
 		}
 
 		// Get the pd
-		shots = contants.d3[rolls - 1];
-	} else if (wepProfile.includes("D6")){
-		let rolls = parseInt(wepProfile);
+		shotPdf = constants.d3[rolls - 1];
+	} else if (wepProfile.shots.includes("D6")) {
+		let rolls = parseInt(wepProfile.shot);
 		if (rolls > 20) {
 			rolls = 20;
-		} else if (rolls < 1) {
+		} else if (!rolls || rolls < 1) {
 			rolls = 1;
 		}
 
 		// Get the pd
-		shots = contants.d6[rolls - 1];
+		shotPdf = constants.d6[rolls - 1];
 
 	// Use a contant value - default case
-	} else if (parseInt(val)) {
-		shots = [parseInt(val), 1];
+	} else if (parseInt(wepProfile.shots)) {
+		shotPdf = [[parseInt(wepProfile.shots), 1]];
 	}
 
 	// Uncomment when we support shot mods
 	// val = applyPdMods(val, unit, ["SHOTS", "REPLACE_SHOTS"], wepProfile);
 	// val = applyPdMods(val, unit, ["SHOTS_TARGET", "REPLACE_SHOTS_TARGET"], wepProfile);
 
-	// If this is rapid fire within half range, double shots
+	// If this is rapid fire within half range, doubleshotPdf 
 	if (wepProfile.type === "RAPID_FIRE" && ctx.board.distance(unit.boardId, target.boardId) <= (wepProfile.range / 2)) {
-		shots = shots.map(e => [e[0] * 2, e[1]]);
+		shotPdf = shotPdf.map(e => [e[0] * 2, e[1]]);
 	}
 
-	return val;
+	return shotPdf || [];
 };
-
 
 // HELPER
 /**
  * Calculates the expected damage for one weapon for one unit against one enemy.
  * The building block upon which the shooting phase is built upon - treat with reverence and care.
  */
-const fireSalvo = (unit, wepProfile, ctx, profile, target) => {
-	let shotPd, damagePr, hitPr, woundPr, savePr, avgDamage, tmpVal;
+const fireSalvo = (model, wepProfile, ctx, profile, target) => {
+	let shotPd, successPr, hitPr, woundPr, savePr, avgDamage, tmpVal;
+	let coeffArr = null;
 
+	console.log("firing salvo", model.unit, "-->", target.unit)
+	const modelStat = profile.stats.find(stat => stat.name === util.formatStr(model.unit));
+	const targetStat = profile.stats.find(stat => stat.name === util.formatStr(target.unit));
+
+	if (!modelStat || !targetStat) {
+		console.error("ERR: Couldn't find stats for salvo", modelStat, ", ", targetStat);
+		return [];
+	}
+
+	// ---------------------------------------------------
+	// PART 1: Calculate "success per attempt" probability
+	// ---------------------------------------------------
 
 	// Calculate probabilty of hitting the target
-	tmpVal = applyAddMods(profile.stats[unit.name].bs, unit, ["HIT", "HIT_SHOOT"], wepProfile);
+	tmpVal = applyAddMods(modelStat.ballistics, model, ["HIT", "HIT_SHOOT"], wepProfile);
 	tmpVal = applyAddMods(tmpVal, target, ["BE_HIT"], wepProfile);
 	hitPr = tmpVal < 7 ? (7 - tmpVal) / 6.0 : 0; // Translate "n-up" value into probability
 
 	// Modify probabilty in response to reroll rules
-	hitPr = applyRerollMods(hitPr, unit, ["HIT__REROLL", "HIT_SHOOT__REROLL"], wepProfile);
+	// hitPr = applyRerollMods(hitPr, model, ["HIT__REROLL", "HIT_SHOOT__REROLL"], wepProfile);
 	// hitPr = applyRerollMods(hitPr, target, ["BE_HIT__REROLL", "BE_HIT_SHOOT__REROLL"], wepProfile); // TODO: Is this a rule that exists?
 
 	// Calculate probability of wounding the target
-	let tmpToughness = applyAddMods(profile.stats[target.name].t, target, ["TOUGHNESS", "TOUGHNESS_SHOOT"], wepProfile);
-	tmpVal = applyAddMods(calcToWound(wepProfile.s, tmpToughness), unit, ["WOUND", "WOUND_SHOOT", "REPLACE_WOUND", "REPLACE_WOUND_SHOOT"], wepProfile);
+	let tmpToughness = applyAddMods(targetStat.toughness, target, ["TOUGHNESS", "TOUGHNESS_SHOOT"], wepProfile);
+	tmpVal = applyAddMods(calcToWound(wepProfile.strength, tmpToughness), model, ["WOUND", "WOUND_SHOOT", "REPLACE_WOUND", "REPLACE_WOUND_SHOOT"], wepProfile);
 	woundPr = tmpVal < 7 ? (7 - tmpVal) / 6.0 : 0; // Translate "n-up" value into probability
 
 	// Calculate probability of the target saving 
-	tmpVal = applyAddMods(profile.stats[target.name].save, target, ["SAVE", "REPLACE_SAVE", "SAVE_SHOOT", "REPLACE_SAVE_SHOOT"], wepProfile);
-	let invuln = applyAddMods(profile.stats[target.name].invuln || 7, target, ["INVULN", "REPLACE_INVULN", "REPLACE_INVULN_SHOOT"], wepProfile);
+	tmpVal = applyAddMods(targetStat.save, target, ["SAVE", "REPLACE_SAVE", "SAVE_SHOOT", "REPLACE_SAVE_SHOOT"], wepProfile);
+	let invuln = applyAddMods(targetStat.invuln || 7, target, ["INVULN", "REPLACE_INVULN", "REPLACE_INVULN_SHOOT"], wepProfile);
 
 	// Calculate AP
-	let AP = applyAddMods(wepProfile.ap || 0, unit, ["AP", "AP_SHOOT", "REPLACE_AP", "REPLACE_AP_SHOOT"], wepProfile);
+	let AP = applyAddMods(wepProfile.ap || 0, model, ["AP", "AP_SHOOT", "REPLACE_AP", "REPLACE_AP_SHOOT"], wepProfile);
 	AP = applyAddMods(AP, target, ["AP_TARGET", "REPLACE_AP_TARGET"], wepProfile);
 
 	// Choose the higher of normal save with Armor Piercing applied, or invulnerable save
-	if (tmpVal + AP < invuln) {
+	if (tmpVal - AP > invuln) {
 		tmpVal = invuln;	
 	} else {
-		tmpVal += AP;
+		tmpVal -= AP;
 	}
-
+	// Get final save probability
 	savePr = tmpVal < 7 ? (7 - tmpVal) / 6.0 : 0; // Translate "n-up" value into probability
 
-	damagePr = hitPr * woundPr * (1 - savePr);
-	const missPr =  1 - damagePr;
+	// Calculate "sucess per attempt" probability - this is the product of all the non-distributed Variables
+	successPr = hitPr * woundPr * (1 - savePr);
+	const failPr =  1 - successPr; // get the complement for convenience
 
-	// Build the coefficients of pascals triangle
-	// let dmgArr = fireAgain([], numShots - 1);
+	// console.log("[fireSalvo] STEP 1 Results: ", { successPr, savePr, woundPr, hitPr });
 
-	let coeffArr = null;
+	// -----------------------------------------------------------------------------------
+	// PART 2: Calculate shot PDF, and conjoin it with success probability for success PDF 
+	// -----------------------------------------------------------------------------------
 
 	// 1. Calculate the PDF of how many shots we will take
-	shotPd = calcShots(wepProfile);
+	shotPd = calcShots(model, wepProfile, ctx, profile, target);
 
-	// 2. For every number of shots we could take, add our chances of sucess from that and multiply it by the shot probability 
-	let dmgPd = shotPd.reduce((acc, e, i) => {
+	// 2. For every number of shots we could take, add our chances of sucess from that multipled it by the shot probability to the total PDF
+	let successPd = shotPd.reduce((acc, e, i) => {
 		// Get the coefficient array, which may involve computations if we go over our current stored limit
-		if (!i || e[0] < 15) {
-			coeffArr = constants.pascals[Math.min(e[0] - 1, 14)];
-			if (e[0] > 15) {
-				coeffArr = fireAgain(coeffArr, e[0] - 15);
-			}
-		} else {
-			coeffArr = fireAgain(coeffArr, e[0] - shotPd[i-1][0]);
+		// TODO: memo-ize this
+		coeffArr = constants.pascals[Math.min(e[0] - 1, 14)];
+		if (e[0] > 15) {
+			coeffArr = fireAgain(coeffArr, e[0] - 15);
 		}
 
 		// Translate from array of coefficents, to array of probabilities to get i number of successes
 		// Only remember those above a certain threshold to save computation
-		coeffArr
-			.map((coeff, j) => [j, coeff * Math.pow(missPr, coeffArr.length - j) * Math.pow(damagePr, j)])
+		coeffArr && coeffArr
+			.map((coeff, j) => [j, coeff * Math.pow(failPr, coeffArr.length - j) * Math.pow(successPr, j)])
 			.filter(pair => pair[1] > 0.001)
 			.forEach(pair => {
 				if (!acc[pair[0]]) {
@@ -383,10 +429,43 @@ const fireSalvo = (unit, wepProfile, ctx, profile, target) => {
 		return acc;
 	}, {});
 
-	// Transform into arrays
-	dmgPd = Object.keys(dmgPd).map(key => [key, dmgPd[key]]);
-	console.log("Got damage of ", dmgPd);
+	// Transform from object (better for insuring uniqueness) into an array (more performant)
+	successPd = Object.keys(successPd).map(key => [parseInt(key), successPd[key]]);
+	// console.log("[fireSalvo] STEP 2 Results: ", { successPd, shotPd });
+
+	// -----------------------------------------------------------------------------------------
+	// PART 3: Calculate damage-per-success PDF, and conjoing it with success PDF for damage PDF 
+	// -----------------------------------------------------------------------------------------
+
+	// 3. Get damage PDF for this weapon
+	let damagePerSuccessPdf = calcDamage(model, wepProfile, ctx, profile, target);
+
+	// 3. For every success count possibility, expand that out to learn its damage PDFs, then sum all those together into our final return value 
+	// NOTE: The algorithm here is technically innaccurate, in order to save on performance. It approximates the conjunction by assuming all shots
+	// in one salvo will always roll the smae damage as the other shots in that salvo. It should work out to be very close, based on... a hunch?
+	let tmpArr;
+	let finalDamagePd = successPd.reduce((acc, pair, i) => {
+		damagePerSuccessPdf.forEach((dmgPair) => {
+			let dmgVal = pair[0] * dmgPair[0];
+			let prob = pair[1] * dmgPair[1];
+
+			if (acc[dmgVal]) {
+				acc[dmgVal] += prob;
+			} else {
+				acc[dmgVal] = prob;
+			}
+		});
+
+		return acc;
+	}, {});
+
+	// Transform from object (better for insuring uniqueness) into an array (more performant)
+	// finalDamagePd = Object.keys(finalDamagePd).map(key => [parseInt(key), finalDamagePd[key]]);
+	// console.log("[fireSalvo] finalDamagePd: ", finalDamagePd, damagePerSuccessPdf);
+
+	return finalDamagePd;
 };
+exports.fireSalvo = fireSalvo;
 
 // HELPER
 const fireAgain = (arr, numRemaining) => {
@@ -444,6 +523,7 @@ const canShootNextTurn = (unit, profile, ctx) => {
 
 		// Units that have a "CANNOT_SHOOT" tag can't shoot!
 		(!hasCantShootTag)
+	);
 };
 
 const canShootNow = (unit, profile) => {
@@ -458,6 +538,7 @@ const canShootNow = (unit, profile) => {
 
 		// Units that have a "CANNOT_SHOOT" tag can't shoot!
 		(!hasCantShootTag)
+	);
 }
 
 // HELPER
@@ -581,14 +662,14 @@ exports.divineArmyStats = (origArmy, rhs) => {
 	let army = Object.assign({}, origArmy);
 
 	let ret = {
-		divineCommand(army, rhs),
-		divineMove(army, rhs),
-		divinePsychic(army, rhs),
-		divineShooting(army, rhs),
-		divineCharge(army, rhs),
-		divineFight(army, rhs),
-		divineMorale(army, rhs),
-		genAlphaStrike(army, rhs)
+		command: divineCommand(army, rhs),
+		move: divineMove(army, rhs),
+		pyschic: divinePsychic(army, rhs),
+		shoot: divineShooting(army, rhs),
+		charge: divineCharge(army, rhs),
+		fight: divineFight(army, rhs),
+		morale: divineMorale(army, rhs),
+		alphaStrike: genAlphaStrike(army, rhs)
 	};
 
 	return ret;

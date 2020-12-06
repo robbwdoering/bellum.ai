@@ -8,6 +8,31 @@
 
 export const mainCategoryNames = [ "shoot", "fight", "control", "resil"];
 
+
+export const ChartTypes = {
+	ForceScorecard: "ForceScorecard",
+
+	ShootLightDamage: "ShootLightDamage",
+	ShootMedDamage: "ShootMedDamage",
+	ShootEliteDamage: "ShootEliteDamage",
+	ShootHeavyDamage: "ShootHeavyDamage",
+
+	FightLightDamage: "FightLightDamage",
+	FightMedDamage: "FightMedDamage",
+	FightEliteDamage: "FightEliteDamage",
+	FightHeavyDamage: "FightHeavyDamage",
+	
+	LightResil: "LightResil",
+	MedResil: "MedResil",
+	ToughResil: "ToughResil",
+	TankResil: "TankResil",
+	Move: "Move",
+	Range: "Range",
+	Screen: "Screen",
+	Toughness: "Toughness",
+	SummaryRadar: "SummaryRadar"
+};
+
 export const statCategories = {
 	mainPreMatch: {
 		charts: ['categoryRatios', 'resilRatios', 'damageRatios']
@@ -17,7 +42,7 @@ export const statCategories = {
 	},
 	shoot: {
 		title: "Shooting",
-		charts: ['shootingAttrCount', 'lightDamage', 'medDamage', 'toughDamage', 'tankDamage']
+		charts: [ChartTypes.ShootLightDamage, ChartTypes.ShootMedDamage, ChartTypes.ShootEliteDamage, ChartTypes.ShootHeavyDamage]
 	},
 	fight: {
 		title: "Fighting",
@@ -32,23 +57,6 @@ export const statCategories = {
 		charts: ['invuln', 'toughness', 'feelNoPain', 'resilAttrCount']
 	},
 }
-
-export const ChartTypes = {
-	ForceScorecard: "ForceScorecard",
-	LightDmg: "LightDmg",
-	MedDmg: "MedDmg",
-	ToughDmg: "ToughDmg",
-	TankDmg: "TankDmg",
-	LightResil: "LightResil",
-	MedResil: "MedResil",
-	ToughResil: "ToughResil",
-	TankResil: "TankResil",
-	Move: "Move",
-	Range: "Range",
-	Screen: "Screen",
-	Toughness: "Toughness",
-	SummaryRadar: "SummaryRadar"
-};
 
 export const chartConfigs = {
 	[ChartTypes.SummaryRadar]: {

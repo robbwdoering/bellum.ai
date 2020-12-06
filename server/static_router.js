@@ -10,6 +10,7 @@ const map = require('./map');
 const config = require('./config');
 const constants = require('./constants');
 const lib = require('./router_library');
+const util = require('./utilities');
 
 
 class StaticRouter {
@@ -17,11 +18,11 @@ class StaticRouter {
 		// HACK - post requests of type 'application/json' are having their types overriden by the mode somehow.
 		// This changes them back to json. Fix when the overriding is fixed - see https://stackoverflow.com/questions/54016068/empty-body-in-fetch-post-request
 		// NOTE: plain text requests will NOT function while this is being executed
-		app.use(
-			express.json({
-				type: ['application/json', 'text/plain']
-			})
-		);
+		// app.use(
+		// 	express.json({
+		// 		type: ['application/json', 'text/plain']
+		// 	})
+		// );
 
 		/**
 		 * Fetch Metalist
@@ -30,9 +31,9 @@ class StaticRouter {
 		app.get('/api/static/metalist', jwtCheck, async (req, res) => {
 			console.log("[GET metalist]");
 
-			let results = await lib.queryDB(pool, "SELECT (name, points, faction, rating, id) from war_list WHERE userId = '" + lib.userid(req) + "';");
+			let results = await util.queryDB(pool, "SELECT (name, points, faction, rating, id) from war_list WHERE userId = '" + util.userid(req) + "';");
 			console.log("returning: ", results);
-			lib.sendMsg(res, {type: "SET_METALIST", payload: results});
+			util.sendMsg(res, {type: "SET_METALIST", payload: results});
 		});
 
 		/**
@@ -44,18 +45,18 @@ class StaticRouter {
 
 			// Get the list from the database
 			let profiles = [];
-			let results = await lib.queryDB(pool, "SELECT (json) from war_list WHERE userId = $1 AND id = $2;",  [lib.userid(req), req.params.listId]);
+			let results = await util.queryDB(pool, "SELECT (json) from war_list WHERE userId = $1 AND id = $2;",  [util.userid(req), req.params.listId]);
 			if (results && results.results && results.results.length && results.results[0]) {
 				let tmp = results.results[0].id;	
-				results = lib.massageList(results.results[0].json);
+				results = lib.outputUnitTransform(results.results[0].json);
 				results.id = tmp;
 
 				// Fetch the profiles that are needed to understand this list, and massage them
 				profiles = await lib.getProfilesForList(pool, results);
-				lib.massageProfile(pool, profiles, results);
+				// lib.massageProfile(pool, profiles, results);
 			}
 
-			lib.sendMsg(res, {type: req.params.isPrimary === "true" ? "SET_PRIMARY_LIST" : "SET_SECONDARY_LIST", payload: {profiles, results}});
+			util.sendMsg(res, {type: req.params.isPrimary === "true" ? "SET_PRIMARY_LIST" : "SET_SECONDARY_LIST", payload: {profiles, results}});
 		});
 
 		/**
@@ -66,7 +67,6 @@ class StaticRouter {
 			console.log("[POST List]", req.body);
 			let query, results;
 
-
 			// OPTION 1 - DELETE A LIST
 			if (req.body.toDelete && req.body.toDelete.length) {
 				// Build the query to delete all lists in the passed array
@@ -74,16 +74,22 @@ class StaticRouter {
 					acc + (i ? " OR " : "") + `name = $${i+1}`
 				), 'DELETE FROM war_list WHERE ');
 				query += ";";
-				results = await lib.queryDB(pool, query, req.body.toDelete);
+				results = await util.queryDB(pool, query, req.body.toDelete);
 
 			// OPTION 2 - ADD A LIST
 			} else {
-				const units = lib.processUnits(pool, req.body.detachments);
-				// query = `INSERT INTO war_list (userId, name, points, faction, rating, json)
-				// 	VALUES ('${lib.userid(req)}', '${req.body.name}', ${req.body.points}, '${req.body.detachments[0].faction}', 0, '${JSON.stringify({units: units, cp: req.body.cp, name: req.body.name}).replace(/'/gm, "")}');`;
+				// Transform the units, doing things like collapsing duplicates and cleaning up names
+				const units = lib.inputUnitTransform(pool, req.body.detachments, req.body.profile);
+
+				// Get the list of keys in the profile list, for ease of retrieval later
+				const profileKeys = req.body.profile && Object.keys(req.body.profile).reduce((acc, key) => {
+					acc[key] = Object.keys(req.body.profile[key]);
+					return acc;
+				}, {});
+
 				query = 'INSERT INTO war_list (userId, name, points, faction, rating, json) VALUES ($1, $2, $3, $4, 0, $5);';
-				const values = [lib.userid(req), lib.sanitizeStr(req.body.name), req.body.points, req.body.detachments[0].faction, lib.sanitizeStr(JSON.stringify({units: units, cp: req.body.cp, name: req.body.name}))];
-				results = await lib.queryDB(pool, query, values);
+				const values = [util.userid(req), util.sanitizeStr(req.body.name), req.body.points, req.body.detachments[0].faction, util.sanitizeStr(JSON.stringify({units: units, cp: req.body.cp, name: req.body.name, profileKeys}))];
+				results = await util.queryDB(pool, query, values);
 
 				if (!req.body.profile) {
 					console.log("This army doesn't have a profile - please attach one next time.");
@@ -95,8 +101,8 @@ class StaticRouter {
 			// OPTION 3 - MOD A LIST
 			// TODO - no "add and replace" in POSTGRESQL, use ON CONFLICT UPDATE SET... syntax
 
-			results = await lib.queryDB(pool, "SELECT (name, points, faction, rating, id) from war_list WHERE userId = '" + lib.userid(req) + "';");
-			lib.sendMsg(res, {type: "SET_METALIST", payload: results});
+			results = await util.queryDB(pool, "SELECT (name, points, faction, rating, id) from war_list WHERE userId = '" + util.userid(req) + "';");
+			util.sendMsg(res, {type: "SET_METALIST", payload: results});
 		});
 
 		/**
@@ -122,8 +128,8 @@ class StaticRouter {
 					return;
 			}
 
-			let results = await lib.queryDB(pool, `SELECT (name, ${fields} ) from war_${req.params.type}_profile;`);
-			lib.sendMsg(res, {type: "SET_UNSET_PROFILES", payload: results});
+			let results = await util.queryDB(pool, `SELECT (name, ${fields} ) from war_${req.params.type}_profile;`);
+			util.sendMsg(res, {type: "SET_UNSET_PROFILES", payload: results});
 		});
 
 		// All remaining requests return the React app, so it can handle routing.

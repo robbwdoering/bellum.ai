@@ -14,7 +14,7 @@ import { openContents, setDemoState } from './../app/actions';
 import Pane from './../common/pane';
 import { ContentTypes, apiOpts } from './../common/constants';
 import { BarChart } from './../stats/BarChart';
-import { ForceCard } from './../stats/ForceCard';
+import { ForceCardContainer } from './../stats/ForceCard';
 import { ChartCard } from './../stats/ChartCard';
 import { statCategories, mainCategoryNames, ChartTypes } from './../stats/constants';
 import { useApi } from "./../app/useApi";
@@ -98,7 +98,7 @@ export const PreMatch = props => {
 				<span> {statCategories[categoryName].title} </span>
 			</Menu.Item>
 		),
-		render: () => statCategories[categoryName].charts.map(chartName => <ChartCard name={chartName} />)
+		render: () => statCategories[categoryName].charts.map(chartName => <ChartCard chartName={chartName} />)
 	});
 
 	// Static Apis - to fetch various json objects
@@ -107,8 +107,8 @@ export const PreMatch = props => {
 	const secondaryListApi = useApi('/api/static/list/false/', 'GET', apiOpts, handleFetch);
 
 	// Dyanmic Apis - for chart data
-	const primaryScorecardApi = useApi(`/api/dynamic/${ChartTypes.ForceScorecard}/`, 'POST', apiOpts);
-	const secondaryScorecardApi = useApi(`/api/dynamic/${ChartTypes.ForceScorecard}/`, 'POST', apiOpts);
+	const primaryScorecardApi = useApi(`/api/dynamic/${ChartTypes.ForceScorecard}/`, 'POST', apiOpts, handleFetch);
+	const secondaryScorecardApi = useApi(`/api/dynamic/${ChartTypes.ForceScorecard}/`, 'POST', apiOpts, handleFetch);
 
 	const primaryOptions = useMemo(filterPrimaryList, [metalistHash])
 	const secondaryOptions = useMemo(filterSecondaryList, [metalistHash, primaryList])
@@ -180,11 +180,11 @@ export const PreMatch = props => {
 
 				<Grid.Row className="prematch-force-row" centered>
 					<Grid.Column width={8} style={cardStyle} >
-						<ForceCard key={"primary-force-card"} data={primaryList} profile={primaryProfile} handleFetch={handleFetch}/>
+						<ForceCardContainer key={"primary-force-card"} data={primaryList} profile={primaryProfile} handleFetch={handleFetch}/>
 					</Grid.Column>
 
 					<Grid.Column width={8} style={cardStyle} >
-						<ForceCard key={"primary-force-card"} data={secondaryList} profile={secondaryProfile} handleFetch={handleFetch}/>
+						<ForceCardContainer key={"primary-force-card"} data={secondaryList} profile={secondaryProfile} handleFetch={handleFetch}/>
 					</Grid.Column>
 				</Grid.Row>
 
