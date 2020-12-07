@@ -357,8 +357,9 @@ const inputUnitTransform = (pool, detachments, profile) => {
 				}
 
 				// Search for and combine duplicates
-				let memoizedStr = JSON.stringify(model);
-				let foundIdx = newModels.findIndex((compModel) => JSON.stringify(compModel) === memoizedStr);
+				// Have to set quantity to null, since that field doesn't have to match
+				let memoizedStr = JSON.stringify(Object.assign({}, model, {quantity: null}));
+				let foundIdx = newModels.findIndex((compModel) => JSON.stringify(Object.assign({}, compModel, {quantity: null}) === memoizedStr));
 
 				// This is a duplicate
 				if (foundIdx !== -1) {

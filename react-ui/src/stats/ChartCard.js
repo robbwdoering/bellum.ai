@@ -7,7 +7,7 @@
 // React + Redux
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { connect } from 'react-redux';
-import { Accordion, Placeholder, Card, Button, Grid, Step, Dropdown, Header, Tab, Input, Icon, Loading, Menu, Sidebar } from 'semantic-ui-react';
+import { Accordion, Placeholder, Card, Button, Popup, Grid, Step, Dropdown, Header, Tab, Input, Icon, Loading, Menu, Sidebar } from 'semantic-ui-react';
 import { select } from 'd3-selection';
 import { max, min } from 'd3-array';
 import { scaleLinear, scaleBand } from 'd3-scale';
@@ -24,9 +24,8 @@ import { BarChart } from './../stats/BarChart';
 import { statCategories, ChartTypes, getChartConfig } from './constants';
 import './stats.css';
 
-const margin = { top: 20, right: 40, bottom: 40, left: 40 };
+const margin = { top: 10, right: 10, bottom: 40, left: 10 };
 const color = ['#f05440', '#d5433d', '#b33535', '#283250'];
-		console.log("gaussian: ", gaussian)
 
 export const ChartCard = props => {
 	const {
@@ -47,6 +46,7 @@ export const ChartCard = props => {
 
 	const ref = useRef(); 
 	const [initDone, finishInit] = useState(false);
+	const [ infoItems, setInfoItems ] = useState([null, null]);
 
 	const translateHistoData = histoData => {
 		if (!histoData) return histoData;
@@ -77,8 +77,25 @@ export const ChartCard = props => {
         return (data);
 	};
 
+	const renderHistoItems = (dist1, dist2) => {
+		return [
+			<div className="chart-card-cfg-item">
+				<span className="title"> AVERAGE </span>
+				{dist1 && <span className="primary"> {Math.floor(dist1.mean)} </span>}
+				{(dist1 && dist2) && " / "}
+				{dist2 && <span className="secondary"> {Math.floor(dist2.mean)} </span>}
+			</div>,
+			<div className="chart-card-cfg-item">
+				<span className="title"> STD DEV </span>
+				{dist1 && <span className="primary"> {Math.floor(Math.sqrt(dist1.dev))} </span>}
+				{(dist1 && dist2) && " / "}
+				{dist2 && <span className="secondary"> {Math.floor(Math.sqrt(dist2.dev))}  </span>}
+			</div>
+		];
+	}
+
 	const getData = () => {
-		let histoData;
+		let histoData, res, tmpArr;
 		console.log("getting data...", chartName, chartData)
 		if (!chartName) {
 			console.log("Exiting early....")
@@ -97,11 +114,18 @@ export const ChartCard = props => {
 				bucketName = bucketName || 'heavy';
 
 				// Deal with all the shooting cases here
-				return chartData.scorecards.map((scorecard, i) => {
+				tmpArr = [];
+				res = chartData.scorecards.map((scorecard, i) => {
 					let hasShootData = scorecard && scorecard.shoot && scorecard.shoot.dmgBuckets;
+
 					histoData = hasShootData ? scorecard.shoot.dmgBuckets.find(bucket => bucket.name === bucketName).dist : null;
+					tmpArr.push(histoData); // store mean and variance for tooltips
 					return translateHistoData(histoData);
 				});
+
+				setInfoItems(renderHistoItems(...tmpArr))
+
+				return res;
 
 			case ChartTypes.FightLightDamage:
 				bucketName = 'light';
@@ -189,10 +213,10 @@ export const ChartCard = props => {
 
 	};
 
-	const genDescription = () => constConfig.infoItems ? constConfig.infoItems([...data]) : null;
+	// const genDescription = () => constConfig.infoItems ? constConfig.infoItems(infoData) : null;
 
 	useEffect(() => {
-		if (data && ref.current && config) {
+		if (data && data[0] || data[1] && ref.current && config) {
 			let svg = select(ref.current);
 			switch (chartName) {
 				case ChartTypes.ShootLightDamage:
@@ -212,33 +236,41 @@ export const ChartCard = props => {
 	}, [data, config]);
 
 	const constConfig = useMemo(() => getChartConfig(chartName) || {}, [chartName]);
-	const desc = useMemo(genDescription, [ constConfig ])
+	// const desc = useMemo(genDescription, [ constConfig, chartHash ])
+
+	if (!data || (!data[0] && !data[1])) {
+		return (
+			<Card className="chart-card">
+				<Placeholder>
+					<Placeholder.Header image>
+						<Placeholder.Line />
+						<Placeholder.Line />
+					</Placeholder.Header>
+				</Placeholder>
+			</Card>
+		)
+	}
 
 	return (
 		<Card className="chart-card">
-			{constConfig.title && <Card.Header> <h3>{constConfig.title}</h3> </Card.Header>}
+			{constConfig.title && (
+				<Card.Header>
+					<h3>{constConfig.title}</h3>
+					{constConfig.tooltip && <Popup content={constConfig.tooltip} trigger={<Icon name="info" />} />}
+				</Card.Header>
+			)}
 			<Card.Content>
-				{data ? (
-					<svg
-						className="main-chart-container"
-						width={config.width + margin.left + margin.right}
-						height={config.height + margin.top + margin.bottom}
-						role="img"
-						ref={ref}
-					/>
-				) : (
-						<Placeholder>
-							<Placeholder.Header image>
-								<Placeholder.Line />
-								<Placeholder.Line />
-							</Placeholder.Header>
-						</Placeholder>
-					)
-				}
+				<svg
+					className="main-chart-container"
+					width={config.width + margin.left + margin.right}
+					height={config.height + margin.top + margin.bottom}
+					role="img"
+					ref={ref}
+				/>
 
-				{desc && (
+				{infoItems && infoItems.length && (infoItems[0] || infoItems[1]) && (
 					<div className="chart-card-item-container">
-						{desc}
+						{infoItems}
 					</div>
 				)}
 			</Card.Content>

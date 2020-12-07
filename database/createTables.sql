@@ -71,7 +71,7 @@ CREATE TABLE war_weapon_profile (
     ap INT,
     damage TEXT,
     range INT,
-    strength INT,
+    strength TEXT,
     weaponType TEXT,
     shots TEXT,
     meaning JSONB NOT NULL

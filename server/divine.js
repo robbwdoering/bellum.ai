@@ -341,8 +341,9 @@ const calcShots = (unit, wepProfile, ctx, profile, target) => {
 const fireSalvo = (model, wepProfile, ctx, profile, target) => {
 	let shotPd, successPr, hitPr, woundPr, savePr, avgDamage, tmpVal;
 	let coeffArr = null;
+	const isFight = wepProfile === 'Melee';
+	const mode = isFight ? "FIGHT" : "SHOOT";
 
-	// console.log("firing salvo", model.unit, "-->", target.unit)
 	const modelStat = profile.stats.find(stat => stat.name === util.formatStr(model.unit));
 	const targetStat = profile.stats.find(stat => stat.name === util.formatStr(target.unit));
 
@@ -351,30 +352,34 @@ const fireSalvo = (model, wepProfile, ctx, profile, target) => {
 		return [];
 	}
 
+	// Get the hit stat
+	const hitStat = isFight ? modelStat.weapons : modelStat.ballistics;
+	const strStat = isFight ? getFightStrength(wepProfile, modelStat) : parseInt(wepProfile.strength);
+
 	// ---------------------------------------------------
 	// PART 1: Calculate "success per attempt" probability
 	// ---------------------------------------------------
 
-	// Calculate probabilty of hitting the target
-	tmpVal = applyAddMods(modelStat.ballistics, model, ["HIT", "HIT_SHOOT"], wepProfile);
+	// 1.1 Calculate probabilty of hitting the target
+	tmpVal = applyAddMods(modelStat.ballistics, model, ["HIT", `HIT_${mode}`], wepProfile);
 	tmpVal = applyAddMods(tmpVal, target, ["BE_HIT"], wepProfile);
 	hitPr = tmpVal < 7 ? (7 - tmpVal) / 6.0 : 0; // Translate "n-up" value into probability
 
 	// Modify probabilty in response to reroll rules
-	// hitPr = applyRerollMods(hitPr, model, ["HIT__REROLL", "HIT_SHOOT__REROLL"], wepProfile);
-	// hitPr = applyRerollMods(hitPr, target, ["BE_HIT__REROLL", "BE_HIT_SHOOT__REROLL"], wepProfile); // TODO: Is this a rule that exists?
+	// hitPr = applyRerollMods(hitPr, model, ["HIT__REROLL", `HIT_${mode}__REROLL`], wepProfile);
+	// hitPr = applyRerollMods(hitPr, target, ["BE_HIT__REROLL", `BE_HIT_${mode}__REROLL`], wepProfile); // TODO: Is this a rule that exists?
 
-	// Calculate probability of wounding the target
-	let tmpToughness = applyAddMods(targetStat.toughness, target, ["TOUGHNESS", "TOUGHNESS_SHOOT"], wepProfile);
-	tmpVal = applyAddMods(calcToWound(wepProfile.strength, tmpToughness), model, ["WOUND", "WOUND_SHOOT", "REPLACE_WOUND", "REPLACE_WOUND_SHOOT"], wepProfile);
+	// 1.2 Calculate probability of wounding the target
+	let tmpToughness = applyAddMods(targetStat.toughness, target, ["TOUGHNESS", `TOUGHNESS_${mode}`], wepProfile);
+	tmpVal = applyAddMods(calcToWound(strStat, tmpToughness), model, ["WOUND", `WOUND_${mode}`, "REPLACE_WOUND", `REPLACE_WOUND_${mode}`], wepProfile);
 	woundPr = tmpVal < 7 ? (7 - tmpVal) / 6.0 : 0; // Translate "n-up" value into probability
 
-	// Calculate probability of the target saving 
-	tmpVal = applyAddMods(targetStat.save, target, ["SAVE", "REPLACE_SAVE", "SAVE_SHOOT", "REPLACE_SAVE_SHOOT"], wepProfile);
-	let invuln = applyAddMods(targetStat.invuln || 7, target, ["INVULN", "REPLACE_INVULN", "REPLACE_INVULN_SHOOT"], wepProfile);
+	// 1.3 Calculate probability of the target saving 
+	tmpVal = applyAddMods(targetStat.save, target, ["SAVE", "REPLACE_SAVE", `SAVE_${mode}`, `REPLACE_SAVE_${mode}`], wepProfile);
+	let invuln = applyAddMods(targetStat.invuln || 7, target, ["INVULN", "REPLACE_INVULN", `REPLACE_INVULN_${mode}`], wepProfile);
 
-	// Calculate AP
-	let AP = applyAddMods(wepProfile.ap || 0, model, ["AP", "AP_SHOOT", "REPLACE_AP", "REPLACE_AP_SHOOT"], wepProfile);
+	// Calculate AP (affects save)
+	let AP = applyAddMods(wepProfile.ap || 0, model, ["AP", `AP_${mode}`, "REPLACE_AP", `REPLACE_AP_${mode}`], wepProfile);
 	AP = applyAddMods(AP, target, ["AP_TARGET", "REPLACE_AP_TARGET"], wepProfile);
 
 	// Choose the higher of normal save with Armor Piercing applied, or invulnerable save
@@ -386,9 +391,8 @@ const fireSalvo = (model, wepProfile, ctx, profile, target) => {
 	// Get final save probability
 	savePr = tmpVal < 7 ? (7 - tmpVal) / 6.0 : 0; // Translate "n-up" value into probability
 
-	// Calculate "sucess per attempt" probability - this is the product of all the non-distributed Variables
+	// 1.4 Calculate "sucess per attempt" probability - this is the product of all the non-distributed Variables
 	successPr = hitPr * woundPr * (1 - savePr);
-	const failPr =  1 - successPr; // get the complement for convenience
 
 	// console.log("[fireSalvo] STEP 1 Results: ", { successPr, savePr, woundPr, hitPr });
 
@@ -396,46 +400,25 @@ const fireSalvo = (model, wepProfile, ctx, profile, target) => {
 	// PART 2: Calculate shot PDF, and conjoin it with success probability for success PDF 
 	// -----------------------------------------------------------------------------------
 
-	// 1. Calculate the PDF of how many shots we will take
+	// 2.1. Calculate the PDF of how many shots we will take
 	shotPd = calcShots(model, wepProfile, ctx, profile, target);
 
-	// 2. For every number of shots we could take, add our chances of sucess from that multipled it by the shot probability to the total PDF
-	let successPd = shotPd.reduce((acc, e, i) => {
-		// Get the coefficient array, which may involve computations if we go over our current stored limit
-		// TODO: memo-ize this
-		coeffArr = constants.pascals[Math.min(e[0] - 1, 14)];
-		if (e[0] > 15) {
-			coeffArr = fireAgain(coeffArr, e[0] - 15);
-		}
-
-		// Translate from array of coefficents, to array of probabilities to get i number of successes
-		// Only remember those above a certain threshold to save computation
-		coeffArr && coeffArr
-			.map((coeff, j) => [j, coeff * Math.pow(failPr, coeffArr.length - j) * Math.pow(successPr, j)])
-			.filter(pair => pair[1] > 0.001)
-			.forEach(pair => {
-				if (!acc[pair[0]]) {
-					acc[pair[0]] = pair[1] * e[1];
-				} else {
-					acc[pair[0]] += pair[1] * e[1];
-				}
-			});
-
-		return acc;
-	}, {});
+	// 2.2. For every number of shots we could take, add our chances of success from that multipled it by the shot probability to the total PDF
+	let successPd = getSuccessPdf(shotPd, successPr);
 
 	// Transform from object (better for insuring uniqueness) into an array (more performant)
 	successPd = Object.keys(successPd).map(key => [parseInt(key), successPd[key]]);
+
 	// console.log("[fireSalvo] STEP 2 Results: ", { successPd, shotPd });
 
 	// -----------------------------------------------------------------------------------------
 	// PART 3: Calculate damage-per-success PDF, and conjoing it with success PDF for damage PDF 
 	// -----------------------------------------------------------------------------------------
 
-	// 3. Get damage PDF for this weapon
+	// 3.1 Get damage PDF for this weapon
 	let damagePerSuccessPdf = calcDamage(model, wepProfile, ctx, profile, target);
 
-	// 3. For every success count possibility, expand that out to learn its damage PDFs, then sum all those together into our final return value 
+	// 3.2 For every success count possibility, expand that out to learn its damage PDFs, then sum all those together into our final return value 
 	// NOTE: The algorithm here is technically innaccurate, in order to save on performance. It approximates the conjunction by assuming all shots
 	// in one salvo will always roll the smae damage as the other shots in that salvo. It should work out to be very close, based on... a hunch?
 	let tmpArr;
@@ -454,13 +437,46 @@ const fireSalvo = (model, wepProfile, ctx, profile, target) => {
 		return acc;
 	}, {});
 
-	// Transform from object (better for insuring uniqueness) into an array (more performant)
-	// finalDamagePd = Object.keys(finalDamagePd).map(key => [parseInt(key), finalDamagePd[key]]);
-	// console.log("[fireSalvo] finalDamagePd: ", finalDamagePd, damagePerSuccessPdf);
-
 	return finalDamagePd;
 };
 exports.fireSalvo = fireSalvo;
+
+const getFightStrength = (wepStat, modelStat) => {
+	if (!wepStat.strength || !wepStat.strength.length || (['user', '*', 'u']).includes(wepStat.strength.toLowerCase())) {
+		return modelStat.strength;
+	} else if (wepStat.strength.match(/(x|X)[0-9]+/g)) {
+		let multFactor = partInt(wepStat.substring(1));
+		return modelStat.strength * multFactor;
+	} else {
+		return wepStat.strength;
+	}
+}
+
+
+const getSuccessPdf = (shotPd, successPr) => shotPd.reduce((acc, e, i) => {
+	let failPr = 1 - successPr;
+	// Get the coefficient array, which may involve computations if we go over our current stored limit
+	// TODO: memo-ize this
+	coeffArr = constants.pascals[Math.min(e[0] - 1, 14)];
+	if (e[0] > 15) {
+		coeffArr = fireAgain(coeffArr, e[0] - 15);
+	}
+
+	// Translate from array of coefficents, to array of probabilities to get i number of successes
+	// Only remember those above a certain threshold to save computation
+	coeffArr && coeffArr
+		.map((coeff, j) => [j, coeff * Math.pow(failPr, coeffArr.length - j) * Math.pow(successPr, j)])
+		.filter(pair => pair[1] > 0.001)
+		.forEach(pair => {
+			if (!acc[pair[0]]) {
+				acc[pair[0]] = pair[1] * e[1];
+			} else {
+				acc[pair[0]] += pair[1] * e[1];
+			}
+		});
+
+	return acc;
+}, {});
 
 // HELPER
 const fireAgain = (arr, numRemaining) => {
