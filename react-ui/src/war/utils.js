@@ -18,6 +18,32 @@ export const sanitizeString = str => {
 	return typoMap[ret] || ret;
 };
 
+// Source: https://www.math.ucla.edu/~tom/distributions/normal.html
+export const normalcdf = (X) => {   //HASTINGS.  MAX ERROR = .000001
+	let T = 1 / (1 + 0.2316419 * Math.abs(X));
+	let D = 0.3989423 * Math.exp(-X * X / 2);
+	let ret = D * T * (0.3193815 + T * (-0.3565638 + T * (1.781478 + T * (-1.821256 + T * 1.330274))));
+	if (X > 0) {
+		ret = 1 - ret;
+	}
+	return ret;
+};
+
+export const computePDF = (mean, dev, x) => {
+    let ret;
+	if (!dev) {
+	    if (x < mean){
+	        ret = 0
+	    } else {
+		    ret = 1
+		}
+	} else {
+		ret = normalcdf( (x-mean) / dev );
+	}
+
+	return ret;
+};
+
 /**
  * Takes in a string that's directly from battlescribe, and turns it into a JSON object.
  * NOTE: The only changes you need to make are "Minimal Output", "Root Costs", and "Profile Summary".

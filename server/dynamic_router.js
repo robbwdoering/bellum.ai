@@ -35,7 +35,7 @@ class DynamicRouter {
 
 			console.log('got value: ', values)
 
-			util.sendMsg(res, {type: "SET_CHART_DATA", payload: values});
+			util.sendMsg(res, {type: "SET_FORCE_SCORECARD", payload: [ req.params.listId, values ]});
 		});
 	}
 }

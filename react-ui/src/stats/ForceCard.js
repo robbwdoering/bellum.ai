@@ -34,7 +34,7 @@ import { CircularChartContainer } from './../stats/CircularChart';
 import { sanitizeString } from './../war/utils';
 import { datasheetFields } from './../war/constants';
 import { useApi } from './../app/useApi';
-import { statCategories, ChartTypes, chartConfigs } from './constants';
+import { statCategories, ChartTypes, getChartConfig } from './constants';
 import './stats.css';
 
 export const ForceCard = props => {
@@ -143,7 +143,7 @@ export const ForceCard = props => {
 			height: 120,
 			width: 120,
 			data: {
-				variables: chartConfigs[ChartTypes.SummaryRadar].variables,
+				variables: getChartConfig(ChartTypes.SummaryRadar).variables,
 				sets: [{
 					key: 1,
 					label: 'Force Scores',

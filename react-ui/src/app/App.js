@@ -123,6 +123,7 @@ const App = props => {
 			case WarActions.SET_METALIST:
 			case WarActions.SET_UNSET_PROFILES:
 			case WarActions.SET_CHART_DATA:
+			case WarActions.SET_FORCE_SCORECARD:
 				processWarAction(json.type, json.payload);
 				break;
 			case 'DB_ACTION':

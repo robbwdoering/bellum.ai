@@ -7,7 +7,7 @@
 // React + Redux
 import React, { useMemo, useRef, useState, useEffect } from 'react';
 import { connect } from 'react-redux';
-import { Button, Grid, Step, Divider, Dropdown, Header, Tab, Input, Icon, Loading, Menu, Sidebar } from 'semantic-ui-react';
+import { Button, Card, Grid, Step, Divider, Dropdown, Header, Tab, Input, Icon, Loading, Menu, Sidebar } from 'semantic-ui-react';
 import { useAuth0 } from "@auth0/auth0-react";
 
 import { openContents, setDemoState } from './../app/actions';
@@ -15,7 +15,7 @@ import Pane from './../common/pane';
 import { ContentTypes, apiOpts } from './../common/constants';
 import { BarChart } from './../stats/BarChart';
 import { ForceCardContainer } from './../stats/ForceCard';
-import { ChartCard } from './../stats/ChartCard';
+import { ChartCardContainer } from './../stats/ChartCard';
 import { statCategories, mainCategoryNames, ChartTypes } from './../stats/constants';
 import { useApi } from "./../app/useApi";
 import { sanitizeString } from "./../war/utils";
@@ -67,14 +67,13 @@ export const PreMatch = props => {
 			return [];
 		}
 
-		// const item = metalist.find(e => e.name === primaryList.name);
 		console.log("filtering second list", metalist, primaryList, secondaryList); 
 		return metalist.filter(e => e.name !== primaryList.name).map(e => ({ text: e.name, value: e.id }));
 	};
 
 	const handleForceSelection = (e, { name, value }) => {
 		const item = metalist.find(e => e.id === value);
-		console.log("Handling force selection", item, value)
+		console.log("Handling force selection", metalist, item, value)
 		// Fetch data for this list if it's a legal id 
 		if (item) {
 			if (name === "primary") {
@@ -98,7 +97,9 @@ export const PreMatch = props => {
 				<span> {statCategories[categoryName].title} </span>
 			</Menu.Item>
 		),
-		render: () => statCategories[categoryName].charts.map(chartName => <ChartCard chartName={chartName} />)
+		render: () => (
+			statCategories[categoryName].charts.map(chartName =><ChartCardContainer chartName={chartName} config={scorecardConfig} />)
+		)
 	});
 
 	// Static Apis - to fetch various json objects
@@ -107,8 +108,7 @@ export const PreMatch = props => {
 	const secondaryListApi = useApi('/api/static/list/false/', 'GET', apiOpts, handleFetch);
 
 	// Dyanmic Apis - for chart data
-	const primaryScorecardApi = useApi(`/api/dynamic/${ChartTypes.ForceScorecard}/`, 'POST', apiOpts, handleFetch);
-	const secondaryScorecardApi = useApi(`/api/dynamic/${ChartTypes.ForceScorecard}/`, 'POST', apiOpts, handleFetch);
+	const scorecardApi = useApi(`/api/dynamic/${ChartTypes.ForceScorecard}/`, 'POST', apiOpts, handleFetch);
 
 	const primaryOptions = useMemo(filterPrimaryList, [metalistHash])
 	const secondaryOptions = useMemo(filterSecondaryList, [metalistHash, primaryList])
@@ -119,6 +119,14 @@ export const PreMatch = props => {
 		height: Math.min(Math.max(height * 0.4, 100), 400)
 	}), [ height, width ]);
 
+	// Build the config for the scorecard charts
+	const scorecardConfig = useMemo(() => {
+		return {
+			height: 120,
+			width: 120
+		};
+	}, []);
+
 	useEffect(() => {
 		console.log("PREMATCH MOUNTED!")
 		metalistApi.refresh();
@@ -126,11 +134,13 @@ export const PreMatch = props => {
 
 	// Fetch scorecard data
 	useEffect(() => {
+		console.log("refeshing...", secondaryList);
 		if (primaryList) {
-			primaryScorecardApi.refresh(primaryList.id, { force: primaryList, profile: primaryProfile });
+			scorecardApi.refresh(primaryList.id, { force: primaryList, profile: primaryProfile });
 		} 
+
 		if (secondaryList) {
-			secondaryScorecardApi.refresh(secondaryList.id, { force: secondaryList, profile: secondaryProfile });
+			scorecardApi.refresh(secondaryList.id, { force: secondaryList, profile: secondaryProfile });
 		}
 	}, [ listHash ]);
 
@@ -140,7 +150,7 @@ export const PreMatch = props => {
 				<Button className="prematch-start primaryButton" disabled={!isEngaged} onClick={startMatch} > Start Match </Button>
 			</div>
 
-			<Divider horizontal> <h2>Forces</h2> </Divider>
+			<Divider horizontal> <h2>Prematch</h2> </Divider>
 			<Grid>
 				<Grid.Row className="prematch-header-row" centered>
 					<Grid.Column width={8}>
@@ -184,14 +194,14 @@ export const PreMatch = props => {
 					</Grid.Column>
 
 					<Grid.Column width={8} style={cardStyle} >
-						<ForceCardContainer key={"primary-force-card"} data={secondaryList} profile={secondaryProfile} handleFetch={handleFetch}/>
+						<ForceCardContainer key={"secondary-force-card"} data={secondaryList} profile={secondaryProfile} handleFetch={handleFetch}/>
 					</Grid.Column>
 				</Grid.Row>
 
-				<Divider horizontal> <h2>Analysis</h2> </Divider>
-
 				<Grid.Row>
+					<Card.Group>
 					<Tab menu={{secondary: true }} panes={panes} onTabChange={(e, { activeIndex }) => {console.log("tab changed!"); setActiveCategory(mainCategoryNames[activeIndex])}} />
+					</Card.Group>
 				</Grid.Row>
 			</Grid>
  		</React.Fragment>

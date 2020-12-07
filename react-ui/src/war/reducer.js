@@ -30,7 +30,9 @@ const initialState = {
 		secondary: {},
 		isPrimary: {}
 	},
-	chartData: {},
+	chartData: {
+		scorecards: [ null, null ]
+	},
 	chartHash: 0,
 	chartQueue: []
 };
@@ -52,9 +54,7 @@ export const warReducer = (state = initialState, action) => {
 			// Parse id
 			metaEntry = newState.metalist.find(item => item.name === newState.primaryList.name);
 			if (metaEntry) {
-				console.log("Setting force id: ", metaEntry.id)
 				newState.primaryList.id = metaEntry.id;
-
 			}
 			newState.listHash++;
 			return newState;
@@ -66,9 +66,7 @@ export const warReducer = (state = initialState, action) => {
 
 			metaEntry = newState.metalist.find(item => item.name === newState.secondaryList.name);
 			if (metaEntry) {
-				console.log("Setting force id: ", metaEntry.id)
-				newState.primaryList.id = metaEntry.id;
-
+				newState.secondaryList.id = metaEntry.id;
 			}
 			newState.listHash++;
 			return newState;
@@ -106,6 +104,17 @@ export const warReducer = (state = initialState, action) => {
 		case WarActions.SET_CHART_DATA:
 			console.log("SET_CHART_DATA received: ", action.payload)
 			Object.assign(newState.chartData, action.payload);
+			console.log("SET_CHART_DATA received: ", newState.chartData);
+			newState.chartHash++;
+			return newState;
+
+		case WarActions.SET_FORCE_SCORECARD:
+			console.log("SET_FORCE_SCORECARD received: ", action.payload)
+			if (newState.primaryList && newState.primaryList.id === action.payload[0]) {
+				newState.chartData.scorecards[0] = action.payload[1];
+			} else {
+				newState.chartData.scorecards[1] = action.payload[1];
+			}
 			newState.chartHash++;
 			return newState;
 

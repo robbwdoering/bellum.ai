@@ -41,11 +41,6 @@ const divinePsychic = (army, rhs) => {
 
 	return {};
 };
-// TODO: Really solid hotkey support for Assist mode (whole app?)
-// 	VIM CHAING? 1f2 !!!
-// ASSUMPTIONS window
-// "Training"  functionality that puts the user in situations and asks what they would do, doubles as training for nueral net
-// Use useEffect and useMemo to only update predictions when relevant modifiers have changed (save cycles)
 
 // ---- Divination Tool Options 
 // Command 
@@ -347,7 +342,7 @@ const fireSalvo = (model, wepProfile, ctx, profile, target) => {
 	let shotPd, successPr, hitPr, woundPr, savePr, avgDamage, tmpVal;
 	let coeffArr = null;
 
-	console.log("firing salvo", model.unit, "-->", target.unit)
+	// console.log("firing salvo", model.unit, "-->", target.unit)
 	const modelStat = profile.stats.find(stat => stat.name === util.formatStr(model.unit));
 	const targetStat = profile.stats.find(stat => stat.name === util.formatStr(target.unit));
 

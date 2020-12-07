@@ -181,10 +181,10 @@ exports.drvScorecardVals = (army, profile, testProfile) => {
 			var: 0,
 			attrCount: 0,
 			dmgBuckets: [
-				{name: 'light', pdf: {'0': 1}},
-				{name: 'med', pdf: {'0': 1}},
-				{name: 'elite', pdf: {'0': 1}},
-				{name: 'heavy', pdf: {'0': 1}}
+				{name: 'light', dist: null},
+				{name: 'med', dist: null},
+				{name: 'elite', dist: null},
+				{name: 'heavy', dist: null}
 			],
 		},
 		fight: {
@@ -192,10 +192,10 @@ exports.drvScorecardVals = (army, profile, testProfile) => {
 			var: 0,
 			attrCount: 0,
 			dmgBuckets: [
-				{name: 'light', pdf: {'0': 1}},
-				{name: 'med', pdf: {'0': 1}},
-				{name: 'elite', pdf: {'0': 1}},
-				{name: 'heavy', pdf: {'0': 1}}
+				{name: 'light', dist: null},
+				{name: 'med', dist: null},
+				{name: 'elite', dist: null},
+				{name: 'heavy', dist: null}
 			],
 		},
 		control: {
@@ -241,16 +241,20 @@ exports.drvScorecardVals = (army, profile, testProfile) => {
 					targetList = testProfile.stats.filter(stat => stat.name.includes(str+"_resil")).map(stat => stat.name);
 					const { retDamagePdf, interData } = runShootTest(model, finalProfile, targetList, testProfile.context, true);
 
-					if (retDamagePdf) {
-						console.log("adding model's totals to the army...")
+					let oldBucket = ret.shoot.dmgBuckets.find(bucket => bucket && bucket.name === str);
+					if (retDamagePdf && oldBucket) {
 						return {
 							name: str,
-							pdf: addPdfs(ret.shoot.dmgBuckets.find(bucket => bucket.name === str).pdf, retDamagePdf)
+							dist: addPdfs(oldBucket.dist, retDamagePdf)
 						};
+
 					}
+					return oldBucket;
 				})
 
-				if (newBucket && newBucket.length === 4 && !newBucket.some(e => !Object.keys(e.pdf).length)) {
+
+				if (newBucket && newBucket.length === 4) {
+					console.log("SETTING BUCKETS: ", newBucket);
 					ret.shoot.dmgBuckets = newBucket;
 				}
 
@@ -267,12 +271,14 @@ exports.drvScorecardVals = (army, profile, testProfile) => {
 		}
 	});
 
+	// console.log("TEST TEST: ", addPdfs({mean: 1, dev: 0.25}, {mean: 2, dev: 0.25});
+
 	return ret;	
 };
 
 const runShootTest = (model, profile, targetArr, context, storeInterData) => {
 	let interData = {};
-	let retDamagePdf, key;
+	let retDamagePdf, key, mean, dev;
 	// console.log("[runShootTest] init w/", profile.weapons.length, "weapons")
 
 	if (model.weapon) {
@@ -304,47 +310,67 @@ const runShootTest = (model, profile, targetArr, context, storeInterData) => {
 						}
 					}
 
-					console.log("[runShootTesh] done w/ target: ", target, sumPdf(salvoResult));
-					// Return the new PDF - damages go up but all probabilities still add to 1
-					return addPdfs(targetPdf, salvoResult);
-				}, { '0': 1 });
+					mean = calcMean(salvoResult);
+					dev = calcDeviation(salvoResult, mean);
 
-				console.log("[runShootTesh] done w/ weapon ", wep, sumPdf(targetPdf));
+					// console.log("[runShootTesh] done w/ target: ", target, sumPdf(salvoResult), mean, dev);
+					// Return the new PDF - damages go up but all probabilities still add to 1
+					return addPdfs({mean, dev}, targetPdf);
+				}, null);
+
+				// console.log("[runShootTesh] done w/ weapon ", wep, sumPdf(targetPdf));
 
 				// Add these values to the overall result for this set
 				return addPdfs(retDamagePdf, targetPdf);
 			}
 
 			return retDamagePdf;
-		}, {'0': 1});
+		}, null);
 
-		console.log("[runShootTesh] done w/ model ", model.unit, sumPdf(retDamagePdf));
+		// console.log("[runShootTesh] done w/ model ", model.unit, sumPdf(retDamagePdf));
 	}
 
-	console.log("Returning from runShootTest", retDamagePdf);
+	// console.log("Returning from runShootTest", retDamagePdf);
 
 	return { retDamagePdf, interData };
 };
 
-const addPdfs = (lhsRaw, rhsRaw) => {
-	let lhs = lhsRaw;
-	let rhs = rhsRaw;
+const calcMean = (pdf) => Object.keys(pdf || {}).reduce((mean, key) => mean + (key * pdf[key]), 0);
+const calcDeviation = (pdf, mean) => Object.keys(pdf || {}).reduce((dev, key) => dev + (Math.pow(key - mean, 2) * pdf[key]), 0);
+
+const addPdfs = (lhs, rhs) => {
 	let key, pr;
-	// if (Array.isArray(lhs)) {}
 
-	let ret = {};
-	Object.keys(rhs).forEach(rhsDmg => {
-		Object.keys(lhs).forEach(lhsDmg => {
-			key = parseInt(rhsDmg) + parseInt(lhsDmg);
-			pr = lhs[lhsDmg] * rhs[rhsDmg]
-			if (pr > 0.001) {
-				ret[key] = (ret[key] || 0) + pr;
-			}
-		});
-	})
-	console.log("adding pdfs: ", lhs, rhs);
+	// Edge case - null argument
+	if (!lhs) return rhs;
+	if (!rhs) return lhs;
 
-	return ret;
+	// Edse case - null deviation (i.e. absolute value)
+	if (lhs.dev === 0) {
+		return { mean: rhs.mean + lhs.mean, dev: rhs.dev}
+	} else if (rhs.dev === 0) {
+		return { mean: rhs.mean + lhs.mean, dev: lhs.dev}
+	}
+
+	// NOTE: Whoops this code does the mixture distribution, not the sum :grimace_emoji:
+	// let invDev1 = 1 / lhs.dev;
+	// let invDev2 = 1 / rhs.dev
+	// See: https://www.johndcook.com/blog/2012/10/29/product-of-normal-pdfs/
+	// newMean = ((invDev1 * lhs.mean) + (invDev2 * rhs.mean)) / (invDev1 + invDev2);
+	// newDev = (lhs.dev * rhs.dev) / (lhs.dev + rhs.dev);
+
+	// OLD IMPLEMENTATION: Manually walks each possibility
+	// let ret = {};
+	// Object.keys(rhs).forEach(rhsDmg => {
+	// 	Object.keys(lhs).forEach(lhsDmg => {
+	// 		key = parseInt(rhsDmg) + parseInt(lhsDmg);
+	// 		pr = lhs[lhsDmg] * rhs[rhsDmg]
+	// 		ret[key] = (ret[key] || 0) + pr;
+	// 	});
+	// })
+	// Object.keys(ret).forEach(key => ret[key] < 0.001 ? delete ret[key] : null);
+
+	return {mean: rhs.mean + lhs.mean, dev:  rhs.dev + lhs.dev};
 }
 
 exports.deriveArmyStats = orig => {
