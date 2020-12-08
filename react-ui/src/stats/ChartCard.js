@@ -18,7 +18,6 @@ import * as gaussian from "gaussian";
 
 import { openContents, setDemoState } from './../app/actions';
 import { computePDF } from './../war/utils';
-import Pane from './../common/pane';
 import { ContentTypes } from './../common/constants';
 import { BarChart } from './../stats/BarChart';
 import { statCategories, ChartTypes, getChartConfig } from './constants';

@@ -1,5 +1,5 @@
 import { AppActions } from './constants';
-import { Panes, Canvases, ContentTypes } from './../common/constants';
+import { Canvases, ContentTypes } from './../common/constants';
 
 const initialState = {
 	curPanes: {},
@@ -30,11 +30,11 @@ export const appReducer = (state = initialState, action) => {
 				case "MOD":
 					newVal = Object.assign({}, newState.curPanes[action.name] ? newState.curPanes[action.name] : {}, action.config);
 					break;
-				default:
-					console.error("[appReducer] Received a pane configuration on unknown type: ", action.actionType);
 				case "DEL":
 					newVal = undefined;
 					break;
+				default:
+					console.error("[appReducer] Received a pane configuration on unknown type: ", action.actionType);
 			}
 
 			// Set the value and return
@@ -61,8 +61,8 @@ export const appReducer = (state = initialState, action) => {
 			return Object.assign({}, state, {
 				authStatus: action.payload 
 			});
-	}
 
-	// Default: return state
-	return state;
+		default:
+			return state;
+	}
 };

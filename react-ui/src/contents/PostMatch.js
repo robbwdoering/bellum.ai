@@ -12,7 +12,6 @@ import { useCookies } from "react-cookie";
 
 import { setMatchState } from './../war/actions';
 import { openContents } from './../app/actions';
-import Pane from './../common/pane';
 import { ContentTypes } from './../common/constants';
 import './contents.css';
 

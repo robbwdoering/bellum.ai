@@ -1,4 +1,4 @@
-import { WarActions, regex, demoData } from "./constants";
+import { WarActions, demoData } from "./constants";
 
 const initialState = {
 	metalist: [],
@@ -46,7 +46,6 @@ const initialState = {
 };
 
 export const warReducer = (state = initialState, action) => {
-	const msg = action.payload;
 	let metaEntry;
 	let newState = Object.assign({}, state);
 	if (typeof state === 'undefined') {
@@ -153,7 +152,7 @@ const cleanStrInput = str => {
 	let ret = str;
 
 	// Check for wrapping quotes
-	if (ret.match(/^\".*\"$/g)) {
+	if (ret.match(/^".*"$/g)) {
 		ret = ret.substring(1, ret.length - 1);
 	}
 

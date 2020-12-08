@@ -271,6 +271,7 @@ div.row.prematch-force-row .column {
 }
 
 .match-tabs .victory-point-summary { 
+	text-align: center;
 }
 
 .match-tabs .victory-point-summary .top { 
@@ -284,11 +285,19 @@ div.row.prematch-force-row .column {
 }
 
 .match-tabs .victory-point-summary .total-primary { 
-	font-size: 1.5rem;
+	font-size: 3rem;
 }
 .match-tabs .victory-point-summary .total-secondary { 
-	font-size: 1.5rem;
+	font-size: 3rem;
 }
+
+.match-tabs .victory-point-summary .under-title { 
+	color: var(--greyThree);
+	display: block;
+	text-align: center;
+	font-weight: bold
+}
+
 .match-tabs .victory-point-summary .total-primary.active { 
 	color: var(--primaryFive);
 }
@@ -298,4 +307,11 @@ div.row.prematch-force-row .column {
 
 .objective-controls > div {
 	display: block;	
+}
+
+.input.inline-input {
+	max-width: 4rem;
+}
+.input.inline-input input {
+	padding: 0.4rem 1rem !important;
 }

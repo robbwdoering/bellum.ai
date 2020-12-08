@@ -5,21 +5,16 @@
  */
 
 // React + Redux
-import React, { Component } from 'react';
+import React from 'react';
 import { connect } from 'react-redux';
-import { Button, Grid, Header, Tab, Input, Icon, Loading, Menu, Sidebar } from 'semantic-ui-react';
+import { Button } from 'semantic-ui-react';
 
-import { openCanvas, openContents, setDemoState } from './../app/actions';
-import Pane from './../common/pane';
+import { openContents, setDemoState } from './../app/actions';
 import { ContentTypes } from './../common/constants';
 import './contents.css';
 
 export const DemoTransition = props => {
 	const { openContents, setDemoState, demoState } = props;
-
-	const signUp = e => {
-		openContents(ContentTypes.Auth);
-	};
 
 	const handleKnowledgeSelect = (e, { key }) => {
 		// Advance the demo, and remember their answer here

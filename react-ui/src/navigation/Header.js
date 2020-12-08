@@ -6,13 +6,12 @@
  *
  * OWNER: RWD
  */
-import React, { useState, useEffect, Component } from 'react';
+import React, { useState } from 'react';
 import { connect } from 'react-redux';
 import { useAuth0 } from "@auth0/auth0-react";
 
 import { openContents } from './../app/actions';
-import { Button, Grid, Tab, Input, TextArea, Icon, Loading, Menu, Sidebar } from 'semantic-ui-react';
-import Pane from './../common/pane';
+import { Button, TextArea, Icon, Card, Menu, Sidebar } from 'semantic-ui-react';
 import { useApi } from "./../app/useApi";
 import { ContentTypes, apiOpts } from "./../common/constants";
 import { parsePlainText } from "./../war/utils";
@@ -25,7 +24,7 @@ export const Header = props => {
 	const [showAddForce, toggleAddForce] = useState(false);
 	const [tmpForce, setTmpForce] = useState("");
 
-	const { loading, error, refresh } = useApi('/api/static/list', 'POST', apiOpts, handleFetch);
+	const { loading, refresh } = useApi('/api/static/list', 'POST', apiOpts, handleFetch);
 
 	/**
 	 * Callback to turn the contents of the copy/paste box into a new force in  the database.
@@ -72,7 +71,7 @@ export const Header = props => {
 						// width='very wide'
 						direction='top'
 					>
-						<Pane compact className='db-sidebar-menu'>
+						<Card compact className='db-sidebar-menu'>
 							<Menu
 								className='db-sidebar-menu'
 								vertical={true}
@@ -121,7 +120,7 @@ export const Header = props => {
 									</React.Fragment>
 								)}
 							</Menu>
-						</Pane>
+						</Card>
 					</Sidebar>
 				)}
 			</Menu.Item>

@@ -5,23 +5,19 @@
  */
 
 // React + Redux
-import React, { useRef, useState, useEffect, Component } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { connect } from 'react-redux';
 import { useAuth0 } from "@auth0/auth0-react";
-import { Placeholder, Divider, Checkbox, Table, Form, Button, Modal, Grid, Header, Tab, Input, Icon, Loading, Menu, Sidebar } from 'semantic-ui-react';
+import { Placeholder, Divider, Checkbox, Table, Button, Modal, Icon } from 'semantic-ui-react';
 
-import { testAction, openCanvas, openContents, setDemoState } from './../app/actions';
-import Pane from './../common/pane';
-import { ContentTypes, apiOpts } from './../common/constants';
+import { openContents } from './../app/actions';
+import { apiOpts } from './../common/constants';
 import './contents.css';
 
 import { useApi } from "./../app/useApi";
 
-const domain = "bellum.us.auth0.com";
-
 export const ForceManager = props => {
-	const { metalist, setDemoState, handleFetch } = props;
-	const { loginWithRedirect, user, isAuthenticated, getAccessTokenSilently } = useAuth0();
+	const { metalist, handleFetch } = props;
 	const [showDeleteModal, setShowDeleteModal] = useState(false);
 	const [selectedList, setSelectedList] = useState([]);
 
@@ -139,4 +135,4 @@ export const mapStateToProps = (state, props) => {
   };
 };
 
-export const ForceManagerContainer = connect(mapStateToProps, { setDemoState, openContents })(ForceManager);
+export const ForceManagerContainer = connect(mapStateToProps, { openContents })(ForceManager);

@@ -6,13 +6,11 @@
 
 import React, { useMemo, useState } from 'react';
 import { connect } from 'react-redux';
-import { Button, Card, Grid, Dropdown, Modal, Header, Tab, Input, Icon, Loading, Menu, Sidebar } from 'semantic-ui-react';
+import { Button, Card, Grid, Dropdown, Popup, Modal, Tab, Input, Icon, Menu } from 'semantic-ui-react';
 
 import { openContents, setDemoState } from './../app/actions';
 import { ContentTypes } from './../common/constants';
-import Pane from './../common/pane';
 import { phases, mapSizeOptions, terrainOptions, objectiveOptions, missionOptions } from './../war/constants';
-import { ChartCardContainer } from './../stats/ChartCard';
 import { ForceCardContainer } from './../stats/ForceCard';
 import { setMatchState } from './../war/actions';
 import './contents.css';
@@ -20,18 +18,14 @@ import './contents.css';
 export const Match = props => {
 	const {
 		// Root 
-		config,
 		handleFetch,
 
 		// Parent
 
 		// Redux
-		metalist,
-		metalistHash,
 		primaryList,
 		secondaryList,
 		listHash,
-		prematchData,
 		primaryProfile,
 		secondaryProfile,
 		matchState,
@@ -54,7 +48,7 @@ export const Match = props => {
 		newCount[playerIdx][objIdx] = value; 
 
 		setMatchState({
-			vpCount: value
+			vpCount: newCount 
 		});
 	};
 
@@ -136,7 +130,7 @@ export const Match = props => {
 			 						options={missionOptions}
 			 						selection
 			 						floating
-			 						onChange={(e, { value }) => handleObjectiveSelection(e, {playerIdx: -1, objIdx: 0})}
+			 						onChange={(e, { value }) => handleObjectiveSelection(e, {playerIdx: -1, objIdx: 0, value})}
 			 					/>
 							</div>
 
@@ -191,6 +185,8 @@ export const Match = props => {
 					<div className="morale-content">
 					</div>
 				);
+			default:
+				return null;
 		}
 	};
 
@@ -207,11 +203,13 @@ export const Match = props => {
 
 
 	const advancePhase = () => {
-		let newState = Object.assign({}, matchState)
-		newState.phase++; // go the next phase
+		let newState = {}; 
+		newState.phase = matchState.phase + 1; // go the next phase
 
 		switch(matchState.phase) {
 			case 0: // Setup
+				newState.turn = 1;
+				break;
 			case 1: // Command
 			case 2: // Movement 
 			case 3: // Psychic 
@@ -222,7 +220,7 @@ export const Match = props => {
 				break;
 			case 7: // Morale 
 				newState.phase = 1;
-				if (newState.turn === 5) {
+				if (matchState.turn === 5) {
 					setModalContent("Are you sure?", "This will end the game, and is not reversible - be sure you agree on who won!");
 				}
 				break;
@@ -230,6 +228,8 @@ export const Match = props => {
 				console.log("Couldn't advance phase - unknown current phase ", newState.phase);
 				return null;
 		}
+
+		setMatchState(newState);
 	};
 
 	const renderPhaseControl = () => {
@@ -268,52 +268,64 @@ export const Match = props => {
 		return ret;
 	};
 
-	const renderObjectiveControlRow = (playerIdx, objIdx) => (
-		<Input
-			label={matchState.objectives[playerIdx + 1][objIdx]}
-			defaultValue={matchState.vpCount[playerIdx][objIdx]}
-			labelPosition={playerIdx ? "right" : undefined}
-			playerIdx={playerIdx}
-			objIdx={objIdx}
-			onChange={handleVpChange}
-			transparent
-		/> 
+	const renderObjectiveBox = (playerIdx, objIdx) => (
+		<Popup
+			content={matchState.objectives[playerIdx + 1][objIdx]}
+			trigger={
+				<Input
+					defaultValue={matchState.vpCount[playerIdx][objIdx]}
+					labelPosition={playerIdx ? "right" : undefined}
+					playerIdx={playerIdx}
+					objIdx={objIdx}
+					onChange={handleVpChange}
+					className="inline-input"
+				/> 
+		}
+		/>
 	);
 
 	const renderMatchStatus = () => {
+		if (!matchState || !matchState.vpCount.length) {
+			return null;
+		}
 		let totals = [
-			matchState.vpCount[0].reduce((acc, e) => acc + e, 0),
-			matchState.vpCount[1].reduce((acc, e) => acc + e, 0),
+			matchState.vpCount[0].reduce((acc, e) => acc + parseInt(e), 0),
+			matchState.vpCount[1].reduce((acc, e) => acc + parseInt(e), 0),
 		];
 
 		return (
 			<Grid doubling>
-				<Grid.Row columns={2}>
+				<Grid.Row>
 					{/* Victory Points */}
-					<Grid.Column className="victory-point-summary">
-						VP: 
-						<span className={`total-primary ${totals[0] > totals[1] ? "active" : ""}`}> {totals[0]} </span> /
-						<span className={`total-secondary ${totals[1] > totals[0] ? "active" : ""}`}> {totals[1]} </span>
+					<Grid.Column width={4} className="victory-point-summary">
+						<span className={`total-primary ${totals[0] > totals[1] ? "active" : ""}`}> {isNaN(totals[0]) ? 0 : totals[0]} </span> /
+						<span className={`total-secondary ${totals[1] > totals[0] ? "active" : ""}`}> {isNaN(totals[1]) ? 0 : totals[1]} </span>
+						<span className="under-title"> VICTORY POINTS</span>
 					</Grid.Column>
 
-					<Grid.Column className="objective-controls">
+					<Grid.Column width={12} className="objective-controls">
 						<div className="top">
-							{renderObjectiveControlRow(0, 0)}
-							{renderObjectiveControlRow(0, 1)}
-							{renderObjectiveControlRow(0, 2)}
-							{renderObjectiveControlRow(0, 3)}
+							{renderObjectiveBox(0, 0)}
+							{renderObjectiveBox(0, 1)}
+							{renderObjectiveBox(0, 2)}
+							{renderObjectiveBox(0, 3)}
 						</div>
 						<div className="bottom">
-							{renderObjectiveControlRow(1, 0)}
-							{renderObjectiveControlRow(1, 1)}
-							{renderObjectiveControlRow(1, 2)}
-							{renderObjectiveControlRow(1, 3)}
+							{renderObjectiveBox(1, 0)}
+							{renderObjectiveBox(1, 1)}
+							{renderObjectiveBox(1, 2)}
+							{renderObjectiveBox(1, 3)}
 						</div>
 					</Grid.Column>
 				</Grid.Row>
 
 				{/* Command Points */}
 				<Grid.Row>
+					<Grid.Column className="victory-point-summary">
+						VP: 
+						<span className={`total-primary ${totals[0] > totals[1] ? "active" : ""}`}> {totals[0]} </span> /
+						<span className={`total-secondary ${totals[1] > totals[0] ? "active" : ""}`}> {totals[1]} </span>
+					</Grid.Column>
 				</Grid.Row>
 
 				<Grid.Row>
@@ -380,16 +392,18 @@ export const Match = props => {
 				{content}
 			</div>
 
-			<div className="match-tabs">
-				<Card.Group>
-					<Tab
-						activeIndex={activeTab}
-						menu={{ secondary: true }}
-						panes={tabPanes}
-						onTabChange={(e, { activeIndex }) => setActiveTab(activeIndex)}
-					/>
-				</Card.Group>
-			</div>
+			{matchState.turn > 0 && (
+				<div className="match-tabs">
+					<Card.Group>
+						<Tab
+							activeIndex={activeTab}
+							menu={{ secondary: true }}
+							panes={tabPanes}
+							onTabChange={(e, { activeIndex }) => setActiveTab(activeIndex)}
+						/>
+					</Card.Group>
+				</div>
+			)}
 
 			<Modal open={modalContent.length}>
 				<Modal.Header> {modalContent[0]} </Modal.Header>

@@ -25,7 +25,7 @@ export const regex = {
 	secSection: /^\. \. .*.+/g,
 	tertSection: /^\. \. \. .*.+/g,
 	quantifiedModel: /^\. [0-9]+x .+/g,
-	detailsHeader: / Psychic Power: | Weapon: | Unit: | Abilities: | Psyker: | Wound Track: | Transport Wound Track: | Wound Track( -)* [\/\,\(\)AWTSMBS]+: | Stat Damage( -)* [\/\,\(\)AWTSMBS]+: /g,
+	detailsHeader: / Psychic Power: | Weapon: | Unit: | Abilities: | Psyker: | Wound Track: | Transport Wound Track: | Wound Track( -)* [/,()AWTSMBS]+: | Stat Damage( -)* [/,()AWTSMBS]+: /g,
 	rulesHeader: /^\. Rules: .+/g,
 	profileDescription: /^\. .+: Description:/g,
 	profileRules: /^\. .+: Rules:/g,

@@ -5,18 +5,15 @@
  */
 
 // React + Redux
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { connect } from 'react-redux';
-import { Button, Grid, Header, Tab, Input, Icon, Loading, Menu, Sidebar } from 'semantic-ui-react';
 import { useCookies } from "react-cookie";
-import { useAuth0 } from "@auth0/auth0-react";
 
-import { useUpdate, useSpring, useSprings, animated, config }  from 'react-spring';
+import { useSpring, animated }  from 'react-spring';
 
 import { openContents, setDemoState } from './../app/actions';
-import { setMatchState, processWarAction, clearChartQueue } from './../war/actions';
+import { setMatchState } from './../war/actions';
 import { ContentTypes, apiOpts } from './../common/constants';
-import { WarActions } from './../war/constants';
 import { useApi } from "./../app/useApi";
 
 import { SplashContainer } from "./Splash";
@@ -35,18 +32,14 @@ export const Content = props => {
 		curContent,
 		windowCtx,
 		demoState,
-		chartQueue,
-		clearChartQueue,
 		handleFetch,
 		openContents,
-		processWarAction,
 		setMatchState
 	} = props;
 
 	const [w, setWidth] = useState(600);
 	const [h, setHeight] = useState(175);
 	const [isHoriz, setIsHoriz] = useState(false);
-	const [fetchInterval, setFetchInterval] = useState(-1);
 
 	const spring = useSpring({
 		config: { friction: 15 },
@@ -64,7 +57,7 @@ export const Content = props => {
 	// TODO:  Is this good practice? Seems rude - research this.
 	const cleanupCookies = () => {
 		setCookie('bellum_ai_match', { matchState }, { path: "/" });
-		setCookie('bellum_ai_forces', { lists: [primaryList.id, secondaryList.id] }, { path: "/" });
+		setCookie('bellum_ai_forces', { lists: [primaryList.id || 0, secondaryList.id || 0] }, { path: "/" });
 	}
 
 	// Check for a previously loaded match on mount, and jump back into it if found
@@ -122,10 +115,10 @@ export const Content = props => {
 			case ContentTypes.ForceManager:
 			case ContentTypes.PreMatch:
 			case ContentTypes.Auth:
+			default:
 				setHeight(windowCtx ? (windowCtx.clientHeight - 24) : 600);
 				setWidth(windowCtx ? (windowCtx.clientWidth - 84) : 1000);
 				setIsHoriz(false);
-				break;
 		}
 	}, [ curContent, windowCtx && windowCtx.clientHeight, windowCtx && windowCtx.clientWidth]);
 
@@ -177,8 +170,7 @@ export const mapStateToProps = (state, props) => {
   	matchState: state.warReducer.matchState,
 	primaryList: state.warReducer.primaryList,
 	secondaryList: state.warReducer.secondaryList,
-  	chartQueue: state.warReducer.chartQueue
   };
 };
 
-export const ContentContainer = connect(mapStateToProps, { setDemoState, openContents, clearChartQueue, setMatchState, processWarAction })(Content);
+export const ContentContainer = connect(mapStateToProps, { setDemoState, openContents, setMatchState })(Content);

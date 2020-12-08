@@ -6,15 +6,11 @@
  */
 
 // React + Redux
-import React, { useState, useRef, useMemo, useEffect } from 'react';
+import React from 'react';
 import { connect } from 'react-redux';
-import { Button, Grid, Header, Input, Icon, Loading, Menu, Sidebar } from 'semantic-ui-react';
-
-import { useUpdate, useSpring, animated, config }  from 'react-spring';
+import { Button, Grid } from 'semantic-ui-react';
 
 import './map.css';
-
-// TODO: Let people monetize their guides?
 
 export const SplashControlsComponent = props => {
 	const { stage, setStage } = props;

@@ -62,12 +62,13 @@ export const mapReducer = (state = initialState, action) => {
 				case "CLEAR":
 					newState.hoverItems = {};
 					break;
+				default:
+					console.log("Got CTL_HOVER of unknown type: ", action.payload.type);
 			}
 
 			newState.hoverHash++;
 			return newState;
+		default: 
+			return newState;
 	}
-
-	// Default: return state
-	return state;
 };

@@ -5,60 +5,32 @@
  */
 
 // React + Redux
-import React, { useMemo, useRef, useState, useEffect } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { connect } from 'react-redux';
-import {
-	Accordion,
-	Placeholder,
-	Card,
-	Button,
-	Table,
-	Grid,
-	Step,
-	Dropdown,
-	Header,
-	Tab,
-	Input,
-	Icon,
-	Loading,
-	Menu,
-	Sidebar
-} from 'semantic-ui-react';
-import { useTransition, animated } from 'react-spring'
+import { Placeholder, Card, Table } from 'semantic-ui-react';
 
-import { openContents, setDemoState } from './../app/actions';
-import Pane from './../common/pane';
-import { ContentTypes, apiOpts } from './../common/constants';
-import { BarChart } from './../stats/BarChart';
+import { setDemoState } from './../app/actions';
 import { CircularChartContainer } from './../stats/CircularChart';
 import { sanitizeString } from './../war/utils';
 import { datasheetFields } from './../war/constants';
-import { useApi } from './../app/useApi';
-import { statCategories, ChartTypes, getChartConfig } from './constants';
+import { ChartTypes, getChartConfig } from './constants';
 import './stats.css';
 
 export const ForceCard = props => {
 	const {
 		// Root
-		config,
-		fetchAt,
 
 		// Parent
-		key,
 		data,
 		style,
 		profile,
-		handleFetch,
 
 		// Redux
 		metalist,
 		metalistHash,
-		secondaryList,
 		listHash,
-		prematchData,
 
 		// Dispatched Actions
-		openContents
 	} = props;
 
 	const ref = useRef();
@@ -238,4 +210,4 @@ export const mapStateToProps = (state, props) => {
 	};
 };
 
-export const ForceCardContainer = connect(mapStateToProps, { setDemoState, openContents })(ForceCard);
+export const ForceCardContainer = connect(mapStateToProps, { setDemoState })(ForceCard);

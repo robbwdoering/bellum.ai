@@ -7,34 +7,24 @@
 // React + Redux
 import React, { useMemo, useRef, useState, useEffect } from 'react';
 import { connect } from 'react-redux';
-import { Button, Card, Grid, Step, Divider, Dropdown, Header, Tab, Input, Icon, Loading, Menu, Sidebar } from 'semantic-ui-react';
+import { Button, Card, Grid, Divider, Dropdown, Tab, Menu } from 'semantic-ui-react';
 import { useAuth0 } from "@auth0/auth0-react";
 import { useCookies } from "react-cookie";
 
 import { openContents, setDemoState } from './../app/actions';
-import Pane from './../common/pane';
 import { ContentTypes, apiOpts } from './../common/constants';
-import { BarChart } from './../stats/BarChart';
 import { ForceCardContainer } from './../stats/ForceCard';
 import { ChartCardContainer } from './../stats/ChartCard';
 import { statCategories, mainCategoryNames, ChartTypes } from './../stats/constants';
 import { useApi } from "./../app/useApi";
-import { sanitizeString } from "./../war/utils";
 import { setMatchState } from "./../war/actions";
 import './contents.css';
-
-const minChartSize = 300;
-const maxChartSize = 600;
 
 export const PreMatch = props => {
 	const {
 		// Root 
-		config,
-		fetchAt,
 
 		// Parent
-		key,
-		name,
 		height,
 		width,
 		handleFetch,
@@ -45,7 +35,6 @@ export const PreMatch = props => {
 		primaryList,
 		secondaryList,
 		listHash,
-		prematchData,
 		primaryProfile,
 		secondaryProfile,
 		matchState,
@@ -55,11 +44,8 @@ export const PreMatch = props => {
 		setMatchState
 	} = props;
 
-	const ref = useRef(); 
 	const childHash = useRef(0);
 	const [activeCategory, setActiveCategory] = useState(0);
-
-	const { loginWithRedirect, user, isAuthenticated, getAccessTokenSilently } = useAuth0();
 
 	const filterPrimaryList = () => {
 		console.log("filtering primary list", metalist, primaryList); 

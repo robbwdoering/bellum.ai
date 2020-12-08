@@ -1,4 +1,4 @@
-import { P2, P3 } from "./constants";
+import { P3 } from "./constants";
 
 export const Hex = ({r, z=0}) => {
 	const half = r/2;

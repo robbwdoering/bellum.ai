@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 
 export const useApi = (url, method, options = {}, handleFetch, data, execute = true) => {
@@ -9,8 +9,6 @@ export const useApi = (url, method, options = {}, handleFetch, data, execute = t
         data: null
     });
 
-    const [refreshIndex, setRefreshIndex] = useState(0);
-    const [doneInit, finishInit] = useState(false);
 
     const sleep = ms => {
         return new Promise(resolve => setTimeout(resolve, ms));
@@ -25,7 +23,7 @@ export const useApi = (url, method, options = {}, handleFetch, data, execute = t
         }
 
         try {
-            const { audience, scope, ...fetchOptions } = options;
+            const { audience, scope  } = options;
             const accessToken = await getAccessTokenSilently({ audience, scope });
 
             let msg = {

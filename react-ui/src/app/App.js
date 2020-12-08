@@ -1,5 +1,5 @@
 /* Node Modules */
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { connect } from 'react-redux';
 import { useAuth0 } from "@auth0/auth0-react";
 // import { library } from '@fortawesome/fontawesome-svg-core';
@@ -7,14 +7,12 @@ import { useAuth0 } from "@auth0/auth0-react";
 
 /* Local */
 import Dashboard from './../navigation/dashboard';
-import logo from './logo.svg';
 import { AppActions } from './constants';
 import { testAction, configPane, openCanvas, setAuthStatus } from './actions';
 import { ProfileActions } from './../profile/constants';
 import { modifyProfile, setPaneProfile } from './../profile/actions';
 import { WarActions } from './../war/constants';
 import { processWarAction } from './../war/actions';
-import { useApi } from "./../app/useApi";
 
 import './App.css';
 import 'react-semantic-ui-datepickers/dist/react-semantic-ui-datepickers.css';
@@ -23,10 +21,7 @@ import 'semantic-ui-css/semantic.min.css';
 const App = props => {
 	const { testAction, configPane, openCanvas, modifyProfile, setPaneProfile, processWarAction } = props;
 
-	const { user, isAuthenticated, isLoading } = useAuth0();
-	const [message, setMessage] = useState(null);
-	const [isFetching, setIsFetching] = useState(false);
-	const [userId, setUserId] = useState(1);
+	const { isAuthenticated, isLoading } = useAuth0();
 
 	/**
 	 * This callback understands every redux-oritented response from the server, storing the relevant data in redux

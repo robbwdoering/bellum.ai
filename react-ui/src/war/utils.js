@@ -54,7 +54,7 @@ export const parsePlainText = str => {
 		return false;
 	}
 
-	let idx, tmpArr, curLine;
+	let idx, tmpArr;
 
 	let newArmy = {
 		detachments: []
@@ -107,8 +107,7 @@ const parseUnit = (lines, curRole) => {
 	// console.log("[parseUnit]", lines);
 	let newUnit = { models: [] };
 	let newModel = null; 
-	let curLine = 0;
-	let tmpArr, idx, tmpStr;
+	let tmpArr, idx;
 
 	// Find the name
 	idx = lines[0].indexOf(" [");
@@ -126,7 +125,7 @@ const parseUnit = (lines, curRole) => {
 	// Read the unit's equipment (this happens when the unit should be understood as it's own IMPLIED model)
 	// Yes this is really how battlescribe is structured, no this is somehow not a crime
 	idx = lines[0].indexOf(": ", idx + 1) + 2;
-	if (idx != 1) {
+	if (idx !== 1) {
 		newUnit.equipment = lines[0].substring(idx).split(", ")
 	}
 
@@ -243,7 +242,7 @@ const parseDetachment = (lines) => {
  */
 const parseProfile = (lines, detachments) => {
 	// console.log("[parseProfile]", lines);
-	let tmpStr, tmpArr, idx;
+	let tmpArr, idx;
 
 	// Nested function used to take in a tokenized statblock string and output a JSON version of that stat block
 	const handleEntry = arr => arr.reduce((subAcc, str, i) => {

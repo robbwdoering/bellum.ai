@@ -11,17 +11,11 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { withAuth0 } from '@auth0/auth0-react';
-import { Button, Grid, Header, Tab, Input, Icon, Loading, Menu, Sidebar } from 'semantic-ui-react';
 
 import { HeaderContainer } from './Header';
 import { testAction, openCanvas } from './../app/actions';
-import Pane from './../common/pane';
-import AddEventPane from "./../common/addEvent";
-import { Panes, Canvases, ContentTypes, contentStyles, initialPaneConfigs } from './../common/constants';
+import { Canvases, initialPaneConfigs } from './../common/constants';
 import ThreeMap from './../map/threeMap';
-import Calculator from "./../war/calculator"; 
-import ListManager from "./../war/listManager"; 
-import { UnitDeck, ArmyDetails, ProfileEditor } from "./../war/strategy"; 
 
 import { ContentContainer } from "./../contents/Content";
 import './navigation.css';
@@ -72,7 +66,7 @@ export class Dashboard extends Component {
     		const delta = pass.length - data.value.length;
  	   		if (delta > 0) {
  	   			ret.pass = pass.substring(0, data.value.length);
-    		} else if (delta == 0) {
+    		} else if (delta === 0) {
     			ret.pass = pass;
     		} else {
     			ret.pass = pass + data.value.charAt(data.value.length - 1);
@@ -96,8 +90,7 @@ export class Dashboard extends Component {
 	    	// {/* Renders the main canvas, which always appears but is sometimes dimmed */}
 			curCanvas && curCanvas.length && (() => {
 				switch(curCanvas) {
-					case Canvases.HexMap:
-						// return (<HexMap x={this.state.canvasX} y={this.state.canvasY} />);
+					// case Canvases.HexMap:
 					case Canvases.ThreeMap:
 						return (<ThreeMap />);
 					default:
@@ -135,11 +128,12 @@ export class Dashboard extends Component {
 				case "MOD":
 					newPanes[name] = Object.assign({}, curPanes[name] ? curPanes[name] : {}, configArr[i]);
 					break;
-				default:
-					console.error("[dashboard|configPane] Received a pane configuration of unknown type: ", action.actionType);
 				case "DEL":
 					newPanes[name] = undefined;
 					break;
+				default:
+					newPanes[name] = undefined;
+					console.error("[dashboard|configPane] Received a pane configuration of unknown type: ", action.actionType);
 			}
     	});
 
@@ -152,56 +146,8 @@ export class Dashboard extends Component {
     	console.log("[openUserGuide]");
     };
 
-    renderPane = name => {
-	  	const { showLogin, user, pass, curPanes, curCanvas } = this.state;
-	  	const { testsReceived, sendMsg, fetchAt } = this.props;
-		switch(name) {
-			case Panes.UnitDeck:
-				return (<UnitDeck fetchAt={this.props.fetchAt} sendMsg={this.props.sendMsg} key={name} name={name} config={curPanes[name]} />);
-			case Panes.ArmyDetails:
-				return (<ArmyDetails fetchAt={this.props.fetchAt} sendMsg={this.props.sendMsg} key={name} name={name} config={curPanes[name]} />);
-			case Panes.Calculator:
-				return (<Calculator fetchAt={this.props.fetchAt} sendMsg={this.props.sendMsg} key={name} name={name} config={curPanes[name]} />);
-			case Panes.ListManager:
-				return (<ListManager fetchAt={this.props.fetchAt} sendMsg={this.props.sendMsg} key={name} name={name} config={curPanes[name]} />);
-			default:
-				return (<h3 key={name}> There was an error. Please reload the page. </h3>);
-		}
-    };
-
   	render() {
-	  	const { showLogin, user, pass, curPanes, curCanvas, selectedMain } = this.state;
-	  	const { testsReceived, fetchAt, sendMsg, curContent } = this.props;
-	  	console.log("[db|render]", curPanes, this.props.hoverItems)
-
-	  	const mainPanels = [], sidePanels = [];
-    	if (curPanes) Object.keys(curPanes).forEach(name => {
-    		console.log("PANES: ", curPanes);
-			switch(name) {
-				case Panes.UnitDeck:
-				case Panes.Calculator:
-					sidePanels.push(name);
-					break
-				case Panes.ListManager:
-				case Panes.ArmyDetails:
-				case Panes.ProfileEditor:
-					mainPanels.push(name);
-					break;
-				default:
-					console.log("Unknown pane name: ", name);
-			}
-    	});
-
-    	const tmpPanels = mainPanels.map(name => ({
-			menuItem: name,
-			render: () => (
-				<Tab.Pane attached={false}>
-					<Pane key={name} className="db-main-pane" header name={name}>
-						{this.renderPane(name)}
-					</Pane>
-				</Tab.Pane>
-			)
-		}));
+	  	const { curCanvas } = this.state;
 
 	    return (
 	    	<div className="dashboard" ref={this.dbRef}>

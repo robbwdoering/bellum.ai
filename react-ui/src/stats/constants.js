@@ -1,5 +1,3 @@
-import React from 'react';
-
 /**
  * FILENAME: constants.js
  *
