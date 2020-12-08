@@ -228,11 +228,10 @@ exports.drvScorecardVals = (army, profile, testProfile) => {
 		powers: profile.powers.concat(testProfile.powers || [])
 	};
 
+	// Loop through every model
 	army.units.forEach(unit => {
+		console.log("checking unit", unit);
 		if (unit.models && unit.models.length) {
-			stats = finalProfile.stats[unit.models[0].name];
-
-			// Loop through every model
 			unit.models.forEach(model => {
 				// Shoot
 
@@ -242,6 +241,7 @@ exports.drvScorecardVals = (army, profile, testProfile) => {
 					const { retDamagePdf, interData } = runShootTest(model, finalProfile, targetList, testProfile.context, true);
 
 					let oldBucket = ret.shoot.dmgBuckets.find(bucket => bucket && bucket.name === str);
+					console.log("[SHOOT]", oldBucket.dist, " + ", retDamagePdf, " = ", addPdfs(oldBucket.dist, retDamagePdf));
 					if (retDamagePdf && oldBucket) {
 						return {
 							name: str,
@@ -252,6 +252,7 @@ exports.drvScorecardVals = (army, profile, testProfile) => {
 					return oldBucket;
 				});
 				if (newBucket && newBucket.length === 4) {
+					console.log("setting buckets");
 					ret.shoot.dmgBuckets = newBucket;
 				}
 
@@ -268,6 +269,7 @@ exports.drvScorecardVals = (army, profile, testProfile) => {
 					const { retDamagePdf, interData } = runFightTest(model, finalProfile, targetList, testProfile.context, true);
 
 					let oldBucket = ret.fight.dmgBuckets.find(bucket => bucket && bucket.name === str);
+					console.log("[FIGHT]", oldBucket.dist, " + ", retDamagePdf, " = ", addPdfs(oldBucket.dist, retDamagePdf));
 					if (retDamagePdf && oldBucket) {
 						return {
 							name: str,
@@ -278,7 +280,7 @@ exports.drvScorecardVals = (army, profile, testProfile) => {
 					return oldBucket;
 				});
 				if (newBucket && newBucket.length === 4) {
-					ret.shoot.dmgBuckets = newBucket;
+					ret.fight.dmgBuckets = newBucket;
 				}
 
 				// Control
@@ -312,34 +314,40 @@ const runFightTest = (model, profile, targetArr, context, storeInterData) => {
 
 	// If this unit doesn't have any real melee weapons, use the implied default
 	if (!wepProfiles.find(e => e.weapontype === "Melee")) {
-		wepProfiles.push({weapontype: "", })
+		wepProfiles.push({name: "Punch", weapontype: "Melee", strength: "User", damage: '1'});
 	}
 
+	// ----------------------
+	// LOOP - for each weapon 
+	// ----------------------
 	// Get damage pdf if this unit fired at every target in the array once
-	retDamagePdf = model.weapon.reduce((retDamagePdf, wep, i) => {
+	retDamagePdf = wepProfiles.reduce((retDamagePdf, wepProfile, i) => {
 		// Fetch the stats for this weapon
-		let stemName = util.formatStr(wep);
+		let stemName = util.formatStr(wepProfile.name);
 
 		exitEarly = (
 			// Exit if we're not a melee weapon
-			wepProfiles[i].weapontype !== "Melee" ||
+			wepProfile.weapontype !== "Melee" ||
 
 			// Exit if this is the second version of a weapon with multiple types
 			stemName.match(/_\(.+\)/g) && alreadyFiredWeapons.find(name => name === stemName.substring(stemName.indexOf("_(")))
 		);
 
 		if (exitEarly) {
-			console.log("Skipping weapon ", stemName)
+			console.log("[fight] SKIP", model.unit, "-->", stemName)
 			return retDamagePdf;
 		}
 
 		alreadyFiredWeapons.push(stemName);
-
 		console.log("[runFightTest]", model.unit, "-->", stemName);
+
+		// ----------------------
+		// LOOP - for each target 
+		// ----------------------
 		// Get overrall damage if they fired with this weapon at every target
 		let targetPdf = targetArr.reduce((targetPdf, target) => {
 			// Get the damage PDF for this combo
-			let salvoResult = divine.fireSalvo(model, wepProfiles[i], context, profile, { unit: target });
+			let salvoResult = divine.fireSalvo(model, wepProfile, context, profile, { unit: target });
 
 			// Store this specific result if asked to
 			// AKA damage this gun would do to this unit
@@ -363,8 +371,9 @@ const runFightTest = (model, profile, targetArr, context, storeInterData) => {
 	}, null);
 
 	if (retDamagePdf) {
-		retDamagePdf.mean /= targetArr.length; 
-		retDamagePdf.scale /= targetArr.length; 
+		let factor = (model.quanitity || 1) / targetArr.length;
+		retDamagePdf.mean *= factor; 
+		retDamagePdf.dev *= factor; 
 	}
 
 	return { retDamagePdf, interData };
@@ -374,6 +383,7 @@ const runShootTest = (model, profile, targetArr, context, storeInterData) => {
 	let retDamagePdf, key, mean, dev, exitEarly;
 	let interData = {};
 	let alreadyFiredWeapons = [];
+
 
 	// Null checks
 	if (!model.weapon) {
@@ -387,6 +397,9 @@ const runShootTest = (model, profile, targetArr, context, storeInterData) => {
 		return { retDamagePdf, interData };
 	}
 
+	// ----------------------
+	// LOOP - for each weapon 
+	// ----------------------
 	// Get damage pdf if this unit fired at every target in the array once
 	retDamagePdf = model.weapon.reduce((retDamagePdf, wep, i) => {
 		// Fetch the stats for this weapon
@@ -399,59 +412,61 @@ const runShootTest = (model, profile, targetArr, context, storeInterData) => {
 
 			// Exit if this is a pistol and we have other non-pistol guns
 			(wepProfiles[i].weapontype === "Pistol" && wepProfiles.find(tmpwep => (
-				tmpwep.name !== wep.name || (["Grenade", "Melee", "Pistol"]).includes(tmpwep.weapontype)
+				tmpwep.name !== wep.name || !(["Grenade", "Melee", "Pistol"]).includes(tmpwep.weapontype)
 			))) || 
 
 			// Exit if this is the second version of a weapon with multiple types
 			stemName.match(/_\(.+\)/g) && alreadyFiredWeapons.find(name => name === stemName.substring(stemName.indexOf("_(")))
 		);
 
-		// Exit early if this melee
+		// Exit early if asked to
 		if (exitEarly) {
-			console.log("Skipping weapon ", stemName)
+			console.log("[shoot] SKIP", model.unit, "-->", stemName)
 			return retDamagePdf;
 		}
 
 		alreadyFiredWeapons.push(stemName);
+		// console.log("[runShootTest]", model.unit, "-->", stemName);
 
-		console.log("[runShootTest]", model.unit, "-->", stemName);
-		if (wepProfiles[i]) {
-			// Get overrall damage if they fired with this weapon at every target
-			let targetPdf = targetArr.reduce((targetPdf, target) => {
-				// Get the damage PDF for this combo
-				let salvoResult = divine.fireSalvo(model, wepProfiles[i], context, profile, { unit: target });
+		// ----------------------
+		// LOOP - for each target 
+		// ----------------------
+		// Get overrall damage if they fired with this weapon at every target
+		let targetPdf = targetArr.reduce((targetPdf, target) => {
+			// Get the damage PDF for this combo
+			let salvoResult = divine.fireSalvo(model, wepProfiles[i], context, profile, { unit: target });
 
-				// Store this specific result if asked to
-				// AKA damage this gun would do to this unit
-				if (storeInterData) {
-					if (interData[target]) {
-						interData[target][stemName] = salvoResult;
-					} else {
-						interData[target] = { [stemName]: salvoResult };
-					}
+			// Store this specific result if asked to
+			// AKA damage this gun would do to this unit
+			if (storeInterData) {
+				if (interData[target]) {
+					interData[target][stemName] = salvoResult;
+				} else {
+					interData[target] = { [stemName]: salvoResult };
 				}
+			}
 
-				mean = calcMean(salvoResult);
-				dev = calcDeviation(salvoResult, mean);
+			mean = calcMean(salvoResult);
+			dev = calcDeviation(salvoResult, mean);
 
-				// console.log("[runShootTesh] done w/ target: ", target, sumPdf(salvoResult), mean, dev);
-				// Return the new PDF - damages go up but all probabilities still add to 1
-				return addPdfs({mean, dev}, targetPdf);
-			}, null);
+			// console.log("[runShootTesh] done w/ target: ", target, sumPdf(salvoResult), mean, dev);
+			// Return the new PDF - damages go up but all probabilities still add to 1
+			return addPdfs({mean, dev}, targetPdf);
+		}, null);
+		// console.log("[runShootTest] done w/ weapon ", wep, targetPdf);
 
-			// console.log("[runShootTesh] done w/ weapon ", wep, sumPdf(targetPdf));
-
-			// Add these values to the overall result for this set
-			return addPdfs(retDamagePdf, targetPdf);
-		}
-
-		return retDamagePdf;
+		// Add these values to the overall result for this set
+		return addPdfs(retDamagePdf, targetPdf);
 	}, null);
 
+	// Divide by number by targets - this means we are now returning avg dmg done to a target of this type
 	if (retDamagePdf) {
-		retDamagePdf.mean /= targetArr.length; 
-		retDamagePdf.scale /= targetArr.length; 
+		let factor = (model.quanitity || 1) / targetArr.length;
+		console.log("Finishing unit", model.unit, "x", model.quanitity)
+		retDamagePdf.mean *= factor; 
+		retDamagePdf.dev *= factor; 
 	}
+	// console.log("[runShootTest] done w/ model ", model.unit, retDamagePdf);
 
 	return { retDamagePdf, interData };
 };
@@ -491,7 +506,7 @@ const addPdfs = (lhs, rhs) => {
 	// })
 	// Object.keys(ret).forEach(key => ret[key] < 0.001 ? delete ret[key] : null);
 
-	return {mean: rhs.mean + lhs.mean, dev:  rhs.dev + lhs.dev};
+	return {mean: rhs.mean + lhs.mean, dev: rhs.dev + lhs.dev};
 }
 
 exports.deriveArmyStats = orig => {

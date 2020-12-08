@@ -18,8 +18,9 @@ export const clearChartQueue = () => {
 	};
 }
 
-export const setTestData = () => {
+export const setMatchState = payload => {
 	return {
-		type: WarActions.SET_TEST_DATA,
+		type: WarActions.SET_MATCH_STATE,
+		payload
 	};
 }

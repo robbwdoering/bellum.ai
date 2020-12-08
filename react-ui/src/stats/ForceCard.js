@@ -41,7 +41,6 @@ export const ForceCard = props => {
 	const {
 		// Root
 		config,
-		sendMsg,
 		fetchAt,
 
 		// Parent

@@ -4,6 +4,7 @@ import { render } from 'react-dom';
 import { Provider } from 'react-redux';
 import { createStore, combineReducers } from 'redux';
 import { Auth0Provider } from '@auth0/auth0-react';
+import { CookiesProvider } from 'react-cookie';
 
 /* Local Modules */
 import App from './app/App';
@@ -35,7 +36,9 @@ render(
 			    scopes="read:current_user update:current_user_metadata"
 				redirectUri={window.location.origin}
 			>
-				<App />
+				<CookiesProvider>
+					<App />
+				</CookiesProvider>
 			</Auth0Provider>
 		</Provider>
 	),

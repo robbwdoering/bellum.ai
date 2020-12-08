@@ -9,6 +9,7 @@ import React, { useMemo, useRef, useState, useEffect } from 'react';
 import { connect } from 'react-redux';
 import { Button, Card, Grid, Step, Divider, Dropdown, Header, Tab, Input, Icon, Loading, Menu, Sidebar } from 'semantic-ui-react';
 import { useAuth0 } from "@auth0/auth0-react";
+import { useCookies } from "react-cookie";
 
 import { openContents, setDemoState } from './../app/actions';
 import Pane from './../common/pane';
@@ -19,6 +20,7 @@ import { ChartCardContainer } from './../stats/ChartCard';
 import { statCategories, mainCategoryNames, ChartTypes } from './../stats/constants';
 import { useApi } from "./../app/useApi";
 import { sanitizeString } from "./../war/utils";
+import { setMatchState } from "./../war/actions";
 import './contents.css';
 
 const minChartSize = 300;
@@ -28,7 +30,6 @@ export const PreMatch = props => {
 	const {
 		// Root 
 		config,
-		sendMsg,
 		fetchAt,
 
 		// Parent
@@ -47,13 +48,16 @@ export const PreMatch = props => {
 		prematchData,
 		primaryProfile,
 		secondaryProfile,
+		matchState,
 
 		// Dispatched Actions
-		openContents
+		openContents,
+		setMatchState
 	} = props;
 
 	const ref = useRef(); 
-	const [activeCategory, setActiveCategory] = useState("shoot");
+	const childHash = useRef(0);
+	const [activeCategory, setActiveCategory] = useState(0);
 
 	const { loginWithRedirect, user, isAuthenticated, getAccessTokenSilently } = useAuth0();
 
@@ -86,7 +90,17 @@ export const PreMatch = props => {
 		}
 	};
 
+
 	const startMatch = e => {
+		setMatchState({
+			turn: 0, // setup turn
+			phase: 0, // command phase
+			cpCount: [primaryList.cp, secondaryList.cp]
+		});
+
+		setCookie('bellum_ai_match', { matchState }, { path: "/" });
+		setCookie('bellum_ai_forces', { lists: [primaryList.id, secondaryList.id] }, { path: "/" });
+
 		openContents(ContentTypes.Match);
 	}
 
@@ -98,9 +112,16 @@ export const PreMatch = props => {
 			</Menu.Item>
 		),
 		render: () => (
-			statCategories[categoryName].charts.map(chartName =><ChartCardContainer chartName={chartName} config={scorecardConfig} />)
+			statCategories[categoryName].charts.map(chartName =><ChartCardContainer chartName={chartName} config={scorecardConfig} parentHash={childHash.current}/>)
 		)
 	});
+
+	// --------------------
+	// FUNCTIONAL LIFECYCLE
+	// --------------------
+
+	// Get hooks in browser cookies	
+	const [cookies, setCookie] = useCookies(['bellum_ai_match']);
 
 	// Static Apis - to fetch various json objects
 	const metalistApi = useApi('/api/static/metalist', 'GET', apiOpts, handleFetch);
@@ -128,13 +149,11 @@ export const PreMatch = props => {
 	}, []);
 
 	useEffect(() => {
-		console.log("PREMATCH MOUNTED!")
 		metalistApi.refresh();
 	}, []);
 
 	// Fetch scorecard data
 	useEffect(() => {
-		console.log("refeshing...", secondaryList);
 		if (primaryList) {
 			scorecardApi.refresh(primaryList.id, { force: primaryList, profile: primaryProfile });
 		} 
@@ -146,7 +165,7 @@ export const PreMatch = props => {
 
 	return (
 		<React.Fragment>
-			<div className="bot-right-container">
+			<div className="top-right-container">
 				<Button className="prematch-start primaryButton" disabled={!isEngaged} onClick={startMatch} > Start Match </Button>
 			</div>
 
@@ -200,7 +219,12 @@ export const PreMatch = props => {
 
 				<Grid.Row>
 					<Card.Group>
-					<Tab menu={{secondary: true }} panes={panes} onTabChange={(e, { activeIndex }) => {console.log("tab changed!"); setActiveCategory(mainCategoryNames[activeIndex])}} />
+						<Tab
+							activeIndex={activeCategory}
+							menu={{secondary: true }}
+							panes={panes}
+							onTabChange={(e, { activeIndex }) => {childHash.current++; setActiveCategory(activeIndex)}}
+						/>
 					</Card.Group>
 				</Grid.Row>
 			</Grid>
@@ -218,8 +242,9 @@ export const mapStateToProps = (state, props) => {
 	  	demoState: state.appReducer.demoState,
 	  	prematchData: state.warReducer.prematchData,
 	  	primaryProfile: state.warReducer.primaryProfile,
-	  	secondaryProfile: state.warReducer.secondaryProfile
+	  	secondaryProfile: state.warReducer.secondaryProfile,
+	  	matchState: state.warReducer.matchState
     };
 };
 
-export const PreMatchContainer = connect(mapStateToProps, { setDemoState, openContents })(PreMatch);
+export const PreMatchContainer = connect(mapStateToProps, { setDemoState, openContents, setMatchState })(PreMatch);

@@ -48,7 +48,7 @@ export const statCategories = {
 	},
 	fight: {
 		title: "Fighting",
-		charts: ['fightingAttrCount', 'lightDamage', 'medDamage', 'toughDamage', 'tankDamage']
+		charts: [ChartTypes.FightLightDamage, ChartTypes.FightMedDamage, ChartTypes.FightEliteDamage, ChartTypes.FightHeavyDamage]
 	},
 	control: {
 		title: "Control",

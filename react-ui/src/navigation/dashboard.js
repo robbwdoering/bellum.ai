@@ -145,8 +145,8 @@ export class Dashboard extends Component {
 
 		this.setState({
 			curPanes: newPanes
-		})
-    }
+		});
+    };
 
     openUserGuide = () => {
     	console.log("[openUserGuide]");
@@ -167,7 +167,7 @@ export class Dashboard extends Component {
 			default:
 				return (<h3 key={name}> There was an error. Please reload the page. </h3>);
 		}
-    }
+    };
 
   	render() {
 	  	const { showLogin, user, pass, curPanes, curCanvas, selectedMain } = this.state;

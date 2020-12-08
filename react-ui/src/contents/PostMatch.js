@@ -5,10 +5,12 @@
  */
 
 // React + Redux
-import React, { Component } from 'react';
+import React, { useEffect } from 'react';
 import { connect } from 'react-redux';
-import { Button, Grid, Header, Tab, Input, Icon, Loading, Menu, Sidebar } from 'semantic-ui-react';
+import { Divider, Button, Grid, Header, Tab, Input, Icon, Loading, Menu, Sidebar } from 'semantic-ui-react';
+import { useCookies } from "react-cookie";
 
+import { setMatchState } from './../war/actions';
 import { openContents } from './../app/actions';
 import Pane from './../common/pane';
 import { ContentTypes } from './../common/constants';
@@ -18,7 +20,6 @@ export const PostMatch = props => {
 	const {
 		// Root 
 		config,
-		sendMsg,
 		fetchAt,
 
 		// Parent
@@ -34,12 +35,31 @@ export const PostMatch = props => {
 		profiles,
 
 		// Dispatched Actions
-		openContents
+		openContents,
+		setMatchState
 	} = props;
 
+	const [cookies, setCookie, removeCookie] = useCookies(['bellum_ai_match', 'bellum_ai_forces']);
+
+	useEffect(() => {
+		// When we enter this screen, end the match
+		setMatchState({
+			turn: -1,
+			phase: -1,
+			activePlayer: -1	
+		});
+
+		removeCookie('bellum_ai_forces', { path: '/' });
+		removeCookie('bellum_ai_match', { path: '/' });
+	}, []);
+
 	return (
-		<div className="contents-container">
- 		</div>
+		<React.Fragment>
+			<div className="top-right-container">
+				<Button className="prematch-start primaryButton" onClick={() => openContents(ContentTypes.Splash)} > Return to Splash </Button>
+			</div>
+			<Divider horizontal> <h2>Prematch</h2> </Divider>
+		</React.Fragment>
 	);
 }
 
@@ -47,4 +67,4 @@ export const mapStateToProps = (state, props) => {
   return { };
 };
 
-export const PostMatchContainer = connect(mapStateToProps, {  openContents })(PostMatch);
+export const PostMatchContainer = connect(mapStateToProps, {  openContents, setMatchState })(PostMatch);

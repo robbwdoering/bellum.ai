@@ -309,6 +309,7 @@ const inputUnitTransform = (pool, detachments, profile) => {
 					psykers: unit.psykers || []
 				}];
 
+				// Delete the old entries
 				delete unit.unit;
 				delete unit.quantity;
 				delete unit.equipment;
@@ -319,13 +320,15 @@ const inputUnitTransform = (pool, detachments, profile) => {
 			}
 
 
+			// If there's equipment that matches the name of a unit, iterpret is as an implied model (usually a seargant)
 			if (unit.equipment) {
 				unit.models = unit.models.concat(unit.equipment.reduce((acc, e) => {
 					const formatted = util.formatStr(e);
-					// If there's equipment that matches the name of a unit, iterpret is as an implied model (usually a seargant)
 					if (profile && Object.keys(profile.stats).find(e => e === formatted)) {
+
+						// Push a new model
 						acc.push({
-							unit: unit.unit,
+							unit: unit.equipment,
 							name: unit.name,
 							quantity: unit.quantity || 1,
 							abilities: unit.abilities || [],
@@ -334,7 +337,9 @@ const inputUnitTransform = (pool, detachments, profile) => {
 							psykers: unit.psykers || []
 						});
 
+						// Delete the old entries
 						delete unit.unit;
+						delete unit.equipment;
 						delete unit.quantity;
 						delete unit.abilities;
 						delete unit.weapon;
@@ -358,12 +363,13 @@ const inputUnitTransform = (pool, detachments, profile) => {
 
 				// Search for and combine duplicates
 				// Have to set quantity to null, since that field doesn't have to match
-				let memoizedStr = JSON.stringify(Object.assign({}, model, {quantity: null}));
-				let foundIdx = newModels.findIndex((compModel) => JSON.stringify(Object.assign({}, compModel, {quantity: null}) === memoizedStr));
+				// let memoizedStr = JSON.stringify(Object.assign({}, model, {quantity: null}));
+				let foundIdx = newModels.findIndex((compModel) => modelsAreEqual(model, compModel));
 
 				// This is a duplicate
 				if (foundIdx !== -1) {
-					newModels[foundIdx].quantity++;
+					console.log("DUP MODEL: ", newModels[foundIdx], "||", memoizedStr);
+					newModels[foundIdx].quantity += model.quantity  || 1;
 
 				// This is not a duplicate
 				} else {
@@ -420,3 +426,14 @@ const inputUnitTransform = (pool, detachments, profile) => {
 	return ret;
 };
 exports.inputUnitTransform = inputUnitTransform;
+
+const modelsAreEqual = (lhs, rhs) => {
+	return (
+		lhs.name === rhs.name && lhs.unit === rhs.unit &&
+		strArrsAreEqual(lhs.weapon, rhs.weapon) && 
+		strArrsAreEqual(lhs.equipment, rhs.equipment)
+	);
+}
+const strArrsAreEqual = (lhs, rhs) => {
+	return	(!lhs && !rhs) || (lhs.length !== rhs.length && !lhs.some((wep, i) => wep !== rhs[i]));
+}

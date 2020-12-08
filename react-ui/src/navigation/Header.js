@@ -19,7 +19,7 @@ import { parsePlainText } from "./../war/utils";
 import "./navigation.css";
 
 export const Header = props => {
-	const { openContents, handleFetch } = props;
+	const { curContents, openContents, handleFetch, matchState } = props;
 	const { user, loginWithRedirect, isAuthenticated, logout } = useAuth0();
 	const [showSidebar, toggleSidebar] = useState(false);
 	const [showAddForce, toggleAddForce] = useState(false);
@@ -94,9 +94,21 @@ export const Header = props => {
 
 											</Menu.Item>
 										)}
-										<Menu.Item as='a' onClick={() => openContents(ContentTypes.PreMatch)}>
-											Enter Match	
-										</Menu.Item>
+										{matchState.turn === -1 ? (
+											<Menu.Item as='a' onClick={() => openContents(ContentTypes.PreMatch)}>
+												Start New Match	
+											</Menu.Item>
+										) : (
+											<Menu.Item as='a' onClick={() => openContents(ContentTypes.PostMatch)}>
+												End Current Match	
+											</Menu.Item>
+										)}
+
+										{matchState.turn > -1 && (curContents !== ContentTypes.Match) && (
+											<Menu.Item as='a' onClick={() => openContents(ContentTypes.Match)}>
+												Return to Match
+											</Menu.Item>
+										)}
 										<Menu.Item as='a' onClick={() => logout({ returnTo: window.location.origin })}>
 											Logout
 										</Menu.Item>
@@ -119,7 +131,8 @@ export const Header = props => {
 
 export const mapStateToProps = (state, props) => {
   return {
-  	matchState: state.warReducer.matchState
+  	matchState: state.warReducer.matchState,
+  	curContents: state.appReducer.curContents,
   };
 };
 

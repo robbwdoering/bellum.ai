@@ -45,7 +45,6 @@ export const CircularChart = props => {
 	const {
 		// Root 
 		config,
-		sendMsg,
 		fetchAt,
 
 		// Parent

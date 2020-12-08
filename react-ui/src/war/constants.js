@@ -13,7 +13,7 @@ export const WarActions = {
 	SET_UNSET_PROFILES: "SET_UNSET_PROFILES",
 	SET_CHART_DATA: "SET_CHART_DATA",
 	REQUEST_CHART_REFRESH: "REQUEST_CHART_REFRESH",
-	SET_TEST_DATA: "SET_TEST_DATA",
+	SET_MATCH_STATE: "SET_MATCH_STATE",
 	SET_FORCE_SCORECARD: "SET_FORCE_SCORECARD",
 };
 
@@ -48,3 +48,50 @@ export const typoMap = {
 export const demoData = {
 };
 
+export const phases = ['Setup', 'Command', 'Movement', 'Psychic', 'Shooting', 'Charge', 'Fight', 'Morale'];
+export const mapSizeOptions = [
+	{ text: '44" x 30"', value: 0},
+	{ text: '44" x 60"', value: 1},
+	{ text: '44" x 90"', value: 2},
+];
+
+export const terrainOptions = [
+	{ text: "No Terrain", value: "No Terrain"},
+	{ text: "FTC", value: "FTC"},
+	{ text: "NOVA", value: "NOVA"},
+	{ text: "ITC", value: "ITC"}
+];
+
+export const objectiveOptions = [
+	{ text: 'Assassinate', value: 'Assassinate', objCat: 'Purge The Enemy' },
+	{ text: 'Bring It Down', value: 'Bring It Down', objCat: 'Purge The Enemy' },
+	{ text: 'Titan Slayers', value: 'Titan Slayers', objCat: 'Purge The Enemy' },
+	{ text: 'Slay The Warlord', value: 'Slay The Warlord', objCat: 'Purge The Enemy' },
+
+	{ text: 'Thin Their Ranks', value: 'Thin Their Ranks', objCat: 'No Mercy, No Respite' },
+	{ text: 'Attrition', value: 'Attrition', objCat: 'No Mercy, No Respite'  },
+	{ text: 'While We Stand, We Fight', value: 'While We Stand, We Fight', objCat: 'No Mercy, No Respite'  },
+	{ text: 'First Strike', value: 'First Strike', objCat: 'No Mercy, No Respite'  },
+
+	{ text: 'Engage On All Fronts', value: 'Engage On All Fronts', objCat: 'Battlefield Supremacy'  },
+	{ text: 'Linebreaker', value: 'Linebreaker', objCat: 'Battlefield Supremacy'  },
+	{ text: 'Domination', value: 'Domination', objCat: 'Battlefield Supremacy'  },
+
+	{ text: 'Investigate Sites', value: 'Investigate Sites', objCat: 'Purge The Enemy'  },
+	{ text: 'Repair Teleport Homer', value: 'Repair Teleport Homer', objCat: 'Purge The Enemy'  },
+	{ text: 'Raise The Banners High', value: 'Raise The Banners High', objCat: 'Purge The Enemy'  },
+
+	{ text: 'Mental Interrogation', value: 'Mental Interrogation', objCat: 'Warpcraft'  },
+	{ text: 'Psychic Ritual', value: 'Psychic Ritual', objCat: 'Warpcraft'  },
+	{ text: 'Abhor The Witch', value: 'Abhor The Witch', objCat: 'Warpcraft'  }
+];
+
+export const missionOptions = [
+	{ text: "Only War", value: "Only War"},
+	{ text: "Retrieval Mission", value: "Retrieval Mission"},
+	{ text: "Frontline Warfare", value: "Frontline Warfare"},
+	{ text: "Four Pillars", value: "Four Pillars"},
+	{ text: "No Man's Land", value: "No Man's Land"},
+	{ text: "Scorched Earth", value: "Scorched Earth"},
+	{ text: "Vital Intelligence", value: "Vital Intelligence"},
+];

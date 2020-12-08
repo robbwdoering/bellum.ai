@@ -13,6 +13,7 @@
     "gaussian": "^1.1.0",
     "mathjs": "^8.1.0",
     "react": "^16.8.6",
+    "react-cookie": "^4.0.3",
     "react-d3-radar": "^1.0.0-rc6",
     "react-dom": "^16.8.6",
     "react-map-gl": "^5.2.7",

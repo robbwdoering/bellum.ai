@@ -9,14 +9,13 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { Button, Grid, Header, Tab, Input, Icon, Loading, Menu, Sidebar } from 'semantic-ui-react';
 
-import { testAction, openCanvas, openContents, setDemoState } from './../app/actions';
-import { setTestData } from "./../war/actions";
+import { openCanvas, openContents, setDemoState } from './../app/actions';
 import Pane from './../common/pane';
 import { ContentTypes } from './../common/constants';
 import './contents.css';
 
 export const DemoTransition = props => {
-	const { sendMsg, openContents, setDemoState, demoState } = props;
+	const { openContents, setDemoState, demoState } = props;
 
 	const signUp = e => {
 		openContents(ContentTypes.Auth);
@@ -25,9 +24,6 @@ export const DemoTransition = props => {
 	const handleKnowledgeSelect = (e, { key }) => {
 		// Advance the demo, and remember their answer here
 		setDemoState({ step: 2, knowledge: key})
-
-		// Request test info
-		// setTestData();
 
 		openContents(ContentTypes.PreMatch);
 	};
@@ -61,4 +57,4 @@ export const mapStateToProps = (state, props) => {
   };
 };
 
-export const DemoTransitionContainer = connect(mapStateToProps, { setDemoState, openContents, setTestData })(DemoTransition);
+export const DemoTransitionContainer = connect(mapStateToProps, { setDemoState, openContents })(DemoTransition);

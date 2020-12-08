@@ -8,14 +8,18 @@ This web tool aims to provide three services to players of the popular tabaletop
 ## Client Implementation
 - The client for this application is a React single page application. 
 - State is managed centrally via Redux, which also serves as the primary interface for REST communication with the server.
-- It uses [Three.js](https://threejs.org/) for 3D graphics + interaction, [D3.js](https://d3js.org/) for data visualization, [react-spring](https://www.react-spring.io/) for animation, and [Semantic UI](https://semantic-ui.com/) as a layout framework. See package.json for a full dependency list (about 10MB final size :grimace:).
+- It uses [Three.js](https://threejs.org/) for 3D graphics + interaction, [D3.js](https://d3js.org/) for data visualization, [react-spring](https://www.react-spring.io/) for animation, and [Semantic UI](https://semantic-ui.com/) as a layout framework. See package.json for a full dependency list.
 - Authentication is handled via custom components provided by a SSO service, [Auth0](https://auth0.com/), both for login services and secure communication with the server's REST API.
+- Includes a custom parsing engine that can transform a plain-text [Battlescribe](https://battlescribe.net/) file into a usuable JSON object. Backed by regex.
 
 ## Server Implementation
-- The server is implemented as an Express Node.js, using the [Express.js](https://expressjs.com/) web framework for linking and routing. 
-- The application is backed by a [PostgreSQL](https://www.postgresql.org/) database, which stores game data only, no authentication information.
+- The server is implemented in Node.js, using the [Express.js](https://expressjs.com/) web framework for linking and routing. 
+- The application is backed by a [PostgreSQL](https://www.postgresql.org/) database, which stores statistical and game data only, no authentication information.
 - API is secured using the aforementioned Auth0, which provides JWTs that are checked before every interaction.
-- The code is roughly organized into three groups:
+- Almost all of the computations for the game take place on the server, not the client, since the 3D graphics already introduce performance constraints. This code is organized into three sections:
+    - Divination engine: This runs game-related calculations that need match-specific information, like position and status of all pieces. This often requires making many assumptions, which is why it's called "divination" - could also be the "guessing engine".
+    - Derivation engine: This runs most other game-related calculations, often repeatedly calling the divination code with constant values to get deterministic answers to questions like 'how good is this unit?'.
+    - Router I/O: Cleans up JSON force lists as they come in from the client, fixing inconsistencies and organizing the information for ease of performant access.
 
 ## Running This Code
 

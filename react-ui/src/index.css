@@ -210,6 +210,10 @@ div.table-empty-message {
   display: none !important;
 }
 
+div.default.text {
+  color: var(--greyThree);
+}
+
 /* THEME COLORS */
 :root {
   --greyZero: #fcfcff; /* cards */

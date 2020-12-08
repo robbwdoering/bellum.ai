@@ -9,8 +9,13 @@
 	overflow: auto;
 }
 
+
 .contents-container > .grid {
 	margin: 0 !important;
+}
+.contents-container.Match {
+	display: flex;
+	flex-direction: row !important;
 }
 
 .contents-container.Splash h2 {
@@ -36,7 +41,15 @@
 	height: 3rem !important;
 }
 
+.contents-container .top-right-container {
+	z-index: 101;
+	position: absolute;
+	top: 1rem;
+	right: 1rem;
+}
+
 .contents-container .bot-right-container {
+	z-index: 101;
 	position: absolute;
 	bottom: 1rem;
 	right: 1rem;
@@ -81,6 +94,12 @@
 	background-color: var(--greyZero);
 }
 
+.ui.menu div.tab-menu-item.inline  {
+	margin: 0 auto !important;
+	height: auto;
+	width: auto;
+}
+
 .ui.menu div.tab-menu-item:hover   {
 	background: rgba(0,0,0,0.05) !important;
 }
@@ -88,10 +107,21 @@
 .ui.menu div.tab-menu-item.active {
 	/*background: none !important;*/
 }
+.ui.menu div.tab-menu-item.active i {
+	color: var(--primaryFive);
+}
 
 .ui.menu div.tab-menu-item.active span {
 	color: var(--primaryFive);
 	font-weight: bold;
+}
+
+.ui.menu div.tab-menu-item.active.secondary span {
+	color: var(--accentFive);
+}
+
+.ui.menu div.tab-menu-item.active.secondary i {
+	color: var(--accentFive);
 }
 
 .tab-menu-item .custom-icon {
@@ -160,6 +190,7 @@ div.row.prematch-force-row .column {
 .contents-container  .ui.card.chart-card .header h3 {
 	margin: 0 !important;
 }
+
 .contents-container  .ui.card.chart-card .header .icon.info {
 	position: absolute;
 	top: 0.5rem;
@@ -180,7 +211,7 @@ div.row.prematch-force-row .column {
 	padding: 0.25rem 0;
 }
 
-.contents-container  .ui.card.chart-card .chart-card-item-container .chart-card-cfg-item .title{
+.contents-container  .ui.card.chart-card .chart-card-item-container .chart-card-cfg-item .title {
   color: var(--greyThree);
   font-weight: bold;
   font-size: 0.9rem;
@@ -195,4 +226,76 @@ div.row.prematch-force-row .column {
 	color: var(--accentFive);
 	font-weight: bolder;
 	font-size: 1.5rem;
+}
+
+.contents-container .ui.menu.phase-control {
+	position: absolute;
+	margin: 0;
+	left: 0;
+	top: 0;
+	height: 100%;
+	width: 12rem;
+}
+
+
+.contents-container div.match-phase-content {
+	flex-grow: 1;
+	margin-left: 12rem;
+	padding: 0 1rem;
+}
+
+.contents-container div.match-tabs {
+	width: 35%;
+	min-width: 500px;
+	margin-top: 4rem;
+}
+
+.match-phase-content > div {
+	height: 100%;
+}
+
+.setup-content div.setup-option {
+	display: block;
+	margin: 1rem auto;
+	width: max-content;
+}
+
+.setup-content div.setup-option > div:first-child {
+  color: var(--greyThree);
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.setup-content div.setup-option .ui.dropdown.mission-dropdown {
+	margin: 0 3.5px 0.5rem 0 !important;
+}
+
+.match-tabs .victory-point-summary { 
+}
+
+.match-tabs .victory-point-summary .top { 
+	width: 50% !important;
+	float: left;
+}
+
+.match-tabs .victory-point-summary .bottom { 
+	width: 50% !important;
+	float: left;
+}
+
+.match-tabs .victory-point-summary .total-primary { 
+	font-size: 1.5rem;
+}
+.match-tabs .victory-point-summary .total-secondary { 
+	font-size: 1.5rem;
+}
+.match-tabs .victory-point-summary .total-primary.active { 
+	color: var(--primaryFive);
+}
+.match-tabs .victory-point-summary .total-secondary.active { 
+	color: var(--accentFive);
+}
+
+.objective-controls > div {
+	display: block;	
 }

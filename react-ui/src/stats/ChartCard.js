@@ -40,6 +40,7 @@ export const ChartCard = props => {
 		// Redux
 		chartData,
 		chartHash,
+		parentHash,
 
 		// Dispatched Actions
 	} = props;
@@ -62,7 +63,7 @@ export const ChartCard = props => {
         var data = [];
 
         let distribution = gaussian(histoData.mean, histoData.dev);
-        console.log("generated gaussian", distribution, histoData);
+        // console.log("generated gaussian", distribution, histoData);
 
         let x_position = lower_bound;
         for (let i = 0; i < n; i++) {
@@ -96,9 +97,9 @@ export const ChartCard = props => {
 
 	const getData = () => {
 		let histoData, res, tmpArr;
-		console.log("getting data...", chartName, chartData)
+		// console.log("getting data...", chartName, chartData)
 		if (!chartName) {
-			console.log("Exiting early....")
+			// console.log("Exiting early....")
 			return null;
 		}
 
@@ -118,8 +119,11 @@ export const ChartCard = props => {
 				res = chartData.scorecards.map((scorecard, i) => {
 					let hasShootData = scorecard && scorecard.shoot && scorecard.shoot.dmgBuckets;
 
+					// Get data in {mean, deviation} form
 					histoData = hasShootData ? scorecard.shoot.dmgBuckets.find(bucket => bucket.name === bucketName).dist : null;
 					tmpArr.push(histoData); // store mean and variance for tooltips
+
+					// Return the data translated into a PDF array
 					return translateHistoData(histoData);
 				});
 
@@ -137,31 +141,39 @@ export const ChartCard = props => {
 				bucketName = bucketName || 'heavy';
 				
 				// Deal with all the fight cases here
-				return chartData.scorecards.map((scorecard, i) => {
+				tmpArr = [];
+				res = chartData.scorecards.map((scorecard, i) => {
 					let hasFightData = scorecard && scorecard.fight && scorecard.fight.dmgBuckets;
+
+					// Get data in {mean, deviation} form
 					histoData = hasFightData ? scorecard.fight.dmgBuckets.find(bucket => bucket.name === bucketName).dist : null;
+					tmpArr.push(histoData); // store mean and variance for tooltips
+
+					// Return the data translated into a PDF array
 					return translateHistoData(histoData);
-				})
+				});
+				setInfoItems(renderHistoItems(...tmpArr))
+
+				return res;
 
 			default:
 				return [null, null];
 		}
 	};
 
-	const data = useMemo(getData, [chartHash])
-	console.log("[render chartCart]", chartName, data, chartData, chartHash)
+	// console.log("[render chartCart]", chartName, data, chartData, chartHash)
 
 	const genHistogram = (svg) => {
         // scales
         // const dataMax = Math.max(data[0] ? max(data[0], d => d.y) : 0, data[1] ? max(data[1], d => d.y) : 0);
-        const nameMax = Math.max(data[0] ? max(data[0], d => d.x) : 0, data[1] ? max(data[1], d => d.x) : 0);
-        const nameMin = Math.min(data[0] ? min(data[0], d => d.x) : 100, data[1] ? min(data[1], d => d.x) : 100);
+        // const nameMax = Math.max(data[0] ? max(data[0], d => d.x) : 0, data[1] ? max(data[1], d => d.x) : 0);
+        // const nameMin = Math.min(data[0] ? min(data[0], d => d.x) : 100, data[1] ? min(data[1], d => d.x) : 100);
         const dataMax = 1;
 
-		console.log("Executing effect", config, dataMax, nameMax, nameMin);
+		// console.log("Executing effect", config, data);
 
         const xScale = scaleLinear()
-	        .domain([0, 100])
+	        .domain([0, 50])
 	        .range([margin.left, margin.left + config.width]);
 
         const yScale = scaleLinear()
@@ -200,7 +212,7 @@ export const ChartCard = props => {
 
 		data.forEach((pdf, i) => {
 			if (!pdf) return;
-			console.log("Processing PDF: ", pdf)
+			// console.log("Processing PDF: ", pdf)
 		    svg
 			    .append('path')
 			    // .data(data)
@@ -213,7 +225,8 @@ export const ChartCard = props => {
 
 	};
 
-	// const genDescription = () => constConfig.infoItems ? constConfig.infoItems(infoData) : null;
+	// Get the data from redux if it's already there
+	const data = useMemo(getData, [chartHash, parentHash])
 
 	useEffect(() => {
 		if (data && data[0] || data[1] && ref.current && config) {
@@ -233,9 +246,10 @@ export const ChartCard = props => {
 					console.log("not sure what chart to display for chart name ", ChartTypes);
 			}
 		}
-	}, [data, config]);
+	}, [data, config, chartName, parentHash]);
 
-	const constConfig = useMemo(() => getChartConfig(chartName) || {}, [chartName]);
+	// Get the static config parameters, like description text
+	const constConfig = useMemo(() => getChartConfig(chartName) || {}, [chartName, parentHash, chartHash]);
 	// const desc = useMemo(genDescription, [ constConfig, chartHash ])
 
 	if (!data || (!data[0] && !data[1])) {
@@ -259,6 +273,7 @@ export const ChartCard = props => {
 					{constConfig.tooltip && <Popup content={constConfig.tooltip} trigger={<Icon name="info" />} />}
 				</Card.Header>
 			)}
+
 			<Card.Content>
 				<svg
 					className="main-chart-container"

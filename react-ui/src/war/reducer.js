@@ -21,8 +21,16 @@ const initialState = {
 		turn: -1,
 		phase: -1,
 		activePlayer: -1,
-		vpCount: [0, 0],
-		cpCount: [0, 0]
+		cpCount: [0, 0],
+		vpCount: [
+			[0, 0, 0, 0],
+			[0, 0, 0, 0]
+		],
+		objectives: [
+			[null], // Primary
+			[null, null, null], //Secondaries
+			[null, null, null]
+		]
 	},
 	matchHash: 0,
 	prematchData: {
@@ -98,6 +106,7 @@ export const warReducer = (state = initialState, action) => {
 
 		case WarActions.SET_MATCH_STATE:
 			Object.assign(newState.matchState, action.payload);
+			console.log("setting match state: ", newState.matchState, action.payload)
 			newState.matchHash++;
 			return newState;
 

@@ -3,44 +3,112 @@ const path = require('path');
 const util = require("./utilities");
 const constants = require('./constants');
 
+/**
+ * Calculates the expected damage for one weapon for one unit against one enemy.
+ * The building block upon which the shooting phase is built upon - treat with reverence and care.
+ */
+const fireSalvo = (model, wepProfile, ctx, profile, target) => {
+	let shotPd, successPr, hitPr, woundPr, savePr, avgDamage, tmpVal;
+	let coeffArr = null;
+	const isFight = wepProfile === 'Melee';
+	const mode = isFight ? "FIGHT" : "SHOOT";
 
+	const modelStat = profile.stats.find(stat => stat.name === util.formatStr(model.unit));
+	const targetStat = profile.stats.find(stat => stat.name === util.formatStr(target.unit));
 
-const genAlphaStrike = (army, rhs) => {
-	return {
-		alphaShooting: 4,
-		alphaMelee: 5
+	if (!modelStat || !targetStat) {
+		console.error("ERR: Couldn't find stats for salvo", modelStat, ", ", targetStat);
+		return [];
 	}
+
+	// Get the hit stat
+	const hitStat = isFight ? modelStat.weapons : modelStat.ballistics;
+	const strStat = isFight ? getFightStrength(wepProfile, modelStat) : parseInt(wepProfile.strength);
+
+	// ---------------------------------------------------
+	// PART 1: Calculate "success per attempt" probability
+	// ---------------------------------------------------
+
+	// 1.1 Calculate probabilty of hitting the target
+	tmpVal = applyAddMods(modelStat.ballistics, model, ["HIT", `HIT_${mode}`], wepProfile);
+	tmpVal = applyAddMods(tmpVal, target, ["BE_HIT"], wepProfile);
+	hitPr = tmpVal < 7 ? (7 - tmpVal) / 6.0 : 0; // Translate "n-up" value into probability
+
+	// Modify probabilty in response to reroll rules
+	// hitPr = applyRerollMods(hitPr, model, ["HIT__REROLL", `HIT_${mode}__REROLL`], wepProfile);
+	// hitPr = applyRerollMods(hitPr, target, ["BE_HIT__REROLL", `BE_HIT_${mode}__REROLL`], wepProfile); // TODO: Is this a rule that exists?
+
+	// 1.2 Calculate probability of wounding the target
+	let tmpToughness = applyAddMods(targetStat.toughness, target, ["TOUGHNESS", `TOUGHNESS_${mode}`], wepProfile);
+	tmpVal = applyAddMods(calcToWound(strStat, tmpToughness), model, ["WOUND", `WOUND_${mode}`, "REPLACE_WOUND", `REPLACE_WOUND_${mode}`], wepProfile);
+	woundPr = tmpVal < 7 ? (7 - tmpVal) / 6.0 : 0; // Translate "n-up" value into probability
+
+	// 1.3 Calculate probability of the target saving 
+	tmpVal = applyAddMods(targetStat.save, target, ["SAVE", "REPLACE_SAVE", `SAVE_${mode}`, `REPLACE_SAVE_${mode}`], wepProfile);
+	let invuln = applyAddMods(targetStat.invuln || 7, target, ["INVULN", "REPLACE_INVULN", `REPLACE_INVULN_${mode}`], wepProfile);
+
+	// Calculate AP (affects save)
+	let AP = applyAddMods(wepProfile.ap || 0, model, ["AP", `AP_${mode}`, "REPLACE_AP", `REPLACE_AP_${mode}`], wepProfile);
+	AP = applyAddMods(AP, target, ["AP_TARGET", "REPLACE_AP_TARGET"], wepProfile);
+
+	// Choose the higher of normal save with Armor Piercing applied, or invulnerable save
+	if (tmpVal - AP > invuln) {
+		tmpVal = invuln;	
+	} else {
+		tmpVal -= AP;
+	}
+	// Get final save probability
+	savePr = tmpVal < 7 ? (7 - tmpVal) / 6.0 : 0; // Translate "n-up" value into probability
+
+	// 1.4 Calculate "sucess per attempt" probability - this is the product of all the non-distributed Variables
+	successPr = hitPr * woundPr * (1 - savePr);
+
+	// console.log("[fireSalvo] STEP 1 Results: ", { successPr, savePr, woundPr, hitPr });
+
+	// -----------------------------------------------------------------------------------
+	// PART 2: Calculate shot PDF, and conjoin it with success probability for success PDF 
+	// -----------------------------------------------------------------------------------
+
+	// 2.1. Calculate the PDF of how many shots we will take
+	shotPd = calcShots(model, wepProfile, ctx, modelStat, target);
+
+	// 2.2. For every number of shots we could take, add our chances of success from that multipled it by the shot probability to the total PDF
+	let successPd = getSuccessPdf(shotPd, successPr);
+
+	// Transform from object (better for insuring uniqueness) into an array (more performant)
+	successPd = Object.keys(successPd).map(key => [parseInt(key), successPd[key]]);
+
+	// console.log("[fireSalvo] STEP 2 Results: ", { successPd, shotPd });
+
+	// -----------------------------------------------------------------------------------------
+	// PART 3: Calculate damage-per-success PDF, and conjoing it with success PDF for damage PDF 
+	// -----------------------------------------------------------------------------------------
+
+	// 3.1 Get damage PDF for this weapon
+	let damagePerSuccessPdf = calcDamage(model, wepProfile, ctx, profile, target);
+
+	// 3.2 For every success count possibility, expand that out to learn its damage PDFs, then sum all those together into our final return value 
+	// NOTE: The algorithm here is technically innaccurate, in order to save on performance. It approximates the conjunction by assuming all shots
+	// in one salvo will always roll the smae damage as the other shots in that salvo. It should work out to be very close, based on... a hunch?
+	let tmpArr;
+	let finalDamagePd = successPd.reduce((acc, pair, i) => {
+		damagePerSuccessPdf.forEach((dmgPair) => {
+			let dmgVal = pair[0] * dmgPair[0];
+			let prob = pair[1] * dmgPair[1];
+
+			if (acc[dmgVal]) {
+				acc[dmgVal] += prob;
+			} else {
+				acc[dmgVal] = prob;
+			}
+		});
+
+		return acc;
+	}, {});
+
+	return finalDamagePd;
 };
-
-
-// DERIVATIONS
-// These are assumptions
-
-const divineCommand = (army, rhs) => {
-
-	return {
-
-	};
-};
-
-const divineMove = (army, rhs) => {
-	// const advanceAndFire = [], advanceAndCharge = [], psychic = [];
-
-	army.units.forEach(unit => {
-		// 
-
-		// If unit  
-	});
-
-	return {
-
-	};
-};
-
-const divinePsychic = (army, rhs) => {
-
-	return {};
-};
+exports.fireSalvo = fireSalvo;
 
 // ---- Divination Tool Options 
 // Command 
@@ -215,45 +283,29 @@ applyRerollMods = (origVal, unit, modTypes, optional) => {
 			console.log("Unknown reroll type:", tmpVal.params.rerollType);
 	}
 
-	// switch(mod.type) {
-	// 	default:
-	// }
-
 	return origVal + ret;
 };
 
-/* D6 CHANCES CHEATSHEET (VAL+)
-1 - 1.00
-2 - 0.83 
-3 - 0.67
-4 - 0.50 
-5 - 0.33
-6 - 0.16
-*/
-
-const calcToWound = (s, t) => {
-	if ((2*t) <= s) {
+/**
+ * Calculate the number needed to meet or exceed on a D6 for a shot with the given strength needs to wound against a target w/ given toughness.
+ */
+const calcToWound = (strength, toughness) => {
+	if ((2*toughness) <= strength) {
 		return 2;
-	} else if (t < s) {
+	} else if (toughness < strength) {
 		return 3;
-	} else if (t === s) {
+	} else if (toughness === strength) {
 		return 4;
-	} else if ((2*s) > t) {
+	} else if ((2*strength) > toughness) {
 		return 5;
 	} else {
 		return 6;
 	}
-}
+};
 
-// Saves
-/*
-1 
-2
-3
-4
-5
-6
-*/
+/**
+ * Calculates an exact PDF of the damage this attack will do per success.
+ */
 const calcDamage = (unit, wepProfile, ctx, profile, target) => {
 	if (!wepProfile.damage) console.error("Found a weapon that doesn't have damage defined", wepProfile);
 	let dmgPdf;
@@ -291,11 +343,22 @@ const calcDamage = (unit, wepProfile, ctx, profile, target) => {
 	return dmgPdf;
 };
 
-const calcShots = (unit, wepProfile, ctx, profile, target) => {
-	if (!wepProfile.shots) console.error("Found a weapon that doesn't have shots defined", wepProfile);
+/**
+ * Calculates an exact PDF of number of shots for ranged weapons, and number of attacks for melee ones.
+ */
+const calcShots = (model, wepProfile, ctx, modelStat, target) => {
 	let shotPdf = [];
+	let incomingVal = null;
 
-	if (wepProfile.shots.includes("D3")) {
+	if (wepProfile.weapontype === "Melee")  {
+		if (!modelStat.attacks) console.error("Found a modelStat that doesn't have attacks defined", modelStat);
+		incomingVal = modelStat.attacks;
+	} else {
+		if (!wepProfile.shots) console.error("Found a weapon that doesn't have shots defined", isFight, wepProfile);
+		incomingVal = wepProfile.shots;
+	}
+
+	if (incomingVal.includes("D3")) {
 		let rolls = parseInt(wepProfile.shot);
 		if (rolls > 10) {
 			rolls = 10;
@@ -305,7 +368,7 @@ const calcShots = (unit, wepProfile, ctx, profile, target) => {
 
 		// Get the pd
 		shotPdf = constants.d3[rolls - 1];
-	} else if (wepProfile.shots.includes("D6")) {
+	} else if (incomingVal.includes("D6")) {
 		let rolls = parseInt(wepProfile.shot);
 		if (rolls > 20) {
 			rolls = 20;
@@ -317,129 +380,22 @@ const calcShots = (unit, wepProfile, ctx, profile, target) => {
 		shotPdf = constants.d6[rolls - 1];
 
 	// Use a contant value - default case
-	} else if (parseInt(wepProfile.shots)) {
-		shotPdf = [[parseInt(wepProfile.shots), 1]];
+	} else if (parseInt(incomingVal)) {
+		shotPdf = [[parseInt(incomingVal), 1]];
 	}
 
 	// Uncomment when we support shot mods
-	// val = applyPdMods(val, unit, ["SHOTS", "REPLACE_SHOTS"], wepProfile);
-	// val = applyPdMods(val, unit, ["SHOTS_TARGET", "REPLACE_SHOTS_TARGET"], wepProfile);
+	// val = applyPdMods(val, model, ["SHOTS", "REPLACE_SHOTS"], wepProfile);
+	// val = applyPdMods(val, model, ["SHOTS_TARGET", "REPLACE_SHOTS_TARGET"], wepProfile);
 
-	// If this is rapid fire within half range, doubleshotPdf 
-	if (wepProfile.type === "RAPID_FIRE" && ctx.board.distance(unit.boardId, target.boardId) <= (wepProfile.range / 2)) {
+	// If this is rapid fire within half range, double every value
+	if (wepProfile.type === "RAPID_FIRE" && ctx.board.distance(model.boardId, target.boardId) <= (wepProfile.range / 2)) {
 		shotPdf = shotPdf.map(e => [e[0] * 2, e[1]]);
 	}
 
 	return shotPdf || [];
 };
 
-// HELPER
-/**
- * Calculates the expected damage for one weapon for one unit against one enemy.
- * The building block upon which the shooting phase is built upon - treat with reverence and care.
- */
-const fireSalvo = (model, wepProfile, ctx, profile, target) => {
-	let shotPd, successPr, hitPr, woundPr, savePr, avgDamage, tmpVal;
-	let coeffArr = null;
-	const isFight = wepProfile === 'Melee';
-	const mode = isFight ? "FIGHT" : "SHOOT";
-
-	const modelStat = profile.stats.find(stat => stat.name === util.formatStr(model.unit));
-	const targetStat = profile.stats.find(stat => stat.name === util.formatStr(target.unit));
-
-	if (!modelStat || !targetStat) {
-		console.error("ERR: Couldn't find stats for salvo", modelStat, ", ", targetStat);
-		return [];
-	}
-
-	// Get the hit stat
-	const hitStat = isFight ? modelStat.weapons : modelStat.ballistics;
-	const strStat = isFight ? getFightStrength(wepProfile, modelStat) : parseInt(wepProfile.strength);
-
-	// ---------------------------------------------------
-	// PART 1: Calculate "success per attempt" probability
-	// ---------------------------------------------------
-
-	// 1.1 Calculate probabilty of hitting the target
-	tmpVal = applyAddMods(modelStat.ballistics, model, ["HIT", `HIT_${mode}`], wepProfile);
-	tmpVal = applyAddMods(tmpVal, target, ["BE_HIT"], wepProfile);
-	hitPr = tmpVal < 7 ? (7 - tmpVal) / 6.0 : 0; // Translate "n-up" value into probability
-
-	// Modify probabilty in response to reroll rules
-	// hitPr = applyRerollMods(hitPr, model, ["HIT__REROLL", `HIT_${mode}__REROLL`], wepProfile);
-	// hitPr = applyRerollMods(hitPr, target, ["BE_HIT__REROLL", `BE_HIT_${mode}__REROLL`], wepProfile); // TODO: Is this a rule that exists?
-
-	// 1.2 Calculate probability of wounding the target
-	let tmpToughness = applyAddMods(targetStat.toughness, target, ["TOUGHNESS", `TOUGHNESS_${mode}`], wepProfile);
-	tmpVal = applyAddMods(calcToWound(strStat, tmpToughness), model, ["WOUND", `WOUND_${mode}`, "REPLACE_WOUND", `REPLACE_WOUND_${mode}`], wepProfile);
-	woundPr = tmpVal < 7 ? (7 - tmpVal) / 6.0 : 0; // Translate "n-up" value into probability
-
-	// 1.3 Calculate probability of the target saving 
-	tmpVal = applyAddMods(targetStat.save, target, ["SAVE", "REPLACE_SAVE", `SAVE_${mode}`, `REPLACE_SAVE_${mode}`], wepProfile);
-	let invuln = applyAddMods(targetStat.invuln || 7, target, ["INVULN", "REPLACE_INVULN", `REPLACE_INVULN_${mode}`], wepProfile);
-
-	// Calculate AP (affects save)
-	let AP = applyAddMods(wepProfile.ap || 0, model, ["AP", `AP_${mode}`, "REPLACE_AP", `REPLACE_AP_${mode}`], wepProfile);
-	AP = applyAddMods(AP, target, ["AP_TARGET", "REPLACE_AP_TARGET"], wepProfile);
-
-	// Choose the higher of normal save with Armor Piercing applied, or invulnerable save
-	if (tmpVal - AP > invuln) {
-		tmpVal = invuln;	
-	} else {
-		tmpVal -= AP;
-	}
-	// Get final save probability
-	savePr = tmpVal < 7 ? (7 - tmpVal) / 6.0 : 0; // Translate "n-up" value into probability
-
-	// 1.4 Calculate "sucess per attempt" probability - this is the product of all the non-distributed Variables
-	successPr = hitPr * woundPr * (1 - savePr);
-
-	// console.log("[fireSalvo] STEP 1 Results: ", { successPr, savePr, woundPr, hitPr });
-
-	// -----------------------------------------------------------------------------------
-	// PART 2: Calculate shot PDF, and conjoin it with success probability for success PDF 
-	// -----------------------------------------------------------------------------------
-
-	// 2.1. Calculate the PDF of how many shots we will take
-	shotPd = calcShots(model, wepProfile, ctx, profile, target);
-
-	// 2.2. For every number of shots we could take, add our chances of success from that multipled it by the shot probability to the total PDF
-	let successPd = getSuccessPdf(shotPd, successPr);
-
-	// Transform from object (better for insuring uniqueness) into an array (more performant)
-	successPd = Object.keys(successPd).map(key => [parseInt(key), successPd[key]]);
-
-	// console.log("[fireSalvo] STEP 2 Results: ", { successPd, shotPd });
-
-	// -----------------------------------------------------------------------------------------
-	// PART 3: Calculate damage-per-success PDF, and conjoing it with success PDF for damage PDF 
-	// -----------------------------------------------------------------------------------------
-
-	// 3.1 Get damage PDF for this weapon
-	let damagePerSuccessPdf = calcDamage(model, wepProfile, ctx, profile, target);
-
-	// 3.2 For every success count possibility, expand that out to learn its damage PDFs, then sum all those together into our final return value 
-	// NOTE: The algorithm here is technically innaccurate, in order to save on performance. It approximates the conjunction by assuming all shots
-	// in one salvo will always roll the smae damage as the other shots in that salvo. It should work out to be very close, based on... a hunch?
-	let tmpArr;
-	let finalDamagePd = successPd.reduce((acc, pair, i) => {
-		damagePerSuccessPdf.forEach((dmgPair) => {
-			let dmgVal = pair[0] * dmgPair[0];
-			let prob = pair[1] * dmgPair[1];
-
-			if (acc[dmgVal]) {
-				acc[dmgVal] += prob;
-			} else {
-				acc[dmgVal] = prob;
-			}
-		});
-
-		return acc;
-	}, {});
-
-	return finalDamagePd;
-};
-exports.fireSalvo = fireSalvo;
 
 const getFightStrength = (wepStat, modelStat) => {
 	if (!wepStat.strength || !wepStat.strength.length || (['user', '*', 'u']).includes(wepStat.strength.toLowerCase())) {
@@ -626,6 +582,43 @@ const getFiringList = (unit, profile) => {
 
 	}
 }
+
+const genAlphaStrike = (army, rhs) => {
+	return {
+		alphaShooting: 4,
+		alphaMelee: 5
+	}
+};
+
+
+// DERIVATIONS
+// These are assumptions
+
+const divineCommand = (army, rhs) => {
+
+	return {
+
+	};
+};
+
+const divineMove = (army, rhs) => {
+	// const advanceAndFire = [], advanceAndCharge = [], psychic = [];
+
+	army.units.forEach(unit => {
+		// 
+
+		// If unit  
+	});
+
+	return {
+
+	};
+};
+
+const divinePsychic = (army, rhs) => {
+
+	return {};
+};
 
 const divineShooting = (army, rhs) => {
 	let firingList, targetList, wepProfile, mods, hasThrownGrenade;

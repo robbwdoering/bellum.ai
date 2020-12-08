@@ -17,6 +17,7 @@ const sanitizeStr = str => str.replace(/'/gm, "");
 exports.sanitizeStr = sanitizeStr;
 
 const formatStr = str => {
+	if (!str) return "";
 	return str.toLowerCase()
 		.replace(/[- ]/g, "_")
 		.replace(/'/g, "");
