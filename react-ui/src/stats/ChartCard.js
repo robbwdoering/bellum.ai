@@ -155,6 +155,30 @@ export const ChartCard = props => {
 
 				return res;
 
+			case ChartTypes.LightResil:
+				bucketName = 'light';
+			case ChartTypes.MedResil:
+				bucketName = bucketName || 'med';
+			case ChartTypes.AntihordeResil:
+				bucketName = bucketName || 'antihorde';
+			case ChartTypes.AntitankResil:
+				bucketName = bucketName || 'antitank';
+
+				// Deal with all the resilience cases here
+				tmpArr = [];
+				res = chartData.scorecards.map((scorecard, i) => {
+					let hasFightData = scorecard && scorecard.resil && scorecard.resil.dmgBuckets;
+
+					// Get data in {mean, deviation} form
+					histoData = hasFightData ? scorecard.resil.dmgBuckets.find(bucket => bucket.name === bucketName).dist : null;
+					tmpArr.push(histoData); // store mean and variance for tooltips
+
+					// Return the data translated into a PDF array
+					return translateHistoData(histoData);
+				});
+				setInfoItems(renderHistoItems(...tmpArr))
+
+				return res;
 			default:
 				return [null, null];
 		}
@@ -239,6 +263,10 @@ export const ChartCard = props => {
 				case ChartTypes.FightMedDamage:
 				case ChartTypes.FightEliteDamage:
 				case ChartTypes.FightHeavyDamage:
+				case ChartTypes.LightResil:
+				case ChartTypes.MedResil:
+				case ChartTypes.AntitankResil:
+				case ChartTypes.AntihordeResil:
 					genHistogram(svg);
 					break;
 				default:

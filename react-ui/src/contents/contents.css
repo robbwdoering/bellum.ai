@@ -146,10 +146,40 @@
 	height: 100%;
 }
 
+.ui.force-card.card .fc-header-container .bot-cont {
+	text-align: center;
+	width: 100%;
+	bottom: 2rem;
+	left: 0;
+}
+
+.ui.force-card.card .fc-header-container .bot-cont div.title {
+	font-size: 0.9rem;
+	color: var(--greyThree);
+}
+
+.ui.force-card.card .fc-header-container .bot-cont div.content {
+	font-size: 1.5rem;
+	font-weight: bold;
+}
+
+.ui.force-card.card .fc-header-container .bot-cont div.content.primary {
+	color: var(--primaryFive);
+}
+
+.ui.force-card.card .fc-header-container .bot-cont div.content.secondary {
+	color: var(--accentFive);
+}
+
+.ui.force-card.card .fc-header-container .circular-chart-container text {
+	display: none;
+}
+
 .ui.force-card.card .fc-table-container {
 	overflow-y: auto;
 	flex-grow: 1;
 }
+
 
 div.row.prematch-header-row {
 	padding: 0 !important;
@@ -229,12 +259,32 @@ div.row.prematch-force-row .column {
 }
 
 .contents-container .ui.menu.phase-control {
+	overflow-y: auto;
 	position: absolute;
 	margin: 0;
 	left: 0;
 	top: 0;
 	height: 100%;
 	width: 12rem;
+	box-shadow: inset -4px -4px 8px #b8b9be, inset 4px 4px 8px #fff;
+}
+
+.contents-container .ui.menu.phase-control .item.turn-header {
+	font-weight: bold;	
+	z-index: 1;
+}
+
+.contents-container .ui.menu.phase-control .item:not(.turn-header) {
+	padding: 0.5rem 0 0.5rem 2rem;
+}
+
+.contents-container .ui.menu.phase-control .item.active.primary:not(.turn-header) {
+	background-color: var(--primaryFive);
+	color: #fff;
+}
+
+.contents-container .ui.menu.phase-control .item.active.secondary:not(.turn-header) {
+	background-color: var(--accentFive);
 }
 
 
@@ -270,38 +320,41 @@ div.row.prematch-force-row .column {
 	margin: 0 3.5px 0.5rem 0 !important;
 }
 
-.match-tabs .victory-point-summary { 
+.match-tabs .point-summary { 
 	text-align: center;
+	padding-top: inherit;
+	height: 5rem;
 }
 
-.match-tabs .victory-point-summary .top { 
+.match-tabs .point-summary .top { 
 	width: 50% !important;
 	float: left;
 }
 
-.match-tabs .victory-point-summary .bottom { 
+.match-tabs .point-summary .bottom { 
 	width: 50% !important;
 	float: left;
 }
 
-.match-tabs .victory-point-summary .total-primary { 
-	font-size: 3rem;
-}
-.match-tabs .victory-point-summary .total-secondary { 
+.match-tabs .point-summary .total-primary { 
 	font-size: 3rem;
 }
 
-.match-tabs .victory-point-summary .under-title { 
+.match-tabs .point-summary .total-secondary { 
+	font-size: 3rem;
+}
+
+.match-tabs .point-summary .under-title { 
 	color: var(--greyThree);
 	display: block;
 	text-align: center;
 	font-weight: bold
 }
 
-.match-tabs .victory-point-summary .total-primary.active { 
+.match-tabs .point-summary .total-primary.active { 
 	color: var(--primaryFive);
 }
-.match-tabs .victory-point-summary .total-secondary.active { 
+.match-tabs .point-summary .total-secondary.active { 
 	color: var(--accentFive);
 }
 
@@ -312,6 +365,29 @@ div.row.prematch-force-row .column {
 .input.inline-input {
 	max-width: 4rem;
 }
+
 .input.inline-input input {
 	padding: 0.4rem 1rem !important;
+}
+
+div.vertical.increment-control.tiny {
+	height: 3rem;	
+	margin: 0 !important;
+	float: left;
+}
+
+div.vertical.increment-control.tiny.secondary {
+	float: right;
+}
+
+div.vertical.increment-control.tiny  .button{
+	padding: 0.15rem 0.65rem;
+}
+
+div.vertical.increment-control.tiny .button:first-child {
+	margin-bottom: 0.25rem;
+}
+
+div.vertical.increment-control.tiny.secondary .button{
+	background-color: var(--accentFive);
 }

@@ -12,7 +12,7 @@ import { useCookies } from "react-cookie";
 import { useSpring, animated }  from 'react-spring';
 
 import { openContents, setDemoState } from './../app/actions';
-import { setMatchState } from './../war/actions';
+import { setMatchState, setBoardState } from './../war/actions';
 import { ContentTypes, apiOpts } from './../common/constants';
 import { useApi } from "./../app/useApi";
 
@@ -31,10 +31,12 @@ export const Content = props => {
 		matchState,
 		curContent,
 		windowCtx,
+		boardState,
 		demoState,
 		handleFetch,
 		openContents,
-		setMatchState
+		setMatchState,
+		setBoardState
 	} = props;
 
 	const [w, setWidth] = useState(600);
@@ -51,13 +53,17 @@ export const Content = props => {
 
 	const primaryListApi = useApi('/api/static/list/true/', 'GET', apiOpts, handleFetch);
 	const secondaryListApi = useApi('/api/static/list/false/', 'GET', apiOpts, handleFetch);
-	const [ cookies, setCookie ] = useCookies(['bellum_ai_forces', 'bellum_ai_match']);
+	const [ cookies, setCookie ] = useCookies([]);
 
 	// Store whatever data we have in a cookie before exit.
 	// TODO:  Is this good practice? Seems rude - research this.
 	const cleanupCookies = () => {
-		setCookie('bellum_ai_match', { matchState }, { path: "/" });
-		setCookie('bellum_ai_forces', { lists: [primaryList.id || 0, secondaryList.id || 0] }, { path: "/" });
+		// Only store if we're already storing
+		if (false && cookies.bellum_ai_match && cookies.bellum_ai_match.matchState.turn !== -1) {
+			setCookie('bellum_ai_match', { matchState }, { path: "/" });
+			if (primaryList && secondaryList) setCookie('bellum_ai_forces', { lists: [primaryList.id || 0, secondaryList.id || 0] }, { path: "/" });
+			setCookie('bellum_ai_board', { boardState } , { path: "/" });
+		}
 	}
 
 	// Check for a previously loaded match on mount, and jump back into it if found
@@ -77,8 +83,13 @@ export const Content = props => {
 			setMatchState(stored.matchState);
 		}
 
+		if (cookies.bellum_ai_board) {
+			console.log("setting board!" , cookies.bellum_ai_board);
+			setBoardState(cookies.bellum_ai_board.boardState);
+		}
+
 		window.addEventListener('beforeunload', cleanupCookies); // Clean up on page unload
-		return cleanupCookies; // Clean up on unmount
+		// return cleanupCookies; // Clean up on unmount
 	}, []);
 
 	useEffect(() => {
@@ -170,7 +181,8 @@ export const mapStateToProps = (state, props) => {
   	matchState: state.warReducer.matchState,
 	primaryList: state.warReducer.primaryList,
 	secondaryList: state.warReducer.secondaryList,
+	boardState: state.warReducer.boardState
   };
 };
 
-export const ContentContainer = connect(mapStateToProps, { setDemoState, openContents, setMatchState })(Content);
+export const ContentContainer = connect(mapStateToProps, { setDemoState, openContents, setMatchState, setBoardState })(Content);

@@ -6,7 +6,7 @@
 
 import React, { useMemo, useState } from 'react';
 import { connect } from 'react-redux';
-import { Button, Card, Grid, Dropdown, Popup, Modal, Tab, Input, Icon, Menu } from 'semantic-ui-react';
+import { Button, Card, Grid, Dropdown, Popup, Divider, Checkbox, Modal, Tab, Table, Input, Icon, Menu } from 'semantic-ui-react';
 
 import { openContents, setDemoState } from './../app/actions';
 import { ContentTypes } from './../common/constants';
@@ -30,6 +30,7 @@ export const Match = props => {
 		secondaryProfile,
 		matchState,
 		matchHash,
+		messages,
 
 		// Dispatched Actions
 		openContents,
@@ -42,10 +43,20 @@ export const Match = props => {
 	const [ modalContent, setModalContent ]  = useState(false);
 	const [ activeTab, setActiveTab ]  = useState(0);
 
-	const handleVpChange = (e, { playerIdx, objIdx, value }) => {
+	const handleCpChange = (e, { val, playeridx }) => {
+		let newCount = [...matchState.cpCount];
+
+		newCount[playeridx] += val;  // add -1 for a decrement
+
+		setMatchState({
+			cpCount: newCount 
+		});
+	}
+
+	const handleVpChange = (e, { playeridx, objidx, value }) => {
 		let newCount = [...matchState.vpCount];
 
-		newCount[playerIdx][objIdx] = value; 
+		newCount[playeridx + 1][objidx] = value; 
 
 		setMatchState({
 			vpCount: newCount 
@@ -64,24 +75,24 @@ export const Match = props => {
 		});
 	};
 
-	const handleObjectiveSelection = (e, { playerIdx, objIdx, value }) => {
+	const handleObjectiveSelection = (e, { playeridx, objidx, value }) => {
 		let newObjectives = [...matchState.objectives];
 
-		newObjectives[playerIdx + 1][objIdx] = value; 
+		newObjectives[playeridx + 1][objidx] = value; 
 
 		setMatchState({
 			objectives: newObjectives
 		});
 	};
 
-	const renderObjectiveDropdown = (playerIdx, objIdx) => (
+	const renderObjectiveDropdown = (playeridx, objidx) => (
 		<Dropdown
 			onChange={handleObjectiveSelection}
-			defaultValue={matchState.objectives[playerIdx + 1][objIdx]}
-			placeholder={`Secondary ${objIdx+1}...`}
+			defaultValue={matchState.objectives[playeridx + 1][objidx]}
+			placeholder={`Secondary ${objidx+1}...`}
 			options={objectiveOptions}
-			playerIdx={playerIdx}
-			objIdx={objIdx}
+			playeridx={playeridx}
+			objidx={objidx}
 			selection
 			floating
 			button
@@ -89,8 +100,21 @@ export const Match = props => {
 		/>
 	);
 
+	const renderMoveCard = (unit, i) => (
+		<Card key={i} className="move-card">
+			<Card.Header>
+				<Checkbox />
+				<span className="unit-name"> {unit.name}: </span>
+				{profile.stats.find(stat => stat.name === unit.models[0].unit).move}
+			</Card.Header>
+		</Card>
+	)
+
 	const renderPhaseContent = () => {
 		const phase = matchState.phase; 
+		if(!force) {
+			return <div/>
+		}
 		switch(phase) {
 			case 0: // 
 				return (
@@ -99,6 +123,7 @@ export const Match = props => {
 							<div> Map Size </div>
 		 					<Dropdown
 		 						button
+			 					defaultValue={0}
 		 						options={mapSizeOptions}
 								defaultValue={matchState.mapSize}
 		 						selection
@@ -130,7 +155,7 @@ export const Match = props => {
 			 						options={missionOptions}
 			 						selection
 			 						floating
-			 						onChange={(e, { value }) => handleObjectiveSelection(e, {playerIdx: -1, objIdx: 0, value})}
+			 						onChange={(e, { value }) => handleObjectiveSelection(e, {playeridx: -1, objidx: 0, value})}
 			 					/>
 							</div>
 
@@ -153,11 +178,39 @@ export const Match = props => {
 			case 1:
 				return (
 					<div className="command-content">
+						Spend your command points now.
 					</div>
 				);
 			case 2:
+				let moveBuckets = force.units.reduce((acc, unit) => {
+					const isAssault = unit.models.some(model => model.weapon.some(wep => 
+						profile.weapons.find(wepProf => wepProf.name === wep).weapontype.includes("Assault")
+					));
+					if (isAssault) {
+						acc.assault.push([unit])
+						return acc;
+					} 
+
+					const isHeavy = unit.models.some(model => model.weapon.some(wep => 
+						profile.weapons.find(wepProf => wepProf.name === wep).weapontype.includes("Heavy")
+					));
+					if (isHeavy) {
+						acc.heavy.push([unit])
+						return acc;
+					} 
+
+					acc.normal.push(unit);
+					return acc;
+				}, {assault: [], normal: [], heavy: []});
+
 				return (
 					<div className="movement-content">
+						{moveBuckets.assault.length && <Divider horizontal> <h2>Assault Units</h2> <span className="subtext"> Can dash without penalty </span> </Divider>}
+						{moveBuckets.assault.length && moveBuckets.assault.map(renderMoveCard)}
+						{moveBuckets.normal.length && <Divider horizontal> <h2>Normal Units</h2> </Divider>}
+						{moveBuckets.normal.length && moveBuckets.normal.map(renderMoveCard)}
+						{moveBuckets.heavy.length && <Divider horizontal> <h2>Heavy Units</h2> <span className="subtext"> -1 to hit after moving </span> </Divider>}
+						{moveBuckets.heavy.length && moveBuckets.heavy.map(renderMoveCard)}
 					</div>
 				);
 			case 3:
@@ -209,6 +262,7 @@ export const Match = props => {
 		switch(matchState.phase) {
 			case 0: // Setup
 				newState.turn = 1;
+				newState.activePlayer = 0;
 				break;
 			case 1: // Command
 			case 2: // Movement 
@@ -220,6 +274,7 @@ export const Match = props => {
 				break;
 			case 7: // Morale 
 				newState.phase = 1;
+				newState.turn++;
 				if (matchState.turn === 5) {
 					setModalContent("Are you sure?", "This will end the game, and is not reversible - be sure you agree on who won!");
 				}
@@ -235,32 +290,35 @@ export const Match = props => {
 	const renderPhaseControl = () => {
 		let ret = [];
 		for (let i = 0; i < 6; i++) {
-			// Add headers
-			ret.push(
-				<Menu.Item
-					as="a"
-					key={i}
-					turn={i}
-					className="turn-header"
-					onClick={handleTurnClick}
-				>
-					{i ? `Round ${i}` : 'Setup'}
-				</Menu.Item>
-			);
-
-			if (turnAccordionArr[i] && i) {
-				ret = ret.concat(phases.map((phase, j) => (
+			for (let k = 0; k < 2; k++) {
+				if (i === 0 && k === 1) continue; // There should only be one setup round
+				// Add headers for every Round+Turn combo
+				ret.push(
 					<Menu.Item
-						as="a"
-						key={i + "-" + j}
+						as="div"
+						key={i+"-"+k}
 						turn={i}
-						phase={j}
-						active={matchState.turn === i && matchState.phase === j}
-						// onClick={handlePhaseClick}
+						className="turn-header"
+						// onClick={handleTurnClick}
 					>
-						{phases[j]}
+						{i ? `ROUND ${i}-${k}` : 'SETUP'}
 					</Menu.Item>
-				)));
+				);
+
+				if (i) {
+					ret = ret.concat(phases.map((phase, j) => j ? (
+						<Menu.Item
+							as="div"
+							key={i + "-" + j + "-" + k}
+							player={k}
+							turn={i}
+							phase={j}
+							className={`${(matchState.turn === i && matchState.activePlayer === k && matchState.phase === j) ? (k ? 'secondary active' : 'primary active') : ''}`}
+						>
+							{phases[j].toUpperCase()}
+						</Menu.Item>
+					) : null));
+				}
 			}
 		}
 
@@ -268,15 +326,15 @@ export const Match = props => {
 		return ret;
 	};
 
-	const renderObjectiveBox = (playerIdx, objIdx) => (
+	const renderObjectiveVpBox = (playeridx, objidx) => (
 		<Popup
-			content={matchState.objectives[playerIdx + 1][objIdx]}
+			content={matchState.objectives[playeridx + 1][playeridx === -1 ? 0 : objidx]}
 			trigger={
 				<Input
-					defaultValue={matchState.vpCount[playerIdx][objIdx]}
-					labelPosition={playerIdx ? "right" : undefined}
-					playerIdx={playerIdx}
-					objIdx={objIdx}
+					defaultValue={matchState.vpCount[playeridx + 1][objidx]}
+					labelPosition={playeridx ? "right" : undefined}
+					playeridx={playeridx}
+					objidx={objidx}
 					onChange={handleVpChange}
 					className="inline-input"
 				/> 
@@ -288,47 +346,74 @@ export const Match = props => {
 		if (!matchState || !matchState.vpCount.length) {
 			return null;
 		}
+		
+		// Get each player's current point total
 		let totals = [
-			matchState.vpCount[0].reduce((acc, e) => acc + parseInt(e), 0),
-			matchState.vpCount[1].reduce((acc, e) => acc + parseInt(e), 0),
+			matchState.vpCount[1].reduce((acc, e) => acc + parseInt(e), 0) + parseInt(matchState.vpCount[0][0]),
+			matchState.vpCount[2].reduce((acc, e) => acc + parseInt(e), 0) + parseInt(matchState.vpCount[0][1]),
 		];
 
 		return (
 			<Grid doubling>
 				<Grid.Row>
 					{/* Victory Points */}
-					<Grid.Column width={4} className="victory-point-summary">
+					<Grid.Column width={6} className="point-summary">
 						<span className={`total-primary ${totals[0] > totals[1] ? "active" : ""}`}> {isNaN(totals[0]) ? 0 : totals[0]} </span> /
 						<span className={`total-secondary ${totals[1] > totals[0] ? "active" : ""}`}> {isNaN(totals[1]) ? 0 : totals[1]} </span>
-						<span className="under-title"> VICTORY POINTS</span>
+						<span className="under-title">VICTORY POINTS</span>
 					</Grid.Column>
 
-					<Grid.Column width={12} className="objective-controls">
+					<Grid.Column width={10} className="objective-controls">
 						<div className="top">
-							{renderObjectiveBox(0, 0)}
-							{renderObjectiveBox(0, 1)}
-							{renderObjectiveBox(0, 2)}
-							{renderObjectiveBox(0, 3)}
+							{renderObjectiveVpBox(-1, 0)}
+							{renderObjectiveVpBox(0, 0)}
+							{renderObjectiveVpBox(0, 1)}
+							{renderObjectiveVpBox(0, 2)}
 						</div>
 						<div className="bottom">
-							{renderObjectiveBox(1, 0)}
-							{renderObjectiveBox(1, 1)}
-							{renderObjectiveBox(1, 2)}
-							{renderObjectiveBox(1, 3)}
+							{renderObjectiveVpBox(-1, 1)}
+							{renderObjectiveVpBox(1, 0)}
+							{renderObjectiveVpBox(1, 1)}
+							{renderObjectiveVpBox(1, 2)}
 						</div>
 					</Grid.Column>
 				</Grid.Row>
 
-				{/* Command Points */}
+				{/* Victory Points */}
 				<Grid.Row>
-					<Grid.Column className="victory-point-summary">
-						VP: 
-						<span className={`total-primary ${totals[0] > totals[1] ? "active" : ""}`}> {totals[0]} </span> /
-						<span className={`total-secondary ${totals[1] > totals[0] ? "active" : ""}`}> {totals[1]} </span>
+					<Grid.Column width={6} className="point-summary">
+						<Button.Group vertical size="tiny" className="increment-control">
+							<Button icon val={1} playeridx={0} onClick={handleCpChange}> <Icon name="plus" /> </Button>
+							<Button icon val={-1} playeridx={0} onClick={handleCpChange}> <Icon name="minus" /> </Button>
+						</Button.Group>
+
+						{/* values */}
+						<span className='total-primary'> {isNaN(matchState.cpCount[0]) ? 0 : matchState.cpCount[0]} </span> /
+						<span className='total-secondary'> {isNaN(matchState.cpCount[1]) ? 0 : matchState.cpCount[1]} </span>
+
+						<Button.Group vertical size="tiny" className="increment-control secondary">
+							<Button icon val={1} playeridx={1} onClick={handleCpChange}> <Icon name="plus" /> </Button>
+							<Button icon val={-1} playeridx={1} onClick={handleCpChange}> <Icon name="minus" /> </Button>
+						</Button.Group>
+						<span className="under-title"> COMMAND POINTS</span>
 					</Grid.Column>
 				</Grid.Row>
 
 				<Grid.Row>
+					<span className="neu-table-title"> MESSAGES </span>
+					<Table className="neu">
+						<Table.Body>
+							{matchState.activePlayer >= 0 && messages[matchState.activePlayer].map((msg, i) => (
+								<Table.Row key={"msg"+i}>
+								</Table.Row>
+							))}
+						</Table.Body>	
+					</Table>
+					{(matchState.activePlayer < 0 || !messages[matchState.activePlayer]) && (
+						<div className="table-empty-message">
+							Warnings and alerts will appear here when identified.
+						</div>
+					)}
 				</Grid.Row>
 			</Grid>
 		);
@@ -340,12 +425,18 @@ export const Match = props => {
 		openContents(ContentTypes.PostMatch);
 	};
 
+	// --------------------
+	// FUNCTIONAL LIFECYCLE
+	// --------------------
+
+	const force = useMemo(() => matchState.activePlayer ? secondaryList : primaryList, [matchHash]);
+	const profile = useMemo(() => matchState.activePlayer ? secondaryProfile : primaryProfile, [matchHash]);
 	const content = useMemo(renderPhaseContent, [ matchState.phase, matchHash ]);
-	const phaseControlArray = useMemo(renderPhaseControl, [ matchState.phase, matchHash ]);
+	const phaseControlArray = useMemo(renderPhaseControl, [ matchState.phase, matchHash, turnAccordionArr ]);
 	const tabPanes = useMemo(() => ([
 		{
 			menuItem: (
-				<Menu.Item as="div" className="tab-menu-item inline">
+				<Menu.Item key={0} as="div" className="tab-menu-item inline">
 					<Icon size="large" name="balance scale"/>
 					<span> Match Status </span>
 				</Menu.Item>
@@ -354,7 +445,7 @@ export const Match = props => {
 		},
 		{
 			menuItem: (
-				<Menu.Item as="div" className="tab-menu-item inline">
+				<Menu.Item key={1} as="div" className="tab-menu-item inline">
 					<Icon size="large" name="address card outline" />
 					<span> Force Status </span>
 				</Menu.Item>
@@ -365,7 +456,7 @@ export const Match = props => {
 		},
 		{
 			menuItem: (
-				<Menu.Item as="div" className="tab-menu-item inline secondary">
+				<Menu.Item key={2} as="div" className="tab-menu-item inline secondary">
 					<Icon size="large" name="address card outline"/>
 					<span> Opponent Status </span>
 				</Menu.Item>
@@ -381,7 +472,7 @@ export const Match = props => {
 	return (
 		<React.Fragment>
 			<div className="top-right-container">
-				<Button className="primaryButton" onClick={advancePhase} > Finish {phases[matchState.turn]} Phase </Button>
+				<Button className="primaryButton" onClick={advancePhase} > Finish {phases[matchState.phase]} Phase </Button>
 			</div>
 
 			<Menu vertical className="phase-control">
@@ -404,6 +495,7 @@ export const Match = props => {
 					</Card.Group>
 				</div>
 			)}
+
 
 			<Modal open={modalContent.length}>
 				<Modal.Header> {modalContent[0]} </Modal.Header>
@@ -428,7 +520,8 @@ export const mapStateToProps = (state, props) => {
 	  	primaryProfile: state.warReducer.primaryProfile,
 	  	secondaryProfile: state.warReducer.secondaryProfile,
 	  	matchState: state.warReducer.matchState,
-	  	matchHash: state.warReducer.matchHash
+	  	matchHash: state.warReducer.matchHash,
+	  	messages: state.warReducer.messages
     };
 };
 

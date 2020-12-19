@@ -74,8 +74,6 @@ export const parsePlainText = str => {
 	newArmy.cp = parseInt(tmpArr[1]);
 	newArmy.points = parseInt(tmpArr[2].replace(/,/g, ""));
 
-	// console.log("Parsed newArmy meta values: ", newArmy, tmpArr);
-
 	// Count the number of detachment header lines
 	const numDetachments = lines.filter(line => line.match(regex.detachmentHeader)).length;
 	console.log("Dealing with ", numDetachments, " detachments.");

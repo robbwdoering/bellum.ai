@@ -55,6 +55,18 @@ export const Ang2Vec = (ang, len=1) => (
 	P2(Math.cos(D2R(ang)) * len,Math.sin(D2R(ang)) * len)
 );
 
+export const inch = 0.2254;
+export const decommInch = (inchPos, boardCorner) => [
+  boardCorner[0] + (inchPos[0] * inch),
+  0.3,
+  boardCorner[2] + (inchPos[1] * inch)
+];
+
+export const commInch = (threePos, boardCorner) => [
+  (threePos[0] - boardCorner[0]) / inch,
+  (threePos[2] - boardCorner[2]) / inch
+];
+
 export const projTypes = {
   PixelBimetric : {
     xAxis : P2(1 , 0.5) ,
@@ -153,4 +165,3 @@ export const ballGridPos = [
   [5, sqrt3],
 ];
 
-export const inch = 0.0415;

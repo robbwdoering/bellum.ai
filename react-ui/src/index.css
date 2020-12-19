@@ -39,6 +39,13 @@ span.subtitle {
   margin-top: -1rem;
 }
 
+#root {
+  height: 100%;
+}
+
+.App {
+  height: 100%;
+}
 .ui.menu .item {
   transition: none !important;
 }

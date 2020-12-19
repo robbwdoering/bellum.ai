@@ -5,7 +5,7 @@ const constants = require('./constants');
 
 /**
  * Calculates the expected damage for one weapon for one unit against one enemy.
- * The building block upon which the shooting phase is built upon - treat with reverence and care.
+ * The building block upon which the shooting phase is built - treat with reverence and care.
  */
 const fireSalvo = (model, wepProfile, ctx, profile, target) => {
 	let shotPd, successPr, hitPr, woundPr, savePr, avgDamage, tmpVal;
@@ -110,6 +110,7 @@ const fireSalvo = (model, wepProfile, ctx, profile, target) => {
 };
 exports.fireSalvo = fireSalvo;
 
+// WARNING - code below this line is a serious WIP
 // ---- Divination Tool Options 
 // Command 
 	// 0.0 Calc tracking status for NN + graphs ( EVERY PHASE DOES THIS in n.0)
@@ -156,7 +157,7 @@ exports.fireSalvo = fireSalvo;
 // Charge 
 // Fight 
 // Morale 
-	// Gain Victory Points
+// Gain Victory Points
 
 /**
  * 3.1 Calc the enemy's shooting options within engagement range

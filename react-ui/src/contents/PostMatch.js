@@ -38,7 +38,7 @@ export const PostMatch = props => {
 		setMatchState
 	} = props;
 
-	const [cookies, setCookie, removeCookie] = useCookies(['bellum_ai_match', 'bellum_ai_forces']);
+	const [cookies, setCookie, removeCookie] = useCookies(['bellum_ai_match', 'bellum_ai_forces', 'bellum_ai_board']);
 
 	useEffect(() => {
 		// When we enter this screen, end the match
@@ -50,6 +50,7 @@ export const PostMatch = props => {
 
 		removeCookie('bellum_ai_forces', { path: '/' });
 		removeCookie('bellum_ai_match', { path: '/' });
+		removeCookie('bellum_ai_board', { path: "/" });
 	}, []);
 
 	return (

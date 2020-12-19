@@ -16,7 +16,7 @@ export const useApi = (url, method, options = {}, handleFetch, data, execute = t
 
     const perform = async (urlSuffix, overrideValues, overrideMethod) => {
         let count = 20;
-        while ((!isAuthenticated || !user) && count > 0) {
+        while ((!isAuthenticated && !user) && count > 0) {
             count--;
             console.log("We're not authenticated - looping.");
             await sleep(1000);

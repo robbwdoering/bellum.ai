@@ -21,10 +21,12 @@ const initialState = {
 		turn: -1,
 		phase: -1,
 		activePlayer: -1,
+		mapSize: 0,
 		cpCount: [0, 0],
 		vpCount: [
-			[0, 0, 0, 0],
-			[0, 0, 0, 0]
+			[0, 0],
+			[0, 0, 0],
+			[0, 0, 0]
 		],
 		objectives: [
 			[null], // Primary
@@ -32,17 +34,17 @@ const initialState = {
 			[null, null, null]
 		]
 	},
-	matchHash: 0,
-	prematchData: {
-		primary: {},
-		secondary: {},
-		isPrimary: {}
+	boardState: {
+		units: [[], []]
 	},
+	boardHash: 0,
+	matchHash: 0,
+	// One array for each player
+	messages: [[], []],
 	chartData: {
 		scorecards: [ null, null ]
 	},
-	chartHash: 0,
-	chartQueue: []
+	chartHash: 0
 };
 
 export const warReducer = (state = initialState, action) => {
@@ -58,6 +60,12 @@ export const warReducer = (state = initialState, action) => {
 			newState.primaryList = action.payload.results;
 			newState.primaryProfile = action.payload.profiles;
 
+			if (!newState.boardState.units[0].length ) {
+				console.log("re-setting boardState: ", newState.boardState)
+				newState.boardState.units[0] = action.payload.results.units.map((e, i) => newBoardUnit(e, i, action.payload.profiles, true));
+				newState.boardHash++;
+			}
+
 			// Parse id
 			metaEntry = newState.metalist.find(item => item.name === newState.primaryList.name);
 			if (metaEntry) {
@@ -71,6 +79,12 @@ export const warReducer = (state = initialState, action) => {
 			newState.secondaryList = action.payload.results;
 			newState.secondaryProfile = action.payload.profiles;
 
+			if (!newState.boardState.units[1].length) {
+				newState.boardState.units[1] = action.payload.results.units.map((e, i) => newBoardUnit(e, i, action.payload.profiles));
+				newState.boardHash++;
+			}
+
+			console.log("got boardState: ", newState.boardState)
 			metaEntry = newState.metalist.find(item => item.name === newState.secondaryList.name);
 			if (metaEntry) {
 				newState.secondaryList.id = metaEntry.id;
@@ -109,6 +123,12 @@ export const warReducer = (state = initialState, action) => {
 			newState.matchHash++;
 			return newState;
 
+		case WarActions.SET_BOARD_STATE:
+			Object.assign(newState.boardState, action.payload);
+			console.log("setting board state: ", newState.boardState, action.payload)
+			newState.boardHash++;
+			return newState;
+
 		case WarActions.SET_CHART_DATA:
 			console.log("SET_CHART_DATA received: ", action.payload)
 			Object.assign(newState.chartData, action.payload);
@@ -126,21 +146,10 @@ export const warReducer = (state = initialState, action) => {
 			newState.chartHash++;
 			return newState;
 
-		case WarActions.REQUEST_CHART_REFRESH:
-			newState.chartQueue.push(action.payload);
+		case WarActions.UPDATE_UNIT:
+			console.log("UPDATE UNIT received: ", action, newState.boardState.units[action.playerIdx])
+			Object.assign(newState.boardState.units[action.playerIdx][action.unitIdx], action.payload);
 			return newState;
-
-		case WarActions.CLEAR_CHART_QUEUE:
-			newState.chartQueue = [];
-			return newState;
-
-		case WarActions.SET_TEST_DATA:
-			Object.assign(newState, demoData);
-			newState.metalistHash++;
-			return newState;
-
-		default:
-			console.warn("Received war action of unknown type.");
 	}
 
 	// Default: return state
@@ -158,3 +167,24 @@ const cleanStrInput = str => {
 
 	return ret;
 };
+
+// Translate a unit from the normal format into what the board wants
+const newBoardUnit = (unit, i, profile, isPrimary) => {
+	return {
+		// Position in inches - in rows along the long board edges, separated by force
+		pos: [
+			4 + ((i*4) % 40),
+			isPrimary ? (3 + Math.ceil(i / 10) * 3) : 26 - (3 * Math.ceil(i / 10))
+		],
+
+		// Start everyone at full health
+		wounds: unit.models.reduce((res, model) => {
+			let stat = profile.stats.find(e => e.name === model.unit)
+			for (let j = 0; j < model.quanitity; j++) {
+				res.push(stat.wounds);
+			}
+
+			return res;	
+		}, []),
+	};
+}

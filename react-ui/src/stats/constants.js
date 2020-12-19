@@ -24,8 +24,9 @@ export const ChartTypes = {
 
 	LightResil: "LightResil",
 	MedResil: "MedResil",
-	ToughResil: "ToughResil",
-	TankResil: "TankResil",
+	AntihordeResil: "AntihordeResil",
+	AntitankResil: "AntitankResil",
+
 	Move: "Move",
 	Range: "Range",
 	Screen: "Screen",
@@ -54,7 +55,8 @@ export const statCategories = {
 	},
 	resil: {
 		title: "Resilience",
-		charts: ['invuln', 'toughness', 'feelNoPain', 'resilAttrCount']
+		charts: [ChartTypes.LightResil, ChartTypes.MedResil, ChartTypes.AntihordeResil, ChartTypes.AntitankResil]
+		// charts: ['invuln', 'toughness', 'feelNoPain', 'resilAttrCount']
 	},
 }
 
@@ -94,6 +96,26 @@ export const getChartConfig = (type) => {
 			return {
 				title: 'Damage vs. Heavy',
 				tooltip: 'If the whole force targeted heavy targets like Land Raiders for a turn, they would deal this much damage',
+			};
+		case ChartTypes.LightResil: 
+			return {
+				title: 'Damage from Light',
+				tooltip: 'If the whole force was targeted by light weapons like boltguns for a turn, they would take this much damage',
+			};
+		case ChartTypes.MedResil: 
+			return {
+				title: 'Damage from Medium',
+				tooltip: 'If the whole force was targeted by medium targets like storm bolters for a turn, they would take this much damage',
+			};
+		case ChartTypes.AntihordeResil: 
+			return {
+				title: 'Damage from Anti-Horde',
+				tooltip: 'If the whole force was targeted by anti-horde targets like Plasma Cannons for a turn, they would take this much damage',
+			};
+		case ChartTypes.AntitankResil: 
+			return {
+				title: 'Damage from Anti-Tank',
+				tooltip: 'If the whole force was targeted by anti-tank targets like Lascannons for a turn, they would take this much damage',
 			};
 		default:
 			return {};

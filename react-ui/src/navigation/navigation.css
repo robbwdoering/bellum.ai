@@ -4,6 +4,11 @@
 	background-color: #0c0c0c;
 }
 
+.dashboard .ui.card.db-sidebar-menu {
+	float: right;
+	margin-right: 5rem;
+}
+
 .dashboard .ui.db-header.menu {
 	background: transparent !important;
 	position: fixed;
@@ -12,11 +17,13 @@
 	border: none !important;
 	box-shadow: none !important;
 	width: 100%;
+	pointer-events: none;
 }
 
 .dashboard .ui.db-header.menu .item {
 	border: none !important;
 	box-shadow: none !important;
+	pointer-events: auto;
 }
 
 div.ui.overlay.top.visible.sidebar.db-sidebar {

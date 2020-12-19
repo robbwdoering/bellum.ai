@@ -33,9 +33,6 @@ const App = props => {
 			return;
 		}
 		switch (json.type) {
-			case AppActions.TEST_ACTION:
-				testAction(json.payload);
-				break;
 			case AppActions.CONFIG_PANE:
 				configPane(json.payload);
 				break;

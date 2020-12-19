@@ -45,6 +45,7 @@ export const CircularChart = props => {
 		data,
 
 		// Redux
+		chartHash
 
 		// Dispatched Actions
 	} = props;
@@ -53,8 +54,9 @@ export const CircularChart = props => {
 
 	const [currentChart, setCurrentChart] = useState(defaultValue || "radar");
 
+	console.log('rendering...', chartHash, data);
 	return (
-		<div ref={ref} className="circular-chart-container">
+		<div ref={ref} hash={chartHash} className="circular-chart-container">
 			{currentChart === "radar" && data && (
 				<Radar
 					width={height}

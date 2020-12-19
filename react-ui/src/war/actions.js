@@ -18,9 +18,25 @@ export const clearChartQueue = () => {
 	};
 }
 
+export const setBoardState = payload => {
+	return {
+		type: WarActions.SET_BOARD_STATE,
+		payload
+	};
+}
+
 export const setMatchState = payload => {
 	return {
 		type: WarActions.SET_MATCH_STATE,
+		payload
+	};
+}
+
+export const updateUnit = (playerIdx, unitIdx, payload) => {
+	return {
+		type: WarActions.UPDATE_UNIT,
+		unitIdx,
+		playerIdx,
 		payload
 	};
 }

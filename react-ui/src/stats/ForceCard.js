@@ -24,11 +24,14 @@ export const ForceCard = props => {
 		data,
 		style,
 		profile,
+		playerIdx,
 
 		// Redux
 		metalist,
 		metalistHash,
 		listHash,
+		chartData,
+		chartHash,
 
 		// Dispatched Actions
 	} = props;
@@ -110,19 +113,21 @@ export const ForceCard = props => {
 	);
 
 	const calcPolarConfig = () => {
-		return !header ? {} : {
+		console.log("GENERATING POLAR CFG", chartData);
+		return (!chartData || !chartData.scorecards[playerIdx] || !chartData.scorecards[playerIdx].shoot) ? { chartHash } : {
 			height: 120,
 			width: 120,
+			chartHash,
 			data: {
 				variables: getChartConfig(ChartTypes.SummaryRadar).variables,
 				sets: [{
 					key: 1,
 					label: 'Force Scores',
 					values: {
-						shoot: header.shoot,
-						fight: header.fight,
-						control: header.control,
-						resil: header.resil 
+						shoot: chartData.scorecards[playerIdx].shoot.score,
+						fight: chartData.scorecards[playerIdx].fight.score,
+						control: chartData.scorecards[playerIdx].control.score,
+						resil: chartData.scorecards[playerIdx].resil.score 
 					}
 				}]
 			}
@@ -136,7 +141,7 @@ export const ForceCard = props => {
 	const header = useMemo(() => data && metalist && metalist.find(e => e.id === data.id), [data && data.id, metalistHash]);
 
 	// Fetch data and size for the chart
-	const polarConfig = useMemo(calcPolarConfig, [style, listHash]);
+	const polarConfig = useMemo(calcPolarConfig, [style, listHash, chartHash]);
 
 	// Populate the table
 	const unitRows = useMemo(renderAllUnits, [listHash, unitShowIdx] );
@@ -157,6 +162,10 @@ export const ForceCard = props => {
 				(profile && profile.stats.find) && [
 					<div key={'fcheader'} className="fc-header-container">
 						<CircularChartContainer type={ChartTypes.SummaryRadar} {...polarConfig} />
+						<div className="bot-cont">
+							<div className="title"> POINTS </div>
+							<div className={"content " + (playerIdx ? "secondary" : "primary")}> {header.points} </div>
+						</div>
 					</div>,
 					<div key={'fctable'} className="fc-table-container">
 						<Table sortable basic="very" style={{ width: '100%' }}>
@@ -207,6 +216,8 @@ export const mapStateToProps = (state, props) => {
 		metalist: state.warReducer.metalist,
 		metalistHash: state.warReducer.metalistHash,
 		listHash: state.warReducer.listHash,
+		chartData: state.warReducer.chartData,
+		chartHash: state.warReducer.chartHash,
 	};
 };
 

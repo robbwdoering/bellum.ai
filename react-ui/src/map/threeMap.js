@@ -12,8 +12,6 @@ import { Button, Card, Grid, Header, Input, Icon, Loading, Menu, Sidebar } from 
 import { Canvas, useFrame, useThree, useLoader, extend } from 'react-three-fiber';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-// import { RenderPass } from 'three/examples/jsm/controls/RenderPass';
-// import { GlitchPass } from 'three/examples/jsm/controls/GlitchPass';
 
 import { useUpdate, useSpring, useSprings, animated, config }  from 'react-spring';
 import { a, useTransition, Transition } from '@react-spring/three';
@@ -22,96 +20,15 @@ import { useDrag, useGesture } from "react-use-gesture";
 import './map.css';
 import * as shapeLib from './shapeLib';
 import * as styleLib from './styleLib';
-import { testUnits, ballGridPos, inch } from './constants';
+import { testUnits, ballGridPos, inch, decommInch, commInch } from './constants';
 import { ctrlHover } from './actions';
+import { updateUnit } from './../war/actions';
 import { SplashControls } from './mapPanes';
 
 // Extend will make OrbitControls available as a JSX element called orbitControls for us to use.
 extend({ OrbitControls });
 
-
-const OctahedronSpringExample = () => {
-	const [active, setActive] = useState(false)
-	const [hovered, setHover] = useState(false)
-
-	const vertices = [[-1, 0, 0], [0, 1, 0], [1, 0, 0], [0, -1, 0], [-1, 0, 0]]
-
-	const { color, pos, ...props } = useSpring({
-		color: active ? 'hotpink' : 'white',
-		pos: active ? [0, 0, 2] : [0, 0, 0],
-		'material-opacity': hovered ? 0.6 : 0.25,
-		scale: active ? [1.5, 1.5, 1.5] : [1, 1, 1],
-		rotation: active ? [THREE.Math.degToRad(180), 0, THREE.Math.degToRad(45)] : [0, 0, 0],
-		config: { mass: 10, tension: 1000, friction: 300, precision: 0.00001 }
-	})
-	return (
-		<a.mesh onPointerUp={e => {console.log("Clicked!"); setActive(!active)}} onPointerOver={e => setHover(true)} onPointerOut={e => setHover(false)} {...props}>
-			<octahedronGeometry attach="geometry" />
-			<meshStandardMaterial attach="material" color="grey" />
-		</a.mesh>
-	);
-};
-
-const Swarm = (props) => {
-	const { count, mouse, position } = props;
-	const mesh = useRef();
-	const grp = useRef();
-	// const { size, viewport } = useThree();
-	// const aspect = size.width / viewport.width;
-
-	const dummy = useMemo(() => new THREE.Object3D(), []);
-
-	const setup = () => {
-		let theta, phi, r, x, y, z, v;
-		const temp = []
-
-		for (let i = 0; i < count; i++) {
-			// Calculate polars
-			theta = 200 * Math.random() * Math.PI * 2;
-			v = 200 * Math.random();
-			phi = Math.acos((2 * v) - 1);
-			r = Math.pow(200, 1/3);
-
-			// Calculate cartesians
-			x = r * Math.sin(phi) * Math.cos(theta);
-			y = r * Math.sin(phi) * Math.sin(theta);
-			z = r * Math.cos(phi); 
-
-			// Update the dummy object
-			dummy.position.set(x, y, z);
-			dummy.scale.set(.01, .01, .01);
-			dummy.updateMatrix()
-
-			// Set this mesh matrix to clone the dummy object
-			mesh.current.setMatrixAt(i, dummy.matrix);
-		};
-	};
-
-	// Initalize the point values
-	useEffect(setup, [count]);
-
-	useFrame(() => {
-		mesh.current.rotation.y -= 0.00025;
-		mesh.current.rotation.x += 0.00025;
-		// mesh.current.rotation.x += 0.005;
-	});
-
-	// Render `count` number of these cloned meshes
-	return (
-		<instancedMesh ref={mesh} args={[null, null, count]} position={position} >
-			<dodecahedronBufferGeometry attach="geometry" args={[1, 0]} />
-			<meshStandardMaterial attach="material" color="#fff" />
-		</instancedMesh>
-	);
-}
-
 const Unit = (props) => {
-	// const { unit, position } = props;
-	// const mesh = useRef();
-	// const grp = useRef();
-	// const { size, viewport } = useThree();
-	// const aspect = size.width / viewport.width;
-
 	const { cfg, onPointerDown, unit, ctrlHover, initPos } = props;
 	const numModels = useMemo(() => unit.models ? unit.models.reduce((acc, m) => acc + (m.quantity || 1), 0) : 0, [unit]);
 	const dummy = useMemo(() => new THREE.Object3D(), []);
@@ -122,7 +39,7 @@ const Unit = (props) => {
 			type: "ADD",
 			name: "UNIT-HOVER",
 			component: (
-				<Card className="unit-popup" style={{left: e.pageX, top: e.pageY}} > 
+				<Card key={e.pageX} className="unit-popup" style={{left: e.pageX, top: e.pageY}} > 
 					<Card.Header> {unit.name} </Card.Header>
 					<Card.Content> {numModels} models </Card.Content>
 				</Card> 
@@ -135,330 +52,72 @@ const Unit = (props) => {
 	}
 
 	const setup = () => {
-		const temp = []
-		dummy.scale.set(.01, .01, .01);
+		if (mesh.current) {
+			const temp = []
+			dummy.scale.set(.01, .01, .01);
 
-		console.log("Processed unit " + unit.name + " with " + numModels + " models.", initPos);
+			for (let i = 0; i < numModels; i++) {
+				const [x, y] = ballGridPos[i];
 
-		for (let i = 0; i < numModels; i++) {
-			const [x, y] = ballGridPos[i];
+				// Update the dummy object
+				dummy.position.set(initPos[0] + x*inch, initPos[1], initPos[2] + y * inch);
+				dummy.scale.set(1, 0.25, 1);
+				dummy.updateMatrix();
 
-			// Update the dummy object
-			dummy.position.set(initPos[0] + x*inch, initPos[1], initPos[2] + y*inch);
-			dummy.scale.set(1, 0.25, 1);
-			dummy.updateMatrix();
-			console.log("setting point to ", dummy.position)
-
-			// Set this mesh matrix to clone the dummy object
-			mesh.current.setMatrixAt(i, dummy.matrix);
-		};
+				// Set this mesh matrix to clone the dummy object
+				mesh.current.setMatrixAt(i, dummy.matrix);
+			};
+		}
 	};
 
-	// Initalize the point values
-	useEffect(setup, [unit]);
-
-	// useFrame(() => {
-	// 	mesh.current.rotation.y -= 0.00025;
-	// 	mesh.current.rotation.x += 0.00025;
-	// 	// mesh.current.rotation.x += 0.005;
-	// });
-
-	// TODO: Get models working
-
 	return (
-		<group key={unit.name}>
-		    <a.mesh
-		    	position={initPos}
-		    	scale={[inch, 0.02, inch]}
-		    	{...cfg}
-		    	onPointerDown={onPointerDown}
-		    	onPointerEnter={hover}
-		    	onPointerLeave={leave}
-			>
-		        <sphereBufferGeometry attach="geometry" args={[0.2, 0.2, 0.2]} />
-		        <meshStandardMaterial roughness={0.5} attach="material" color='#ef626c' />
-		    </a.mesh>
-	 	 	<instancedMesh ref={mesh} args={[null, null, numModels]} >
-				<sphereBufferGeometry attach="geometry" args={[inch, 16, 16]} />
-				<meshStandardMaterial attach="material" color="#ccc" />
-	 	 	</instancedMesh>
-		</group>
-    );
-}
-
-const DotPlane = props => {
-	const { rows, cols, position } = props;
-	const dummy = useMemo(() => new THREE.Object3D(), []);
-	const mesh = useRef();
-	const grp = useRef();
-
-	useEffect(() => {
-		let theta, phi, r, x, y, z, v;
-		const temp = []
-
-		for (let row = 0; row < rows; row++) {
-			for (let col = 0; col < cols; col++) {
-				// Update the dummy object
-				dummy.position.set(row / 10, 0, col / 10);
-				dummy.scale.set(.01, .01, .01);
-				dummy.updateMatrix()
-				console.log("rendering point @", {x, y, z});
-
-				mesh.current.setMatrixAt((row * cols) + col, dummy.matrix);
-			}
-		}
-	}, [rows, cols]);
-
-	return (
-		<instancedMesh ref={mesh} args={[null, null, rows * cols]} position={position}>
-			<dodecahedronBufferGeometry attach="geometry" args={[1, 0]} />
-			<meshStandardMaterial attach="material" color="#ccc" />
-		</instancedMesh>
-	)
-};
-
-function BoxTwo(props) {
-  const [active, setActive] = useState(0)
-
-  const { rot } = useSpring(() => ({
-  	loop: true,
-  	from: { rot : 0},
-  	to: { rot : 180},
-  }));
-
-
-  // interpolate values from commong spring
-  // const scale = spring.to([0, 1], [1, 3])
-  // const otherScale = spring.to([0, 1], [1, 0.1])
-  // const rotation = spring.to([0, 1], [0, Math.PI])
-  // const color = spring.to([0, 1], ['#6246ea', '#e45858'])
-  const scale = 1; 
-  const otherScale = 1;
-
-  return (
-    <a.mesh rotation-y={rot} scale-y={otherScale} scale-x={scale} scale-z={scale}
-		onClick={e => console.log('click')}
-		onWheel={e => console.log('wheel spins')}
-		onPointerUp={e => console.log('up')}
-		onPointerDown={e => console.log('down')}
-		onPointerOver={e => console.log('hover')}
-		onPointerOut={e => console.log('unhover')}
-		onPointerMove={e => console.log('move')}
-		onUpdate={self => console.log('props have been updated')}
-	>
-        <boxBufferGeometry attach="geometry" args={[1, 1, 1]} />
-        <a.meshStandardMaterial roughness={0.5} attach="material" color='#999' />
-    </a.mesh>
-  )
-}
-
-function Box(props) {
-  const [active, setActive] = useState(0)
-
-  const { spring } = useSpring({
-    spring: active,
-    config: { mass: 5, tension: 400, friction: 50, precision: 0.0001 }
-  })
-
-  // interpolate values from commong spring
-  const scale = spring.to([0, 1], [1, 3])
-  const otherScale = spring.to([0, 1], [1, 0.1])
-  const rotation = spring.to([0, 1], [0, Math.PI])
-  const color = spring.to([0, 1], ['#6246ea', '#e45858'])
-
-  return (
-    <a.mesh rotation-y={rotation} scale-y={otherScale} scale-x={scale} scale-z={scale} onClick={() => setActive(Number(!active))}>
-      <boxBufferGeometry attach="geometry" args={[1, 1, 1]} />
-      <a.meshStandardMaterial roughness={0.5} attach="material" color={color} />
-    </a.mesh>
-  )
-}
-
-const Drg = (props) => {
-	const [active, setActive] = useState(0)
-
-	// const { spring } = useSpring({
-	// 	spring: active,
-	// 	config: { mass: 5, tension: 400, friction: 50, precision: 0.0001 }
-	// })
-
-	const ref = useRef({isDragging: false, difX: 0, difY: 0});
-	const myRef = useRef();
-    const [pos, setPos] = useState()
-
-    const down = (e) => {
-    	console.log("pointer down", e);
-    	ref.current.isDragging = true;
-    };
-
-    const up = (e) => {
-    	console.log("pointer up", e);
-    	ref.current.isDragging = false;
-    };
-
-    const move = (e) => {
-    	if (ref.current && ref.current.isDragging) {
-	    	myRef.current.position.x = e.point.x; 
-	    	myRef.current.position.z = e.point.z; 
-    	}
-    };
-
-    // TODO: 
-    // TODO: Have board manage all dragging - it should know what to do
-    // Maybe have a plane that contains everything as children?
-   	useFrame(() => {
-   		myRef.current.rotation.y += 0.01;
-   		if (ref.current.isDragging) {
-
-   		}
-   	});
-
-    return (
-        <mesh 
-	        // position-x={ref.current.x}
-	        // position-y={ref.current.y}
-	        // position-z={ref.current.z}
-	        ref={myRef}
-	        onPointerDown={down}
-	        onPointerMove={move}
-	        onPointerUp={up}
-	        position={[0, 0, 2]}
-        >
-            <boxBufferGeometry attach="geometry" />
-            <meshLambertMaterial attach="material" color="#0f0" />
-        </mesh>
-    );
-};
-
-const SphereTwo = props => {
-	const { position } = props;
-	const { scene, gl } = useThree();
-	const [show, setShow] = useState(true);
-
-	// The cubeRenderTarget is used to generate a texture for the reflective sphere. 
-	// It must be updated on each frame in order to track camera movement and other changes
-	const cubeRenderTarget = new THREE.WebGLCubeRenderTarget(256, {format: THREE.RGBFormat, generateMipmaps: true, minFilter: THREE.LinearMipmapLinearFilter});
-	const cubeCamera = new THREE.CubeCamera(1, 1000, cubeRenderTarget);
-	cubeCamera.position.set(0, 1, 0);
-	scene.add(cubeCamera);
-
-	// const transition = useTransition(show, null, {
-	// 	from: {position: [0, 5, -5]},
-	// 	enter: {position: [0, 50, -10]},
-	// 	leave: {position: [0, -50, -10]}
-	// });
-	// const transition = useTransition(true, {
-	// 	from: {positionY: 50},
-	// 	enter: {positionY: 5},
-	// 	leave: {positionY: 50}
-	// });
-
-	// Update the cubeCamera with current renderer and scene.
-	useFrame(() => cubeCamera.update(gl, scene));
-
-	// return transition.map((e, i) => (
-	// return transition()
-	return (
-		<Transition
-			items={show}
-			from={{position: [-2, 5, -5]}}
-			enter={{position: [0, 5, -5]}}
-			leave={{position: [2, 5, -5]}}
-			onStart={(one, two) => console.log("HEY!", one, two)}
-			onRest={(one, two) => console.log("HEY2", one, two)}
+	    <a.mesh
+	    	position={initPos}
+	    	scale={[3 * inch, inch / 2, 3 * inch]}
+	    	{...cfg}
+	    	onPointerDown={onPointerDown}
+	    	onPointerEnter={hover}
+	    	onPointerLeave={leave}
 		>
-			{(values, item) => {
-				console.log("Transitioning w/ ", values, item);
-				return <a.mesh key={"KEY1"} position={values.position} visible >
-					<sphereGeometry attach="geometry" args={[1, 32, 32]} />
-					<a.meshBasicMaterial
-						attach="material"
-						// envMap={cubeCamera.renderTarget.texture}
-						color="white"
-						roughness={0.1}
-						metalness={1}
-					/>
-				</a.mesh>
-			}}
-		</Transition>
-	);
+	        <sphereBufferGeometry attach="geometry" args={[0.2, 0.2, 0.2]} />
+	        <meshStandardMaterial roughness={0.5} attach="material" color='#ef626c' />
+	    </a.mesh>
+    );
 }
-
-export const Sphere = props => {
-	const { position } = props;
-
-	// Gen render target
-	const loader = new THREE.TextureLoader();
-	let tmp = loader.load('/public/brushed.jpg');
-
-	return (
-        <mesh position={position}>
-            <sphereBufferGeometry attach="geometry" args={[0.5, 32, 32]} />
-            <meshBasicMaterial envMap={tmp} />
-        </mesh>
-    );
-};
-
-
-export const Skybox = props => {
-	const { position } = props;
-
-	const { scene } = useThree();
-
-	return (
-		<group position={position}>
-	        <mesh>
-	            <sphereBufferGeometry attach="geometry" args={[400, 32, 15]} />
-	            <meshBasicMaterial attach="material" side={THREE.BackSide} color='#1b262c'/>
-	        </mesh>
-
-	        <mesh position-y={-5} rotation-x={-Math.PI / 2}>
-	            <planeBufferGeometry attach="geometry" args={[1000, 1000, 8, 8]} />
-	            <meshBasicMaterial attach="material" color="#1c1b1b" side={THREE.DoubleSide}/>
-	        </mesh>
-        </group>
-    );
-};
-
-// TODO - swarm flies up into upper left once you pick an option, appear to chill there as part of the UI, but are really a looping video. IFF we can figure out how to put objects to sleep temporarily
-
-const Plinth = props => {
-	const { position } = props;
-	return (
-		<group position={position} >
-	        <mesh position={[0, 0.25 , 0]} scale={[2, 0.5, 2]}>
-	            <boxBufferGeometry attach="geometry" />
-	            <meshStandardMaterial attach="material" color='#555'/>
-	        </mesh>
-	        <mesh position={[0, 0.75, 0]} scale={[1, 0.5, 1]}>
-	            <boxBufferGeometry attach="geometry" />
-	            <meshStandardMaterial attach="material" color='#555'/>
-	        </mesh>
-	        <mesh position={[0, 2.25, 0]} scale={[0.5, 4.5, 0.5]}>
-	            <boxBufferGeometry attach="geometry" />
-	            <meshStandardMaterial attach="material" color='#555'/>
-	        </mesh>
-	        <mesh position={[0, 4.5, 0]} scale={[1, 0.2, 1]}>
-	            <boxBufferGeometry attach="geometry" />
-	            <meshStandardMaterial attach="material" color='#555'/>
-	        </mesh>
-        </group>
-    );
-};
 
 const Board = props => {
-	// const { size, viewport } = useThree();
-	// const aspect = size.width / viewport.width;
-	const { units, boardSize, ctrlHover } = props;
+	const {
+		x,
+		y,
+		position,
+		separation,
+		speed,
+		rotation,
+		totalScale,
+		amplitude,
+		primaryList,
+		secondaryList,
+		matchState,
+		ctrlHover,
+		isActive,
+		boardSize,
+		listHash,
+		updateUnit,
+		boardState,
+		boardHash
+	} = props;
+	const numParticles = x * y;
+
 	const ref = useRef({isDragging: false, activeIndex: -1});
+	const mesh = useRef();
+	const lineRef = useRef();
+	const positions = useRef(null);
+	const count = useRef(0);
 
-	// OLD Spring that works for just one
-	// const [spring, set] = useSpring(() => ({ scale: [1, .2, 1], position: [0, 0, 0], rotation: [0, 0, 0], config: { friction: 10 } }));
+	const dummy = useMemo(() => new THREE.Object3D(), []);
 
-	// INPUT: All units, and a change to make. OUTPUT: array of fns that each return the updates for every index
+	// Function that will filter out unwanted spring changes
 	const springUnits = (units, i = -1, override) => index => {
-		console.log("Processing inner.", index, units, i, override);
-
 		if (i !== -1 && i === index) {
 			return override;
 		}
@@ -466,79 +125,41 @@ const Board = props => {
 		return {};
 	};
 
-	// NEW Spring that handles arrays
-	const [springs, setSprings] = useSprings(units.length, springUnits(units));
-
-    const down = (e, i) => {
-    	console.log("pointer down", e.point.x, -e.point.y);
+	// Click handlers
+    const down = (e, i, playerIdx) => {
     	ref.current.isDragging = true;
     	ref.current.activeIndex =  i;
-		setSprings(springUnits(units, i, { position: [e.point.x, 0.25, e.point.z]}));
-    };
-
-    const up = (e) => {
-    	console.log("pointer up!");
-    	if (ref.current && ref.current.isDragging) {
-	    	console.log("move: ", e.point.x, -e.point.y, 0);
-			// set({ position: [e.point.x, -e.point.y, 0], rotation: [e.point.y, e.point.x, 0] });
-			// set({ position: [e.point.x, 0, e.point.z]});
-			setSprings(springUnits(units, ref.current.activeIndex, { position: [e.point.x, 0, e.point.z] }));
-			ref.current.isDragging = false;
+    	ref.current.playerIdx = playerIdx;
+    	if (playerIdx === 0) {
+			setPrimarySprings(springUnits(primaryUnits, i, { position: [e.point.x, 0.5, e.point.z]}));
+    	} else {
+			setSecondarySprings(springUnits(secondaryUnits, i, { position: [e.point.x, 0.5, e.point.z]}));
     	}
     };
-
+    const up = (e) => {
+    	if (ref.current && ref.current.isDragging) {
+    		if (ref.current.playerIdx === 0) {
+				setPrimarySprings(springUnits(primaryUnits, ref.current.activeIndex, { position: [e.point.x, 0.25, e.point.z] }));
+	    	} else {
+				setSecondarySprings(springUnits(secondaryUnits, ref.current.activeIndex, { position: [e.point.x, 0.25, e.point.z]}));
+	    	}
+			ref.current.isDragging = false;
+			updateUnit(ref.current.playerIdx, ref.current.activeIndex, {
+				pos: commInch([e.point.x, e.point.y, e.point.z], position)	
+			});
+    	}
+    };
     const move = (e) => {
     	if (ref.current && ref.current.isDragging) {
-	    	console.log("move: ", e.point.x, -e.point.y, 0);
-			// set({ position: [e.point.x, -e.point.y, 0], rotation: [e.point.y, e.point.x, 0] });
-			// set({ position: [e.point.x, 0.25, e.point.z]});
-			setSprings(springUnits(units, ref.current.activeIndex, { position: [e.point.x, 0.25, e.point.z] }));
+    		if (ref.current.playerIdx === 0) {
+				setPrimarySprings(springUnits(primaryUnits, ref.current.activeIndex, { position: [e.point.x, 0.5, e.point.z] }));
+    		} else {
+				setSecondarySprings(springUnits(primaryUnits, ref.current.activeIndex, { position: [e.point.x, 0.5, e.point.z] }));
+    		}
     	}
     };
 
-
-	// <a.mesh {...spring} {...bind()} castShadow>
-	return (
-		<group>
-	        <mesh position-z={-2.5} rotation-x={-Math.PI / 2} onPointerMove={move} onPointerUp={up}>
-	            <planeBufferGeometry attach="geometry" args={[6, 4, 16, 16]} />
-	            <meshStandardMaterial attach="material" transparent opacity={0.1} color="#3ad0ef" side={THREE.DoubleSide}/>
-	        </mesh>
-	        <mesh position-z={-2.5} rotation-x={-Math.PI / 2}>
-	            <planeBufferGeometry attach="geometry" args={[boardSize[0], boardSize[1], 16, 16]} />
-	            <meshStandardMaterial attach="material" color="#3ad0ef" wireframe side={THREE.DoubleSide}/>
-	        </mesh>
-
-	        {springs && springs.map((spring, i) => (
-	        	<Unit initPos={[-3+(i*.25), 0, -2]} cfg={spring} unit={units[i]} onPointerDown={event => down(event, i)} ctrlHover={ctrlHover} />
-        	))}
-		</group>
-	);
-	/*
-			<a.mesh 
-				{...spring}
-				castShadow
-		        onPointerDown={down}
-			>
-	            <sphereBufferGeometry attach="geometry" args={[0.5, 32, 32]} />
-				<meshStandardMaterial attach="material" color='white' side={THREE.DoubleSide} />
-			</a.mesh>
-	*/
-};
-
-const Waves = props => {
-	const { x, y, position, separation, speed, rotation, totalScale, amplitude } = props;
-	const numParticles = x * y;
-
-	const mesh = useRef();
-	const lineRef = useRef();
-	const positions = useRef(null);
-	const count = useRef(0);
-	// const { size, viewport } = useThree();
-	// const aspect = size.width / viewport.width;
-
-	const dummy = useMemo(() => new THREE.Object3D(), []);
-
+	// Function that sets the x and z for every particle
 	const setup = () => {
 		const temp = []
 		let _x, _y, _z;
@@ -564,13 +185,29 @@ const Waves = props => {
 				idx += 3;
 			}
 		};
-
-		console.log(mesh.current, positions.current);
 	};
+
+	// Get the initial position for a unit
+	const unitInitPos = (playerIdx, unitIdx) => {
+		if (boardState.units[playerIdx].length > unitIdx) {
+			let pos = boardState.units[playerIdx][unitIdx].pos;
+			return decommInch(pos, position);
+		}
+		return [-4+(unitIdx*.25), 0.3, playerIdx ? -1 :-6];
+	};
+
+	const primaryUnits = useMemo(() => (primaryList && primaryList.units || []), [listHash]);
+	const secondaryUnits = useMemo(() => (secondaryList && secondaryList.units || []), [listHash]);
+
+	// This is the spring that manages the position of every unit
+	// INPUT: All units, and a change to make. OUTPUT: array of fns that each return the updates for every index
+	const [primaryUnitSprings, setPrimarySprings] = useSprings((primaryUnits.length), springUnits(primaryUnits));
+	const [secondaryUnitSprings, setSecondarySprings] = useSprings((secondaryUnits.length), springUnits(secondaryUnits));
 
 	// Initalize the point values
 	useEffect(setup, [numParticles]);
 
+	// This hook is what moves the board particles up and down in waves
 	useFrame(() => {
 		if (!mesh.current) {
 			return;
@@ -601,92 +238,161 @@ const Waves = props => {
 		mesh.current.instanceMatrix.needsUpdate = true;
 	});
 
+	const planeArgs = useMemo(() => {
+		switch(boardSize) {
+			case 1:
+				return [44 * inch, 60 * inch];
+			case 2:
+				return [44 * inch, 90 * inch];
+			default: 
+			case 0:
+				return [44 * inch, 30 * inch];
+		}
+	}, [boardSize]);
+
 	return (
-		<instancedMesh ref={mesh} args={[null, null, numParticles]} position={position} rotation={rotation}>
-			<sphereBufferGeometry attach="geometry" args={[1, 8, 8]} />
-			<meshStandardMaterial attach="material" color="#3ad0ef" />
-		</instancedMesh>
+		<group>
+			{/* Catches mouse events  and serves as a flat surface */}
+	        <mesh position={[0, 0, -16 * inch]} rotation={[Math.PI /2, 0, 0]} onPointerMove={move} onPointerUp={up}>
+	            <planeBufferGeometry attach="geometry" args={planeArgs} />
+	            <meshStandardMaterial attach="material" transparent opacity={0} color="#3ad0ef" side={THREE.DoubleSide}/>
+	        </mesh>
+
+			{/* The "Visible" board, which actually serves no programatic "purpose" */}
+			<instancedMesh ref={mesh} args={[null, null, numParticles]} position={position} rotation={rotation}>
+				<sphereBufferGeometry attach="geometry" args={[1, 8, 8]} />
+				<meshStandardMaterial attach="material" color="#3ad0ef" />
+			</instancedMesh>
+
+			{/* The unit objects, which should be draggable */}
+	        {primaryUnitSprings.map((spring, i) => (
+	        	<Unit key={"prim-unit-"+i} initPos={unitInitPos(0, i)} cfg={spring} unit={primaryUnits[i]} onPointerDown={event => down(event, i, 0)} ctrlHover={ctrlHover} />
+        	))}
+
+	        {secondaryUnitSprings.map((spring, i) => (
+	        	<Unit key={"sex-unit-"+i} initPos={unitInitPos(1, i)} cfg={spring} unit={secondaryUnits[i]} onPointerDown={event => down(event, i, 1)} ctrlHover={ctrlHover} />
+        	))}
+		</group>
 	);
 }
 
 const CameraControls = () => {
-  // Get a reference to the Three.js Camera, and the canvas html element.
-  // We need these to setup the OrbitControls class.
-  // https://threejs.org/docs/#examples/en/controls/OrbitControls
+	// Get a reference to the Three.js Camera, and the canvas html element.
+	// We need these to setup the OrbitControls class.
+	// https://threejs.org/docs/#examples/en/controls/OrbitControls
 
-  const {
-    camera,
-    gl: { domElement },
-  } = useThree();
+	const {
+		camera,
+		gl: { domElement }
+	} = useThree();
 
-  const controls = useRef();
-  useFrame(({ gl }) => {
-  	gl.setClearColor(0x080405, 1);
-  	return controls.current.update();
-  });
+	const controls = useRef();
+	useFrame(({ gl }) => {
+		gl.setClearColor(0x080405, 1);
+		return controls.current.update();
+	});
 
-  return (
-    <orbitControls
-      ref={controls}
-      args={[camera, domElement]}
-      enableZoom={false}
-      maxAzimuthAngle={Math.PI / 4}
-      maxPolarAngle={Math.PI}
-      minAzimuthAngle={-Math.PI / 4}
-      minPolarAngle={0}
-    />
-  );
+	return (
+		<orbitControls
+			ref={controls}
+			args={[camera, domElement]}
+			enableZoom={true}
+			enableRotate={true}
+			enableDolly={false}
+			mouseButtons={{
+				MIDDLE: THREE.MOUSE.ROTATE,
+				RIGHT: THREE.MOUSE.PAN
+			}}
+			maxAzimuthAngle={Math.PI / 4}
+			maxPolarAngle={Math.PI}
+			minAzimuthAngle={-Math.PI / 4}
+			minPolarAngle={0}
+		/>
+	);
 };
 
 /**
  * Main component.
  */
 export const ThreeMap = props => {
-	const { ctrlHover } = props;
+	const {
+		boardState,
+		boardHash,
+		listHash,
+		secondaryList,
+		primaryList,
+		matchState,
+		curContent,
+		ctrlHover,
+		updateUnit
+	} = props;
 
 	const [isActive, setActive] = useState(false);
 	const [isHoriz, setHoriz] = useState(true);
 	const [stage, setStage] = useState(null);
 	const canvas = useRef();
 
-	const seamlessStyle = useMemo(() => {
-		if (isHoriz) {
-			return {
-				width: "100%",
-				height: "50%",
-				position: 'absolute',
-				bottom: '0px'
-			};
-		} else {
-			return {
-				width: "50%",
-				height: "100%",
-				position: 'absolute',
-				right: '0px'
-			};
-		}
-	}, [isHoriz]);
+	// Build the object that describes the board object
+	const genBoardConfig = () => {
+		// If we aren't currently in a match, show pretty waves in the background
+		const showWaves  = matchState.turn < 0;
 
-	console.log("canvas: ", canvas.current);
+		return showWaves ? {
+			x: 128,
+			y: 64,
+			position: [-7, 8, -18],
+			separation: 1,
+			rotation: [Math.PI * 0.5, 0.25, Math.PI * 0.5],
+			speed: 0.009,
+			amplitude: 1,
+			totalScale: 0.1
+		} : {
+			isActive: true, // Tell it to display units and other game-related stuff
+			boardSize: matchState.mapSize,
+			x: 90,
+			y: 58,
+			position: [-22 * inch, 0, -30 * inch],
+			separation: inch / 2,
+			rotation: [0, 0, 0],
+			speed: 0.01,
+			amplitude: 0.05,
+			totalScale: 0.005,
+		};
+	};
+
+	const boardConfig = useMemo(genBoardConfig, [matchState.turn < 0]);
 
 	return (
 		<React.Fragment>
-			<Canvas ref={canvas} alpha={0} camera={{fov: 100, position: [0, 4, 0]}} >
-				<spotLight position={[5, 10, 0]} color='#fff' distance={100} penumbra={0.75} decay={2} />
-				<CameraControls ref={canvas}/>
-				{/* <Swarm count={1000} position={[0, 0, 0]}/> */}
-				{/*<DotPlane rows={40} cols={80} position={[0, -0.9, 1]}/>*/}
-				{/*<Board units={testUnits}  boardSize={[6, 4]} ctrlHover={ctrlHover} />*/}
-				<Waves x={128} y={64} position={[-7, 5, -18]} separation={1} rotation={[Math.PI * 0.5, 0.25, Math.PI * 0.5]} speed={0.009} amplitude={1} totalScale={0.1} />
+			<Canvas ref={canvas} camera={{fov: 100, position: [0, 6, 0]}} >
+				<spotLight position={[5, 10, 0]} color='#f1f1ff' distance={100} penumbra={0.75} decay={2} />
+				<CameraControls />
 
+				<Board
+					{...boardConfig}
+					boardState={boardState}
+					primaryList={primaryList}
+					secondaryList={secondaryList}
+					matchState={matchState}
+					ctrlHover={ctrlHover}
+					listHash={listHash}
+					updateUnit={updateUnit}
+				/>
 			</Canvas>
 		</React.Fragment>
 	);
-}
+};
 
 export const mapStateToProps = (state, props) => {
 	return {
+	  	boardState: state.warReducer.boardState,
+	  	boardHash: state.warReducer.boardHash,
+	  	curContent: state.appReducer.curContent,
+	  	matchState: state.warReducer.matchState,
+		primaryList: state.warReducer.primaryList,
+		secondaryList: state.warReducer.secondaryList,
+		listHash: state.warReducer.listHash
 	};
 };
 
-export default connect(mapStateToProps, {ctrlHover})(ThreeMap);
+export default connect(mapStateToProps, { ctrlHover, updateUnit })(ThreeMap);

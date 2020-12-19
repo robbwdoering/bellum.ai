@@ -51,7 +51,7 @@ export const Header = props => {
 			style={{zIndex: '1000'}}
 		>
 			<Menu.Item position="left">
-				<div className="custom-icon logo large" />
+				<div className="custom-icon logo large" onClick={() => openContents(ContentTypes.Splash)} />
 			</Menu.Item>
 
 			<Menu.Item className="header-item" name='showSidebar' position="right">
