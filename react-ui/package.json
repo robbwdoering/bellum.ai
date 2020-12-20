@@ -20,6 +20,7 @@
     "react-redux": "^7.2.0",
     "react-scripts": "^2.1.8",
     "react-semantic-ui-datepickers": "^2.7.0",
+    "react-spinners": "^0.9.0",
     "react-spring": "^9.0.0-rc.3",
     "react-three-fiber": "^4.2.20",
     "react-use-gesture": "^7.0.15",

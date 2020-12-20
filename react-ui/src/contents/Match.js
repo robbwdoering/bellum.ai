@@ -7,12 +7,14 @@
 import React, { useMemo, useState } from 'react';
 import { connect } from 'react-redux';
 import { Button, Card, Grid, Dropdown, Popup, Divider, Checkbox, Modal, Tab, Table, Input, Icon, Menu } from 'semantic-ui-react';
+import PropagateLoader from "react-spinners/PropagateLoader"
 
 import { openContents, setDemoState } from './../app/actions';
 import { ContentTypes } from './../common/constants';
 import { phases, mapSizeOptions, terrainOptions, objectiveOptions, missionOptions } from './../war/constants';
 import { ForceCardContainer } from './../stats/ForceCard';
-import { setMatchState } from './../war/actions';
+import { setMatchState, setBoardState, updateUnit } from './../war/actions';
+import { sanitizeString } from './../war/utils';
 import './contents.css';
 
 export const Match = props => {
@@ -32,9 +34,14 @@ export const Match = props => {
 		matchHash,
 		messages,
 
+		boardState,
+		boardHash,
+
 		// Dispatched Actions
 		openContents,
-		setMatchState
+		setMatchState,
+		updateUnit,
+		setBoardState
 	} = props;
 
 	const [ phaseMask, setPhaseMask ] = useState(matchState.phase);
@@ -85,6 +92,12 @@ export const Match = props => {
 		});
 	};
 
+	const handleUnitDoneToggle = (e, { idx }) => {
+		const playerIdx = matchState.activePlayer;
+		const oldVal = boardState.units[playerIdx][idx];
+		updateUnit(playerIdx, idx, { acted: !oldVal.acted });
+	};
+
 	const renderObjectiveDropdown = (playeridx, objidx) => (
 		<Dropdown
 			onChange={handleObjectiveSelection}
@@ -100,23 +113,97 @@ export const Match = props => {
 		/>
 	);
 
-	const renderMoveCard = (unit, i) => (
-		<Card key={i} className="move-card">
-			<Card.Header>
-				<Checkbox />
-				<span className="unit-name"> {unit.name}: </span>
-				{profile.stats.find(stat => stat.name === unit.models[0].unit).move}
-			</Card.Header>
-		</Card>
-	)
+	const renderMoveCard = ([unit, i]) => {
+		const hasActed = boardState.units[matchState.activePlayer][i].acted;
+		return (
+			<Card key={i} className={"move-card" + (hasActed ? " dimmed" : "" )}>
+				<Card.Header>
+					<Checkbox idx={i} onChange={handleUnitDoneToggle} defaultChecked={hasActed} />
+					<span className="unit-name"> {unit.name}: </span>
+					{unit.models[0].getStat(profile, unit, boardState, matchState.activePlayer, i, 0).move}"
+				</Card.Header>
+			</Card>
+		);
+	};
 
+	const renderPsykerCard = ([unit, i]) => {
+		const hasActed = boardState.units[matchState.activePlayer][i].acted;
+		const psykProf = profile.psykers.find(prof => prof.name === sanitizeString(unit.psyker[0]));
+		return (
+			<Card key={i} className={"psyker-card" + (hasActed ? " dimmed" : "" )}>
+				<Card.Header>
+					<Checkbox idx={i} onChange={handleUnitDoneToggle} defaultChecked={hasActed} />
+					<span className="unit-name"> {unit.name} </span>
+					<div className="unit-card-subheader"> Casts: {psykProf.castnum} </div>
+				</Card.Header>
+				<Card.Content>
+					{unit.psychic_power.map(power => {
+						// Get the profile for this power
+						const powerProf = profile.powers.find(prof => prof.name === sanitizeString(power));
+						if (!powerProf) return null;
+
+						// All of the remaining logic will depend on the meaning object...
+						// i.e. finding targets if applicable, identifying affect in DPR, disabled unusable powers, etc.
+						const options = [];
+						return (
+							<div className="unit-card-row">
+								<Popup content={powerProf.descrition} trigger={power} />
+								<Dropdown options={options} />
+							</div>
+						);
+					})}
+				</Card.Content>
+			</Card>
+		);
+	};
+
+	const renderShootCard = ([unit, i]) => {
+		const hasActed = boardState.units[matchState.activePlayer][i].acted;
+		const psykProf = profile.psykers.find(prof => prof.name === sanitizeString(unit.psyker[0]));
+		return (
+			<Card key={i} className={"shoot-card" + (hasActed ? " dimmed" : "" )}>
+				<Card.Header>
+					<Checkbox idx={i} onChange={handleUnitDoneToggle} defaultChecked={hasActed} />
+					<span className="unit-name"> {unit.name} </span>
+					<div className="unit-card-subheader"> Casts: {psykProf.castnum} </div>
+				</Card.Header>
+				<Card.Content>
+					{unit.psychic_power.map(power => {
+						// Get the profile for this power
+						const powerProf = profile.powers.find(prof => prof.name === sanitizeString(power));
+						if (!powerProf) return null;
+
+						// All of the remaining logic will depend on the meaning object...
+						// i.e. finding targets if applicable, identifying affect in DPR, disabled unusable powers, etc.
+						const options = [];
+						return (
+							<div className="unit-card-row">
+								<Popup content={powerProf.descrition} trigger={power} />
+								<Dropdown options={options} />
+							</div>
+						);
+					})}
+				</Card.Content>
+			</Card>
+		);
+	};
 	const renderPhaseContent = () => {
 		const phase = matchState.phase; 
+		console.log("rendering phase ", phase, force, profile)
+
 		if(!force) {
-			return <div/>
+			return (
+				<div className="loader-container" >
+					<div>
+						<PropagateLoader loading={true} size={40} color='#e6505d' />
+					</div>
+					<span> Authenticating... </span>
+				</div>
+			);
 		}
+
 		switch(phase) {
-			case 0: // 
+			case 0:
 				return (
 					<div className="setup-content">
 						<div className="setup-option">
@@ -182,40 +269,51 @@ export const Match = props => {
 					</div>
 				);
 			case 2:
-				let moveBuckets = force.units.reduce((acc, unit) => {
-					const isAssault = unit.models.some(model => model.weapon.some(wep => 
-						profile.weapons.find(wepProf => wepProf.name === wep).weapontype.includes("Assault")
-					));
+				let moveBuckets = force.units.reduce((acc, unit, i) => {
+					// Collect units that have one assault weapon, which means they can advance and still fire 
+					// TODO: Other rules with same effect
+					const isAssault = unit.wepSome((wepProfile, model) => wepProfile.weapontype.includes("Assault"), profile);
 					if (isAssault) {
-						acc.assault.push([unit])
+						acc.assault.push([unit, i])
 						return acc;
 					} 
 
-					const isHeavy = unit.models.some(model => model.weapon.some(wep => 
-						profile.weapons.find(wepProf => wepProf.name === wep).weapontype.includes("Heavy")
-					));
+					// Collect units that have one heavy weapon, and thus -1 to hit after moving
+					// TODO: Rules that allow units to move and shoot
+					const isHeavy = unit.wepSome((wepProfile, model) => wepProfile.weapontype.includes("Heavy"), profile);
 					if (isHeavy) {
-						acc.heavy.push([unit])
+						acc.heavy.push([unit, i])
 						return acc;
 					} 
 
-					acc.normal.push(unit);
+					// Else, it's a normal unit
+					acc.normal.push([unit, i]);
 					return acc;
 				}, {assault: [], normal: [], heavy: []});
 
+				console.log("moveBuckets: ", moveBuckets);
+
 				return (
 					<div className="movement-content">
-						{moveBuckets.assault.length && <Divider horizontal> <h2>Assault Units</h2> <span className="subtext"> Can dash without penalty </span> </Divider>}
+						{moveBuckets.assault.length && <div> <h2>Assault Units</h2> <span className="subtext"> Can advance without penalty </span> </div>}
 						{moveBuckets.assault.length && moveBuckets.assault.map(renderMoveCard)}
-						{moveBuckets.normal.length && <Divider horizontal> <h2>Normal Units</h2> </Divider>}
+						{moveBuckets.normal.length && <div> <h2>Normal Units</h2> </div>}
 						{moveBuckets.normal.length && moveBuckets.normal.map(renderMoveCard)}
-						{moveBuckets.heavy.length && <Divider horizontal> <h2>Heavy Units</h2> <span className="subtext"> -1 to hit after moving </span> </Divider>}
+						{moveBuckets.heavy.length && <div> <h2>Heavy Units</h2> <span className="subtext"> -1 to hit after moving </span> </div>}
 						{moveBuckets.heavy.length && moveBuckets.heavy.map(renderMoveCard)}
 					</div>
 				);
 			case 3:
+				let psykers = force.units.reduce((psykers, unit, i) => {
+					if (unit.categories.includes("Psyker")) {
+						psykers.push([unit, i]);
+					}
+					return psykers;
+				}, []);
+
 				return (
 					<div className="psychic-content">
+						{psykers.map(renderPsykerCard)}
 					</div>
 				);
 			case 4:
@@ -256,13 +354,14 @@ export const Match = props => {
 
 
 	const advancePhase = () => {
-		let newState = {}; 
-		newState.phase = matchState.phase + 1; // go the next phase
+		let newBoard = [...boardState];	
+		let newMatch = {}; 
+		newMatch.phase = matchState.phase + 1; // go the next phase
 
 		switch(matchState.phase) {
 			case 0: // Setup
-				newState.turn = 1;
-				newState.activePlayer = 0;
+				newMatch.turn = 1;
+				newMatch.activePlayer = 0;
 				break;
 			case 1: // Command
 			case 2: // Movement 
@@ -273,18 +372,22 @@ export const Match = props => {
 				// Do nothing - add behavior here that needs to be done on phase init for each phase
 				break;
 			case 7: // Morale 
-				newState.phase = 1;
-				newState.turn++;
+				newMatch.phase = 1;
+				newMatch.turn++;
 				if (matchState.turn === 5) {
 					setModalContent("Are you sure?", "This will end the game, and is not reversible - be sure you agree on who won!");
 				}
 				break;
 			default:
-				console.log("Couldn't advance phase - unknown current phase ", newState.phase);
+				console.log("Couldn't advance phase - unknown current phase ", newMatch.phase);
 				return null;
 		}
 
-		setMatchState(newState);
+		setMatchState(newMatch);
+
+		// Reset the "acted" property of every unit
+		newBoard.units.forEach(unitArr => unitArr.forEach(unit => delete unit.acted));
+		setBoardState(newBoard);
 	};
 
 	const renderPhaseControl = () => {
@@ -299,7 +402,6 @@ export const Match = props => {
 						key={i+"-"+k}
 						turn={i}
 						className="turn-header"
-						// onClick={handleTurnClick}
 					>
 						{i ? `ROUND ${i}-${k}` : 'SETUP'}
 					</Menu.Item>
@@ -322,7 +424,6 @@ export const Match = props => {
 			}
 		}
 
-		console.log("returning phase ctrl array: ", ret);
 		return ret;
 	};
 
@@ -429,9 +530,9 @@ export const Match = props => {
 	// FUNCTIONAL LIFECYCLE
 	// --------------------
 
-	const force = useMemo(() => matchState.activePlayer ? secondaryList : primaryList, [matchHash]);
-	const profile = useMemo(() => matchState.activePlayer ? secondaryProfile : primaryProfile, [matchHash]);
-	const content = useMemo(renderPhaseContent, [ matchState.phase, matchHash ]);
+	const force = useMemo(() => matchState.activePlayer ? secondaryList : primaryList, [matchHash, listHash]);
+	const profile = useMemo(() => matchState.activePlayer ? secondaryProfile : primaryProfile, [matchHash, listHash]);
+	const content = useMemo(renderPhaseContent, [ matchState.phase, matchHash, listHash, boardHash ]);
 	const phaseControlArray = useMemo(renderPhaseControl, [ matchState.phase, matchHash, turnAccordionArr ]);
 	const tabPanes = useMemo(() => ([
 		{
@@ -468,7 +569,7 @@ export const Match = props => {
 		// Secondary Force Status
 	]), [activeTab, listHash, matchHash]);
 
-	console.log("Rendering match", primaryList, matchState);
+	// console.log("Rendering match", primaryList, matchState);
 	return (
 		<React.Fragment>
 			<div className="top-right-container">
@@ -521,8 +622,10 @@ export const mapStateToProps = (state, props) => {
 	  	secondaryProfile: state.warReducer.secondaryProfile,
 	  	matchState: state.warReducer.matchState,
 	  	matchHash: state.warReducer.matchHash,
-	  	messages: state.warReducer.messages
+	  	messages: state.warReducer.messages,
+	  	boardState: state.warReducer.boardState,
+	  	boardHash: state.warReducer.boardHash
     };
 };
 
-export const MatchContainer = connect(mapStateToProps, { setDemoState, openContents, setMatchState })(Match);
+export const MatchContainer = connect(mapStateToProps, { setDemoState, openContents, setMatchState, updateUnit, setBoardState })(Match);

@@ -14,7 +14,7 @@ import { openContents } from './../app/actions';
 import { Button, TextArea, Icon, Card, Menu, Sidebar } from 'semantic-ui-react';
 import { useApi } from "./../app/useApi";
 import { ContentTypes, apiOpts } from "./../common/constants";
-import { parsePlainText } from "./../war/utils";
+import { parsePlainText } from "./../war/parsingUtils";
 import "./navigation.css";
 
 export const Header = props => {

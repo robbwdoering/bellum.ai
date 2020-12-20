@@ -368,7 +368,6 @@ const calcShots = (model, wepProfile, ctx, modelStat, target) => {
 		}
 
 		// Get the pd
-		shotPdf = constants.d3[rolls - 1];
 	} else if (incomingVal.includes("D6")) {
 		let rolls = parseInt(wepProfile.shot);
 		if (rolls > 20) {

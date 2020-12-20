@@ -17,7 +17,6 @@ import * as d3 from "d3";
 import * as gaussian from "gaussian";
 
 import { openContents, setDemoState } from './../app/actions';
-import { computePDF } from './../war/utils';
 import { ContentTypes } from './../common/constants';
 import { BarChart } from './../stats/BarChart';
 import { statCategories, ChartTypes, getChartConfig } from './constants';
@@ -67,7 +66,6 @@ export const ChartCard = props => {
         let x_position = lower_bound;
         for (let i = 0; i < n; i++) {
             data.push({
-                // y: computePDF(mean, std, x_position),
                 y: 1 - distribution.cdf(x_position),
                 x: x_position
             })

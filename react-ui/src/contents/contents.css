@@ -391,3 +391,42 @@ div.vertical.increment-control.tiny .button:first-child {
 div.vertical.increment-control.tiny.secondary .button{
 	background-color: var(--accentFive);
 }
+
+div.ui.card.move-card {
+	display: inline-block;
+	padding: 0.75rem;
+	margin: 1rem;
+	width: auto;
+}
+
+div.ui.card.move-card.dimmed {
+	opacity: 0.2 !important;
+}
+
+.contents-container .loader-container {
+	margin: auto;
+	text-align: center;
+	vertical-align: middle;
+}
+
+.contents-container .loader-container > div {
+	margin: 100px auto 0 auto;	
+	width: 100px;
+	height: 50px;
+	padding-left: 25px;
+}
+.contents-container .loader-container span {
+	color: var(--greyThree);
+	font-size: 0.9rem;
+	font-weight: bold;
+	margin-top: 45;
+}
+
+span.unit-name {
+	font-weight: bold;
+}
+
+span.subtext {
+	margin-top: -1rem;
+	color: var(--greyThree);
+}

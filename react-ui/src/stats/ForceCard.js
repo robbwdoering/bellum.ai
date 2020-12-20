@@ -11,7 +11,7 @@ import { Placeholder, Card, Table } from 'semantic-ui-react';
 
 import { setDemoState } from './../app/actions';
 import { CircularChartContainer } from './../stats/CircularChart';
-import { sanitizeString } from './../war/utils';
+import { sanitizeString } from './../war/parsingUtils';
 import { datasheetFields } from './../war/constants';
 import { ChartTypes, getChartConfig } from './constants';
 import './stats.css';

@@ -1,4 +1,5 @@
 import { WarActions, demoData } from "./constants";
+import { Unit } from "./utils";
 
 const initialState = {
 	metalist: [],
@@ -60,8 +61,11 @@ export const warReducer = (state = initialState, action) => {
 			newState.primaryList = action.payload.results;
 			newState.primaryProfile = action.payload.profiles;
 
-			if (!newState.boardState.units[0].length ) {
-				console.log("re-setting boardState: ", newState.boardState)
+			// Translate units into class objects to give access to functions
+			newState.primaryList.units = newState.primaryList.units.map(json => new Unit(json));
+
+			if (!newState.boardState.units[0].length) {
+				console.log("re-setting boardState: ", newState.boardState);
 				newState.boardState.units[0] = action.payload.results.units.map((e, i) => newBoardUnit(e, i, action.payload.profiles, true));
 				newState.boardHash++;
 			}
@@ -78,6 +82,10 @@ export const warReducer = (state = initialState, action) => {
 			console.log("Setting secondary list: ", action.payload.results);
 			newState.secondaryList = action.payload.results;
 			newState.secondaryProfile = action.payload.profiles;
+
+
+			// Translate units into class objects to give access to functions
+			newState.secondaryList.units = newState.secondaryList.units.map(json => new Unit(json));
 
 			if (!newState.boardState.units[1].length) {
 				newState.boardState.units[1] = action.payload.results.units.map((e, i) => newBoardUnit(e, i, action.payload.profiles));
@@ -149,6 +157,7 @@ export const warReducer = (state = initialState, action) => {
 		case WarActions.UPDATE_UNIT:
 			console.log("UPDATE UNIT received: ", action, newState.boardState.units[action.playerIdx])
 			Object.assign(newState.boardState.units[action.playerIdx][action.unitIdx], action.payload);
+			newState.boardHash++;
 			return newState;
 	}
 
@@ -179,8 +188,8 @@ const newBoardUnit = (unit, i, profile, isPrimary) => {
 
 		// Start everyone at full health
 		wounds: unit.models.reduce((res, model) => {
-			let stat = profile.stats.find(e => e.name === model.unit)
-			for (let j = 0; j < model.quanitity; j++) {
+			let stat = profile.stats.find(e => e.name === model.key)
+			for (let j = 0; j < model.quantity; j++) {
 				res.push(stat.wounds);
 			}
 

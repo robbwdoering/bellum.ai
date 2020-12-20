@@ -5,7 +5,7 @@
  */
 
 // React + Redux
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { connect } from 'react-redux';
 import { useCookies } from "react-cookie";
 
@@ -28,10 +28,13 @@ export const Content = props => {
 	const {
 		primaryList,
 		secondaryList,
-		matchState,
+		listHash,
 		curContent,
 		windowCtx,
+		matchState,
+		matchHash,
 		boardState,
+		boardHash,
 		demoState,
 		handleFetch,
 		openContents,
@@ -54,17 +57,26 @@ export const Content = props => {
 	const primaryListApi = useApi('/api/static/list/true/', 'GET', apiOpts, handleFetch);
 	const secondaryListApi = useApi('/api/static/list/false/', 'GET', apiOpts, handleFetch);
 	const [ cookies, setCookie ] = useCookies([]);
+	const [cookieSaveInt, setCookieSaveInt] = useState(-1);
 
 	// Store whatever data we have in a cookie before exit.
 	// TODO:  Is this good practice? Seems rude - research this.
-	const cleanupCookies = () => {
+	const saveToCookies = () => {
 		// Only store if we're already storing
-		if (false && cookies.bellum_ai_match && cookies.bellum_ai_match.matchState.turn !== -1) {
+		console.log("checking before cleanup...", curContent)
+		if (curContent === ContentTypes.Match && cookies.bellum_ai_match) {
+			console.log("SAVING CONTENT", {matchState, boardState, primaryList, secondaryList});
 			setCookie('bellum_ai_match', { matchState }, { path: "/" });
-			if (primaryList && secondaryList) setCookie('bellum_ai_forces', { lists: [primaryList.id || 0, secondaryList.id || 0] }, { path: "/" });
+			// if (primaryList && secondaryList) setCookie('bellum_ai_forces', { lists: [primaryList.id || 0, secondaryList.id || 0] }, { path: "/" });
 			setCookie('bellum_ai_board', { boardState } , { path: "/" });
 		}
-	}
+	};
+
+	useEffect(() => {
+		if (curContent === ContentTypes.Match && primaryList && secondaryList) {
+			saveToCookies();
+		}
+	}, [matchState && matchState.phase])
 
 	// Check for a previously loaded match on mount, and jump back into it if found
 	useEffect(() => {
@@ -79,17 +91,15 @@ export const Content = props => {
 
 		if (cookies.bellum_ai_match) {
 			let stored = cookies.bellum_ai_match;
+			console.log("[COOKIE] got match: ", stored.matchState);
 			openContents(ContentTypes.Match);
 			setMatchState(stored.matchState);
 		}
 
 		if (cookies.bellum_ai_board) {
-			console.log("setting board!" , cookies.bellum_ai_board);
+			console.log("[COOKIE] got board: " , cookies.bellum_ai_board);
 			setBoardState(cookies.bellum_ai_board.boardState);
 		}
-
-		window.addEventListener('beforeunload', cleanupCookies); // Clean up on page unload
-		// return cleanupCookies; // Clean up on unmount
 	}, []);
 
 	useEffect(() => {
@@ -179,9 +189,11 @@ export const mapStateToProps = (state, props) => {
   	curContent: state.appReducer.curContent,
   	demoState: state.appReducer.demoState,
   	matchState: state.warReducer.matchState,
+	matchHash: state.warReducer.matchHash,
 	primaryList: state.warReducer.primaryList,
 	secondaryList: state.warReducer.secondaryList,
-	boardState: state.warReducer.boardState
+	boardState: state.warReducer.boardState,
+	boardHash: state.warReducer.boardHash
   };
 };
 
