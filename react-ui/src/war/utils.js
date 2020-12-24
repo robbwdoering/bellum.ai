@@ -109,6 +109,56 @@ export class Unit {
 		Object.assign(this, json, { models: json.models.map(model => new Model(model)) });
 	}
 
+
+	// --------------
+	// CONTEXT ENGINE
+	// --------------
+	/* CORE TERMS
+	 * 	Status - Actual effects on a unit captured just from basic rules (like Advanced, Engaged, or In Cover)
+	 *  Affect - Affects from meaning objects on this unit or others, like Auras, Psychic Powers, or Strategem affects.
+	 * 		Can be Permament, Timed, or Fluid (to be re-evaluated on board state change)
+	 *  Flags - Projections from the engine that don't have direct effects on the game, like Can Take Objective, or Safe 
+	 */
+	applyStatuses = (oldArr, matchState, boardState, profile) => {
+		let ret = [];
+		let stat;
+
+		// All statuses that are "this turn"
+		oldArr.forEach(idx => {
+			stat = statuses[idx];
+			if (stat.expir === undefined || stat.expir === matchState.phase) {
+				// Evaluate this rule again
+				if (evalCond(stat.cond))
+			}
+		});
+		if (&& matchState.phase != 0) {
+
+		}
+
+		// Engaged
+
+		// In Cover
+
+		return ret;
+	};
+
+	applyAffects = (oldArr) => {
+		let ret = [];
+
+		return ret;
+	};
+
+	applyFlags = (oldArr) => {
+		let ret = [];
+
+		return ret;
+	};
+
+
+	// -----------------------
+	// ACCESSORS / CONVENIENCE
+	// -----------------------
+
 	// Calls the callback on every weapon we can find, and returns each result in an array
 	// Callback prof: (wepProfile, model, unit)
 	wepMap = (callback, profile) => {
@@ -154,6 +204,11 @@ export class Unit {
 			return false;
 		});
 	};
+
+	canShoot = () => {
+		if (unit.)
+		return wepSome((wepProfile, model) => wepProfile.weapontype
+	}
 }
 
 /**

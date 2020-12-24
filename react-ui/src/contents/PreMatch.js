@@ -124,7 +124,6 @@ export const PreMatch = props => {
 	const [cookies, setCookie] = useCookies(['bellum_ai_match']);
 
 	// Static Apis - to fetch various json objects
-	const metalistApi = useApi('/api/static/metalist', 'GET', apiOpts, handleFetch);
 	const primaryListApi = useApi('/api/static/list/true/', 'GET', apiOpts, handleFetch);
 	const secondaryListApi = useApi('/api/static/list/false/', 'GET', apiOpts, handleFetch);
 
@@ -146,10 +145,6 @@ export const PreMatch = props => {
 			height: 120,
 			width: 120
 		};
-	}, []);
-
-	useEffect(() => {
-		metalistApi.refresh();
 	}, []);
 
 	// Fetch scorecard data
@@ -182,8 +177,6 @@ export const PreMatch = props => {
 	 						selection
 	 						search
 	 						floating
-	 						loading={metalistApi.loading}
-	 						disabled={metalistApi.loading}
 	 						name="primary"
 	 						onChange={handleForceSelection}
 	 					/>
@@ -200,7 +193,6 @@ export const PreMatch = props => {
 	 						search
 	 						floating
 	 						name="secondary"
-	 						loading={metalistApi.loading}
 	 						disabled={primaryList === null}
 	 						onChange={handleForceSelection}
 	 					/>

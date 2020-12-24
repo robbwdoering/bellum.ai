@@ -28,6 +28,7 @@ export const Match = props => {
 		primaryList,
 		secondaryList,
 		listHash,
+		metalist,
 		primaryProfile,
 		secondaryProfile,
 		matchState,
@@ -295,12 +296,12 @@ export const Match = props => {
 
 				return (
 					<div className="movement-content">
-						{moveBuckets.assault.length && <div> <h2>Assault Units</h2> <span className="subtext"> Can advance without penalty </span> </div>}
-						{moveBuckets.assault.length && moveBuckets.assault.map(renderMoveCard)}
-						{moveBuckets.normal.length && <div> <h2>Normal Units</h2> </div>}
-						{moveBuckets.normal.length && moveBuckets.normal.map(renderMoveCard)}
-						{moveBuckets.heavy.length && <div> <h2>Heavy Units</h2> <span className="subtext"> -1 to hit after moving </span> </div>}
-						{moveBuckets.heavy.length && moveBuckets.heavy.map(renderMoveCard)}
+						{moveBuckets.assault.length > 0 && <div> <h2>Assault Units</h2> <span className="subtext"> Can advance without penalty </span> </div>}
+						{moveBuckets.assault.length > 0 && moveBuckets.assault.map(renderMoveCard)}
+						{moveBuckets.normal.length > 0 && <div> <h2>Normal Units</h2> </div>}
+						{moveBuckets.normal.length > 0 && moveBuckets.normal.map(renderMoveCard)}
+						{moveBuckets.heavy.length > 0 && <div> <h2>Heavy Units</h2> <span className="subtext"> -1 to hit after moving </span> </div>}
+						{moveBuckets.heavy.length > 0 && moveBuckets.heavy.map(renderMoveCard)}
 					</div>
 				);
 			case 3:
@@ -317,8 +318,15 @@ export const Match = props => {
 					</div>
 				);
 			case 4:
+				let shooters = force.units.reduce((shooters, unit, i) => {
+					if (unit.canShoot()) {
+						shooters.push([unit, i]);
+					}
+					return shooters;
+				}, []);
 				return (
 					<div className="shooting-content">
+						{}
 					</div>
 				);
 			case 5:
@@ -354,7 +362,7 @@ export const Match = props => {
 
 
 	const advancePhase = () => {
-		let newBoard = [...boardState];	
+		let newBoard = Object.assign({}, boardState);	
 		let newMatch = {}; 
 		newMatch.phase = matchState.phase + 1; // go the next phase
 
@@ -552,7 +560,7 @@ export const Match = props => {
 				</Menu.Item>
 			),
 			render: () => (
-				<ForceCardContainer key="primary-force-card" data={primaryList} profile={primaryProfile} handleFetch={handleFetch}/>
+				<ForceCardContainer key="primary-force-card" data={primaryList} profile={primaryProfile} handleFetch={handleFetch} playerIdx={0}/>
 			)
 		},
 		{
@@ -563,13 +571,13 @@ export const Match = props => {
 				</Menu.Item>
 			),
 			render: () => (
-				<ForceCardContainer key="secondary-force-card" data={secondaryList} profile={secondaryProfile} handleFetch={handleFetch}/>
+				<ForceCardContainer key="secondary-force-card" data={secondaryList} profile={secondaryProfile} handleFetch={handleFetch} playerIdx={1}/>
 			)
 		}
 		// Secondary Force Status
 	]), [activeTab, listHash, matchHash]);
 
-	// console.log("Rendering match", primaryList, matchState);
+	console.log("Rendering match", metalist);
 	return (
 		<React.Fragment>
 			<div className="top-right-container">

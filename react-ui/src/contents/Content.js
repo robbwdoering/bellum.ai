@@ -54,6 +54,7 @@ export const Content = props => {
 		left: (w === 600 ? "55%" : (isHoriz ? "3rem" : "3rem"))
 	});
 
+	const metalistApi = useApi('/api/static/metalist', 'GET', apiOpts, handleFetch);
 	const primaryListApi = useApi('/api/static/list/true/', 'GET', apiOpts, handleFetch);
 	const secondaryListApi = useApi('/api/static/list/false/', 'GET', apiOpts, handleFetch);
 	const [ cookies, setCookie ] = useCookies([]);
@@ -175,6 +176,10 @@ export const Content = props => {
 				);
 		}
     };
+
+    useEffect(() => {
+    	metalistApi.refresh();
+    }, []);
 
 	return (
 		// <animated.div className={`contents-container ${curContent}`} style={spring}>

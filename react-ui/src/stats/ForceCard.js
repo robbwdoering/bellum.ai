@@ -155,7 +155,6 @@ export const ForceCard = props => {
 	console.log("render", unitRows, unitRowsTransitions);
 	*/
 
-
 	return (
 		<Card ref={ref} className={'force-card' + (data ? '' : ' empty')} style={style}>
 			{data &&
