@@ -1,7 +1,6 @@
 export const START_RAD = 100;
 export const GRID_SIZE = 12;
 
-
 export const testUnits = [
   {
     name: "Space Marine Squad",
@@ -39,6 +38,8 @@ export const MapActions = {
   DEL_DATA: "DEL_DATA",
   CTRL_HOVER: "CTRL_HOVER"
 };
+
+export const distance = (p1, p2) => Math.sqrt(Math.pow(p2[0] - p1[0], 2) + Math.pow(p2[1] - p1[1], 2));
 
 export const P3 = (x=0, y=0, z=0) => (
 	{x, y, z}
@@ -165,3 +166,64 @@ export const ballGridPos = [
   [5, sqrt3],
 ];
 
+export const terrains = [
+  // https://d1w82usnq70pt2.cloudfront.net/wp-content/uploads/2019/10/NOVA_Table.png
+  NOVA: [
+    {
+      traits: ["HEAVY"],
+      type: "RECTANGLE",
+      center: [7.5, 6.5],
+      a: -35,
+      dim: [7, 5.5]
+    },
+    {
+      traits: ["LIGHT"],
+      type: "RECTANGLE",
+      center: [36.5, 6.5],
+      a: 35,
+      dim: [7, 5.5]
+    },
+    {
+      traits: ["LIGHT"],
+      type: "RECTANGLE",
+      center: [7.5, 23.5],
+      a: 35,
+      dim: [7, 5.5]
+    },
+    {
+      traits: ["HEAVY"],
+      type: "RECTANGLE",
+      center: [36.5, 23.5],
+      a: -35,
+      dim: [7, 5.5]
+    },
+    {
+      traits: ["HEAVY"],
+      type: "RECTANGLE",
+      center: [13, 15],
+      a: 0,
+      dim: [7.5, 7.5]
+    },
+    {
+      traits: ["HEAVY"],
+      type: "RECTANGLE",
+      center: [31, 15],
+      a: 0,
+      dim: [7.5, 7.5]
+    },
+    {
+      traits: ["LIGHT"],
+      type: "ELLIPSE",
+      center: [22, 4],
+      a: 0,
+      dim: [4.5, 2.75]
+    },
+    {
+      traits: ["LIGHT"],
+      type: "ELLIPSE",
+      center: [22, 26],
+      a: 0,
+      dim: [4.5, 2.75]
+    },
+  ]
+];

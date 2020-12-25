@@ -18,8 +18,8 @@ COND_OBJ_TYPE: [
 		param: { target: "" }
 	],
 	
-	HAS_COVER: [
-		subtype: [LIGHT_COVER|HEAVY_COVER],
+	IN_COVER: [
+		subtype: [LIGHT|HEAVY|DENSE],
 		param
 	],
 	
@@ -32,22 +32,10 @@ COND_OBJ_TYPE: [
 ]
 
 MODS_OBJ_TYPE: [
-	HIT,
-	HIT_SHOOT,
-	HIT_FIGHT,
-
-	HIT__REROLL,
-	HIT_SHOOT_REROLL,
-	HIT_FIGHT_REROLL,
-
-	BE_HIT,
-	BE_HIT_SHOOT_REROLL,
-	BE_HIT_FIGHT_REROLL,
-
-	CHARGE,
-
-	ADD_STATUSES
-	""
+	INVULN,
+	FNP,
+	FNP__PSYCHIC,
+	
 ]
 
 

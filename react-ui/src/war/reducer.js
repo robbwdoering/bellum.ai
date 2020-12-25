@@ -33,7 +33,8 @@ const initialState = {
 			[null], // Primary
 			[null, null, null], //Secondaries
 			[null, null, null]
-		]
+		],
+		terrain: null
 	},
 	boardState: {
 		units: [[], []]
@@ -62,7 +63,7 @@ export const warReducer = (state = initialState, action) => {
 			newState.primaryProfile = action.payload.profiles;
 
 			// Translate units into class objects to give access to functions
-			newState.primaryList.units = newState.primaryList.units.map(json => new Unit(json));
+			newState.primaryList.units = newState.primaryList.units.map((json, i) => new Unit(json, i, 0));
 
 			if (!newState.boardState.units[0].length) {
 				console.log("re-setting boardState: ", newState.boardState);
@@ -83,9 +84,8 @@ export const warReducer = (state = initialState, action) => {
 			newState.secondaryList = action.payload.results;
 			newState.secondaryProfile = action.payload.profiles;
 
-
 			// Translate units into class objects to give access to functions
-			newState.secondaryList.units = newState.secondaryList.units.map(json => new Unit(json));
+			newState.secondaryList.units = newState.secondaryList.units.map((json, i) => new Unit(json, i, 0));
 
 			if (!newState.boardState.units[1].length) {
 				newState.boardState.units[1] = action.payload.results.units.map((e, i) => newBoardUnit(e, i, action.payload.profiles));

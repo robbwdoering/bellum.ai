@@ -1,7 +1,12 @@
 export const statuses = [
 	["advanced", {
-		type: "ADD_STATUSES",
-		params: ["ADVANCED"]
+		type: "ADVANCED",
+		phase: 0
+	}],
+
+	["charged", {
+		type: "CHARGED",
+		phase: 0
 	}],
 
 	["engaged", {
@@ -21,7 +26,7 @@ export const statuses = [
 			params: [
 				{
 					type: "HAS_CATEGORY",
-					params: { cat: "infantry" }
+					params: ["infantry"]
 				},
 				{
 					type: "IN_COVER",
@@ -39,7 +44,7 @@ export const statuses = [
 			params: [
 				{
 					type: "HAS_CATEGORY",
-					params: { cat: "infantry" }
+					params: "infantry"
 				},
 				{
 					type: "IN_COVER",
@@ -62,12 +67,16 @@ export const statuses = [
 				{
 					type: "IN_COVER",
 					subType: "HEAVY"
+				},
+				{
+					unit.
 				}
 			]
 		},
 		type: "ADD_STATUSES",
 		params: ["HEAVY_COVER"]
 	}],
+
 	["in_cover_dense", {
 		cond: { 
 			type: "AND",
@@ -82,7 +91,7 @@ export const statuses = [
 								params: ["aircraft"]
 							},
 							{
-								type: "HAS_CHARACTERISTIC",
+								type: "HAS_STAT",
 								params: { field: "wounds", val: 18 }
 							},
 						]
@@ -99,13 +108,11 @@ export const statuses = [
 	}]
 ];
 
-/*
-I think this is going to be faction specific
-export const affects = [
-	["", {}],
-];
-*/
-
+// Affects are stored / calculated against army-specific forces
 export const flags = [
-	["safe", {}]
+	["safe", {
+		cond: { type: "IS_SAFE" },
+
+
+	}]
 ];

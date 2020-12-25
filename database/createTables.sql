@@ -32,7 +32,8 @@ CREATE TABLE war_desc_profile (
     name TEXT,
     description TEXT,
     meaning JSONB NOT NULL,
-    PRIMARY KEY (name, description)
+    faction TEXT,
+    PRIMARY KEY (name, faction)
 );
 
 CREATE TABLE war_power_profile (

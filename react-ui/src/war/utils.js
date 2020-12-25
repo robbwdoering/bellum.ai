@@ -7,6 +7,8 @@
  */
 
 import { regex, typoMap } from "./constants";
+import { statuses, flags } from "./../meaning/context"
+import { evalCond } from "./../meaning/engine"
 
 export const sanitizeString = str => {
 	if (!str) return null;
@@ -44,6 +46,9 @@ export const computePDF = (mean, dev, x) => {
 	return ret;
 };
 
+/**
+ * This class represents one model. It is built to be STATELESS - see Unit class for explanation.
+ */
 export class Model {
 	constructor(json) {
 		Object.assign(this, json);
@@ -104,11 +109,17 @@ export class Model {
 };
 
 
+/**
+ * This class represents one unit. It is built to be STATELESS - all fields are expected to be final.
+ * This is because we do not store this data in cookie form or on the server. Rather, it is inferred
+ * every time we load in a new List/Profile combination. See warReducer for details.
+ */
 export class Unit {
-	constructor(json) {
+	constructor(json, unitIdx, playerIdx) {
 		Object.assign(this, json, { models: json.models.map(model => new Model(model)) });
+		this.unitIdx = unitIdx;
+		this.playerIdx = playerIdx;
 	}
-
 
 	// --------------
 	// CONTEXT ENGINE
@@ -119,45 +130,73 @@ export class Unit {
 	 * 		Can be Permament, Timed, or Fluid (to be re-evaluated on board state change)
 	 *  Flags - Projections from the engine that don't have direct effects on the game, like Can Take Objective, or Safe 
 	 */
-	applyStatuses = (oldArr, matchState, boardState, profile) => {
-		let ret = [];
-		let stat;
 
-		// All statuses that are "this turn"
-		oldArr.forEach(idx => {
+	/**
+	 * The core of the context engine - called for one of the core categories above at the start of a phase.
+	 * The end goal is to build an array of indices, where each corresponds to an entry in the "allPossibilites" array that applies
+	 * to this unit in this phase.
+	 * Also needs to take into account the previous state of the relevant array.
+	 */
+	applyContextCat = (allPossibilites, oldArr, matchState, boardState, profile) => {
+		let stat, thisPhase, thisRound;
+
+		// Iterate over every possible status that a unit can have 
+		return statuses.reduce((ret, idx) => {
 			stat = statuses[idx];
-			if (stat.expir === undefined || stat.expir === matchState.phase) {
-				// Evaluate this rule again
-				if (evalCond(stat.cond))
+			// Build booleans for if this status "expires" right now, and thus should be reevaluated
+			// An undefined value for phase/turn means "reevaluated every phase/turn" respectively
+			thisPhase = stat.phase === undefined || stat.phase === matchState.phase;
+			thisRound = stat.round === undefined || stat.round === matchState.round;
+
+			// Check for statuses that are applied manually that might stick around, like Advanced or Charged
+			if (oldArr.includes(idx) && (!thisPhase || !thisRound) && !stat.cond) {
+				ret.push(idx);
+
+			// Evaluate all rules that have conditionals, and are marked for reevaluation 
+			} else if (thisPhase && thisRound && evalCond(stat.cond)) {
+				ret.push(idx);	
 			}
-		});
-		if (&& matchState.phase != 0) {
 
-		}
-
-		// Engaged
-
-		// In Cover
-
-		return ret;
+			return ret;
+		}, []);
 	};
 
-	applyAffects = (oldArr) => {
-		let ret = [];
-
-		return ret;
+	applyAffects = (profiles, oldAffects, matchState, boardState, profile) => {
+		return this.applyContextCat(oldAffects)
 	};
 
 	applyFlags = (oldArr) => {
-		let ret = [];
+		let stat, thisPhase, thisRound;
 
-		return ret;
+		// Iterate over every possible status that a unit can have 
+		return statuses.reduce((ret, idx) => {
+			stat = statuses[idx];
+			// Build booleans for if this status "expires" right now, and thus should be reevaluated
+			// An undefined value for phase/turn means "reevaluated every phase/turn" respectively
+			thisPhase = stat.phase === undefined || stat.phase === matchState.phase;
+			thisRound = stat.round === undefined || stat.round === matchState.round;
+
+			// Check for statuses that are applied manually that might stick around, like Advanced or Charged
+			if (oldArr.includes(idx) && (!thisPhase || !thisRound) && !stat.cond) {
+				ret.push(idx);
+
+			// Evaluate all rules that have conditionals, and are marked for reevaluation 
+			} else if (thisPhase && thisRound && evalCond(stat.cond)) {
+				ret.push(idx);	
+			}
+
+			return ret;
+		}, []);
 	};
 
 
 	// -----------------------
 	// ACCESSORS / CONVENIENCE
 	// -----------------------
+
+	getStat = (profile, unit, boardState, playerIdx, unitIdx, modelId) => unit.models[0].getStat(profile, unit, boardState, playerIdx, unitIdx, modelId);
+
+	pos = (boardState) => boardState.units[this.playerIdx][this.unitIdx].pos;
 
 	// Calls the callback on every weapon we can find, and returns each result in an array
 	// Callback prof: (wepProfile, model, unit)

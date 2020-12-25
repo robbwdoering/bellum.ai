@@ -5,6 +5,8 @@ This web tool aims to provide three services to players of the popular tabaletop
 2. Play Faster: Update the tool as you play to always know which dice come next.
 3. Learn Tactics: Live statistical feedback, suggested paths of action, and more to come. 
 
+If you're more interested in how we're translating complex Warhammer 40k rules into computer-readable formats than you are in the technical details of the app, or are interested in contributing to that effort, please see the ["Meaning Engine" documentation](https://github.com/robbwdoering/bellum.ai/tree/master/meaningEngineReference.md).
+
 ## Client Implementation
 - The client for this application is a React single page application. 
 - State is managed centrally via Redux, which also serves as the primary interface for REST communication with the server.
