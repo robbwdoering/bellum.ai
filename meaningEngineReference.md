@@ -19,7 +19,7 @@ cond: {
 	// See the "Conditional Types" section for a list of currently implemented types.
 	type: string, 
 
-	// Contains input to the condtional, like the number to increase a unit's characteric by, or the range of an aura
+	// Contains input to the condtional, like an numeric threshold or a list of relevant strings
 	// Content entirely depends on type - could be an array, object, number, string, or even optional
 	params: varies,
 
@@ -60,13 +60,14 @@ This is the basic layout of a meaning object, where "type" is the only field req
 	warning: string,
 
 	// A number of inches, used for "AURA" effects to identify the radius of the aura.
-	range: number
+	radius: number
 }
 ```
 
 ## Examples
 We begin with a very simple example of a rule, pulled from the Ork Codex:
-  :scroll: *'Ere We Go!:* You can re-roll charge rolls for this unit.  When doing so, you can re-roll all or any of the dice.
+
+  :scroll: **'Ere We Go!:** You can re-roll charge rolls for this unit.  When doing so, you can re-roll all or any of the dice.
 
 This rule is represented as the following object:
 ```js
@@ -75,15 +76,15 @@ This rule is represented as the following object:
 }
 ```
 
-As you can see, this rule describes something that lots of different factions have, so we simply name the effect type and that's all we need. The engine knows how to see this type and A) remind the user about this rule during the charge phase, and B) take this advantage into account when giving projections of how far the unit will probably charge.
+As you can see, this rule describes something that lots of different factions have, so we simply name the effect type and that's all we need. The engine knows how to see this type and A) remind the user about this rule during the charge phase, and B) take this advantage into account when giving projections of how far the unit might charge.
 
 Now lets try something trickier:
 
   :scroll: **Green Tide:** If this unit includes 20 or more models, add 1 to the Attacks characteristic of each model in the unit.
 
 This rule adds two new wrinkles:
-1. There's an "IF" clause - this rule only applies sometimes.
-2. The rule has some details that are inherently specific, namely a number and the name of a specific characteristic.
+1. There's an "if" clause - this rule only applies sometimes.
+2. The rule has some details that are inherently specific to this rule, namely a number and the name of a particular characteristic.
 To capture these, we use the following object:
 ```js
 {
@@ -99,7 +100,7 @@ To capture these, we use the following object:
 }
 ```
 
-The cond object tackles our first wrinkle, by telling the engine to only apply the rule when the unit has X number of models left, where X is given in the parameter. The second is handled by the "params" sections of the effect, giving the engine the number and the name of the relevant characteristic.
+The cond object tackles our first wrinkle, by telling the engine to only apply the rule when the unit has X number of models left, where X is given in the parameter. The second is handled by the parameter field of the effect, giving the number and the name of the relevant characteristic.
 
 If you've got a hang of that, let's jump to an example that shows how effects can be nested, this time pulled from the Adeptus Custodes codex:
 
@@ -108,29 +109,29 @@ If you've got a hang of that, let's jump to an example that shows how effects ca
 This rule doesn't have very many words, but describes an "aura", which makes it more complex. Auras don't apply directly to the units that have them, but rather are descriptions of rules to apply to certain units NEAR the unit that has this rule. If you remember this idea, that this rule is just a wrapper for the "real" rule, the following might make more sense:
 ```js
 {
-	"type": "AURA", 
-	"params": {
-		"cond": {
-			"type": "HAS_CATEGORY",
-			"params": ["adeptus_custodes"]
+	type: "AURA", 
+	radius: 6,	
+	params: {
+		cond: {
+			type: "HAS_CATEGORY",
+			params: ["adeptus_custodes"]
 		},
-		"range": 6,	
-		"type": "AND",
-		"params": [
+		type: "AND",
+		params: [
 			{
-				"type": "HIT_REROLL", 
-				"params": [1]
+				type: "HIT_REROLL", 
+				params: [1]
 			},
 			{
-				"type": "WOUND_REROLL", 
-				"params": [1]
+				type: "WOUND_REROLL", 
+				params: [1]
 			},
 		]
 	}
 }
 ```
 
-Here, the "params" section of the object is actually its own complete meaning object! The engine will look at this nested object and apply it all units that are within the range (6") and that pass the conditional (have a certain category). From there, the last complexity is that this nested effect is actually two effects: reroll 1s to hit, and reroll 1s to wound.
+Here, the parameter field of the object is actually its own complete meaning object! The engine will look at this nested object and apply it all units that are within 6" and that pass the conditional (are part of a certain unit category). From there, the last complexity is that this nested effect is actually two effects that are nested further: reroll 1s to hit, and reroll 1s to wound.
 
 Finally, we'll briefly present an example of a multi-part rule with nested conditionals:
 
@@ -139,51 +140,51 @@ Finally, we'll briefly present an example of a multi-part rule with nested condi
 And the corresponding object:
 ```js
 {
-	"type": "AND",
-	"params": [
+	type: "AND",
+	params: [
 		{
-			"type": "AURA",
-			"params": {
-				"cond": {
-					"type": "AND",
-					"params": [
+			type: "AURA",
+			radius: 6,
+			params: {
+				cond: {
+					type: "AND",
+					params: [
 						{
-							"type": "HAS_FACTION",
-							"params": ["ork"]
+							type: "HAS_FACTION",
+							params: ["ork"]
 						},
 						{
-							"type": "HAS_CATEGORY",
-							"params": ["infantry", "monster"]
+							type: "HAS_CATEGORY",
+							params: ["infantry", "monster"]
 						}
 					]
 				},
-				"range": 6,
-				"type": "ADVANCE_AND_CHARGE",
+				type: "ADVANCE_AND_CHARGE",
 			}
 		},
 		{
-			"type": "AURA",
-			"params": {
-				"cond": {
-					"type": "AND",
-					"params": [
+			type: "AURA",
+			radius: 6,
+			params: {
+				cond: {
+					type: "AND",
+					params: [
 						{
-							"type": "HAS_FACTION",
-							"params": ["ork"]
+							type: "HAS_FACTION",
+							params: ["ork"]
 						},
 						{
-							"type": "HAS_CATEGORY",
-							"params": ["infantry"]
+							type: "HAS_CATEGORY",
+							params: ["infantry"]
 						},
 						{
-							"type": "HAS_STATUS",
-							"params": ["CHARGED"]
+							type: "HAS_STATUS",
+							params: ["CHARGED"]
 						}
 					]
 				},
-				"range": 6,
-				"type": "ADD_STAT",
-				"params": { "field": "attacks", "val": 1 }
+				type: "ADD_STAT",
+				params: { field: "attacks", val: 1 }
 			}
 		}
 	]
@@ -194,6 +195,8 @@ This example simply uses everything we've discussed so far together, so I'll rem
 
 
 ## Conditional Types
+:warning: In progress...
+
 | Type    | Description                                                                          | Parameter Format        | Required Fields |
 |---------|--------------------------------------------------------------------------------------|-------------------------|-----------------|
 | AND     | Evaluates each sub-conditional, returning true if they all do.   					 | Array of cond. objects  |                 |
@@ -201,12 +204,12 @@ This example simply uses everything we've discussed so far together, so I'll rem
 | XOR     | Evaluates each sub-conditional, returning true if ONLY one does.                     | Array of cond. objects  |                 |
 | NOT     | Evaluates the sub-conditional, returning true if it returns false.                   | Cond. object            |                 |
 
-:warning: In progress...
 
 ## Effect Types
+:warning: In progress...
+
 | Type    | Description                                                                          | Parameter Format        | Required Fields |
 |---------|--------------------------------------------------------------------------------------|-------------------------|-----------------|
 | AND     | A wrapper rule that applies each sub-rule.                                           | Array of effect objects |                 |
 | OR      | A wrapper rule that allows the player to choose one effect. Not yet fully supported. | Array of effect objects |                 |
 
-:warning: In progress...

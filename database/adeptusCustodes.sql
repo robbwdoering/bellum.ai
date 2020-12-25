@@ -63,9 +63,9 @@ INSERT INTO war_desc_profile (name, faction, meaning) VALUES
 })
 ("explodes", "adeptusCustodes", {
 	"type": "EXPLODES", 
+	"radius": 6,
 	"params": {
 		"threshold": 6,
-		"range": 6,
 		"dmg": "D3M",
 	} 
 })
@@ -89,20 +89,20 @@ INSERT INTO war_desc_profile (name, faction, meaning) VALUES
 ("infernus_firebomb", "adeptusCustodes", {})
 ("inspirational_fighter", "adeptusCustodes", {
 	"type": "AURA", 
+	"radius": 6,	
 	"params": {
-		"range": 6,	
 		"type": "HIT_REROLL", 
 		"params": [1]
 	}
 })
 ("legendary_commander", "adeptusCustodes", {
 	"type": "AURA", 
+	"radius": 6,	
 	"params": {
 		"cond": {
 			"type": "HAS_CATEGORY",
 			"params": ["adeptus_custodes"]
 		},
-		"range": 6,	
 		"type": "AND",
 		"params": [
 			{
@@ -192,9 +192,8 @@ INSERT INTO war_desc_profile (name, faction, meaning) VALUES
 		},
 		{
 			"type": "AURA",
+			"radius": 18,	
 			"params": {
-
-				"range": 18,	
 				"type": "AND", 
 				"params": [
 					{
@@ -206,7 +205,7 @@ INSERT INTO war_desc_profile (name, faction, meaning) VALUES
 						"type": "ADD_DENY_THE_WITCH", 
 						"target": "ENEMY",
 						"params": -1 
-					}
+					},
 				]
 			}
 		}

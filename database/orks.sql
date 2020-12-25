@@ -28,6 +28,7 @@ INSERT INTO war_desc_profile (name, faction, meaning) VALUES
 }),
 ("doks_tools", "orks", {
 	"type": "AURA",
+	"radius": 3,
 	"params": {
 		"cond": {
 			"type": "AND",
@@ -42,26 +43,25 @@ INSERT INTO war_desc_profile (name, faction, meaning) VALUES
 			]
 		},
 		"type": "FNP",
-		"range": 3,
 		"params": 6
 	}
 }),
 ("explodes", "orks", {
 	"type": "EXPLODES",
+	"radius": 6,
 	"params": {
 		"threshold": 6,
-		"range": 6,
 		"dmg": "D3M",
 	} 
 }),
 ("goffs_is_da_best", "orks", {
 	"type": "AURA",
+	"radius": 6,
 	"params": {
 		"cond": {
 			"type": "HAS_CATEGORY",
 			"params": ["goff_ork"]
 		},
-		"range": 6,
 		"type": "HIT_REROLL__FIGHT",
 		"params": [1]
 	}
@@ -72,6 +72,7 @@ INSERT INTO war_desc_profile (name, faction, meaning) VALUES
 	"params": [
 		{
 			"type": "AURA",
+			"radius": 6,
 			"params": {
 				"cond": {
 					"type": "AND",
@@ -86,12 +87,12 @@ INSERT INTO war_desc_profile (name, faction, meaning) VALUES
 						}
 					]
 				},
-				"range": 6,
 				"type": "ADVANCE_AND_CHARGE",
 			}
 		},
 		{
 			"type": "AURA",
+			"radius": 6,
 			"params": {
 				"cond": {
 					"type": "AND",
@@ -110,7 +111,6 @@ INSERT INTO war_desc_profile (name, faction, meaning) VALUES
 						}
 					]
 				},
-				"range": 6,
 				"type": "ADD_STAT",
 				"params": { "field": "attacks", "val": 1 }
 			}
@@ -129,11 +129,11 @@ INSERT INTO war_desc_profile (name, faction, meaning) VALUES
 ("grot_orderly", "orks", {}),
 ("keepin_order", "orks", {
 	"type": "AURA",
+	"radius": 3,
 	"params": {
 		"cond": {
 			"type": "SHARE_SUBFACTION"
 		}
-		"range": 3,
 		"type": "MORALE_FNP",
 		"params": 6
 	} 
@@ -189,12 +189,12 @@ INSERT INTO war_desc_profile (name, faction, meaning) VALUES
 }),
 ("the_boss_is_watchin", "orks", {
 	"type": "AURA",
+	"radius": 6,
 	"params": {
 		"cond": {
 			"type": "HAS_FACTION",
 			"params": ["ork"] 
 		},
-		"range": 6,
 		"type": "MORALE_EXECUTION",
 		"params": "D3M"
 	}
