@@ -78,7 +78,8 @@ This rule is represented as the following object:
 As you can see, this rule describes something that lots of different factions have, so we simply name the effect type and that's all we need. The engine knows how to see this type and A) remind the user about this rule during the charge phase, and B) take this advantage into account when giving projections of how far the unit will probably charge.
 
 Now lets try something trickier:
-  :scroll: *Green Tide:* If this unit includes 20 or more models, add 1 to the Attacks characteristic of each model in the unit.
+
+  :scroll: **Green Tide:** If this unit includes 20 or more models, add 1 to the Attacks characteristic of each model in the unit.
 
 This rule adds two new wrinkles:
 1. There's an "IF" clause - this rule only applies sometimes.
@@ -101,7 +102,8 @@ To capture these, we use the following object:
 The cond object tackles our first wrinkle, by telling the engine to only apply the rule when the unit has X number of models left, where X is given in the parameter. The second is handled by the "params" sections of the effect, giving the engine the number and the name of the relevant characteristic.
 
 If you've got a hang of that, let's jump to an example that shows how effects can be nested, this time pulled from the Adeptus Custodes codex:
-  :scroll: *Legendary Commander:* You can re-roll hit rolls and wound rolls of 1 made for friendly ADEPTUS CUSTODES units within 6" of Trajann Valoris.
+
+  :scroll: **Legendary Commander:** You can re-roll hit rolls and wound rolls of 1 made for friendly ADEPTUS CUSTODES units within 6" of Trajann Valoris.
 
 This rule doesn't have very many words, but describes an "aura", which makes it more complex. Auras don't apply directly to the units that have them, but rather are descriptions of rules to apply to certain units NEAR the unit that has this rule. If you remember this idea, that this rule is just a wrapper for the "real" rule, the following might make more sense:
 ```js
@@ -131,7 +133,8 @@ This rule doesn't have very many words, but describes an "aura", which makes it 
 Here, the "params" section of the object is actually its own complete meaning object! The engine will look at this nested object and apply it all units that are within the range (6") and that pass the conditional (have a certain category). From there, the last complexity is that this nested effect is actually two effects: reroll 1s to hit, and reroll 1s to wound.
 
 Finally, we'll briefly present an example of a multi-part rule with nested conditionals:
-  :scroll: *Great Waagh!:* Friendly ORK INFANTRY and MONSTER units within 6" of this model can be chosen to charge with even if they Advanced this turn. In addition, add 1 to the Attacks characteristic of models in friendly ORK INFANTRY units whilst their unit is within 6" of this model, if their unit made a charge move this turn.
+
+  :scroll: **Great Waagh!:** Friendly ORK INFANTRY and MONSTER units within 6" of this model can be chosen to charge with even if they Advanced this turn. In addition, add 1 to the Attacks characteristic of models in friendly ORK INFANTRY units whilst their unit is within 6" of this model, if their unit made a charge move this turn.
 
 And the corresponding object:
 ```js
