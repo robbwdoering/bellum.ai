@@ -1,7 +1,7 @@
 # Meaning Engine Reference Document
 This document seeks to lay out the various components that go into translating WH40k rules from a human-readable format (plain english as it appears in the codexes) into a computer-readable format ([JSON](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON)). This resulting JSON object tells the computer when to apply the rule, and what effect it will have when applied.
 
-This is not automatable (someone please prove me wrong...), so a human must look at each rule and translate it into a corresponding object. The hope is that this document will allow anyone familiar with Warhammer 40k to modify these JSON objects, without the need for any programming knowledge. For context, these objects are stored for each faction in (special .sql files)[https://github.com/robbwdoering/bellum.ai/tree/master/database], and then made available to the actual running web application via a relational database.
+This is not automatable (someone please prove me wrong...), so a human must look at each rule and translate it into a corresponding object. The hope is that this document will allow anyone familiar with Warhammer 40k to modify these JSON objects, without the need for any programming knowledge. For context, these objects are stored for each faction in [special .sql files](https://github.com/robbwdoering/bellum.ai/tree/master/database), and then made available to the actual running web application via a relational database.
 
 It is important to note before proceeding that by the very nature of the application, some rules are impossible to meaningfully represent in this format, and many more are not represented because it would be possible but challenging. Instead of covering 100% of WH40k's 1000+ rules, this engine seeks to capture the 90% that have the most frequent effect on the game, and leave it to the players to apply the remaining 10% themselves. Players are warned at the start of the game which rules are used by the two forces at play that are not yet covered.
 
@@ -10,7 +10,7 @@ When translating a rule, one must think of the rule as being split into two part
 ## Conditionals
 A conditional is an object that tells the engine to run a specific function with specific inputs, which always returns "true" (this rule applies) or "false" (this rule does not apply). When exactly the conditional is called depends on the type of the effect; for example, conditionals for Roster Rules are only checked at the start of the game, but rules on shooting are often evaluated at the start of every shooting phase.
 
-All conditional JSON objects are descendants of the overall effect's JSON object, and restricted to the "cond" field of the meaning object. That said, they can also be chained [recursively](https://en.wikipedia.org/wiki/Recursion) using the conditional types "AND", "OR", "NOT", and "XOR". This is so that one effect can have a complex set of multiple conditionals, like "if an ork AND an infantry AND can NOT fly".
+All conditional JSON objects are descendants of the overall effect's JSON object, and restricted to the "cond" field of the meaning object. That said, they can also be chained [recursively](https://en.wikipedia.org/wiki/Recursion) using the conditional types "AND", "OR", "NOT", and "XOR". This is so that one effect can have a complex set of multiple conditionals, like "if this unit is an ork AND an infantry AND can NOT fly".
 
 This is the basic layout of a conditional: 
 ```js
@@ -30,11 +30,11 @@ cond: {
 ```
 
 ## Effects
-The effect of a rule is "meat-and-potatoes," so to speak; unlike conditionals, which are restricted to their own section of a meaning object called "cond", we say "effect" to describe all the other fields of the meaning object.
+The effect of a rule is the "meat-and-potatoes," so to speak; unlike conditionals, which are restricted to their own section of a meaning object called "cond", we say "effect" to describe all the other fields of the meaning object.
 
-Like conditionals, affects can be nested, although this system is much simpler and only supports a max of two nested levels (rather than infinite). This can be done using the special "AND" effect, which captures rules like "add one to hit rolls AND reroll wound rolls", or the "OR" effect to capture rules like Defensible Terrain. 
+Like conditionals, effects can be nested, although this system is much simpler and only supports a max of two nested levels (rather than infinite). This can be done using the special "AND" effect, which captures rules like "add one to hit rolls AND reroll wound rolls", or the "OR" effect to capture rules like Defensible Terrain. 
 
-> :warning: The "OR" effect is not currently supported in the code, and will instead be treated as an "AND" as a shortcut. New rules should still use the "OR" affect where appropriate.
+> :warning: The "OR" effect is not currently supported in the code, and will instead be treated as an "AND" as a shortcut. New rules should still use the "OR" type where appropriate so that they'll work when "OR" support is added.
 
 This is the basic layout of a meaning object, where "type" is the only field required in all cases:
 ```js
@@ -43,7 +43,7 @@ This is the basic layout of a meaning object, where "type" is the only field req
 	cond: object
 
 	// A string that identifies the effect. Unlike conditionals, these vary too much to describe very accurately beyond that. 
-	// These run the gamut from simple and universal rules such as "add one to hit rolls" (HIT), to complex faction-specific and context-dependent rules, like exploding vehicles.
+	// These run the gamut from simple rules such as "add one to hit rolls", to complex context-dependent rules, like vehicles that explode upon death.
 	// See the "Effect Types" section for a list of currently implemented types.
 	type: string, 
 
@@ -188,3 +188,22 @@ And the corresponding object:
 ```
 
 This example simply uses everything we've discussed so far together, so I'll remit the detailed explanation. If you're curious to see more examples, I encourage you to look into [the actual .sql files](https://github.com/robbwdoering/bellum.ai/tree/master/database) that have been built so far, and compare the objects against what's printed in your codex. If you find a mistake, please let me know, or even better, you can [open a pull request](https://docs.github.com/en/free-pro-team@latest/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request) to fix it yourself!
+
+
+## Conditional Types
+| Type    | Description                                                                          | Parameter Format        | Required Fields |
+|---------|--------------------------------------------------------------------------------------|-------------------------|-----------------|
+| AND     | Evaluates each sub-conditional, returning true if they all do.   					 | Array of cond. objects  |                 |
+| OR      | Evaluates each sub-conditional, returning true if one does.   	 					 | Array of cond. objects  |                 |
+| XOR     | Evaluates each sub-conditional, returning true if ONLY one does.                     | Array of cond. objects  |                 |
+| NOT     | Evaluates the sub-conditional, returning true if it returns false.                   | Cond. object            |                 |
+
+:warning: In progress...
+
+## Effect Types
+| Type    | Description                                                                          | Parameter Format        | Required Fields |
+|---------|--------------------------------------------------------------------------------------|-------------------------|-----------------|
+| AND     | A wrapper rule that applies each sub-rule.                                           | Array of effect objects |                 |
+| OR      | A wrapper rule that allows the player to choose one effect. Not yet fully supported. | Array of effect objects |                 |
+
+:warning: In progress...
