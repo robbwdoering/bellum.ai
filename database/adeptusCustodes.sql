@@ -3,8 +3,8 @@ INSERT INTO war_desc_profile (name, faction, meaning) VALUES
 	"type": "AND", 
 	"params": [
 		{
-			"type": "INVULN", 
-			"params": 5 
+			"type": "SET_STAT", 
+			"params": { "field": "invuln", "val": 5 }
 		},
 		{
 			"type": "FNP__PSYCHIC", 
@@ -46,7 +46,7 @@ INSERT INTO war_desc_profile (name, faction, meaning) VALUES
 				"type": "NOT",
 				"params": {
 					"type": "HAS_CATEGORY",
-					"target": "TARGET",
+					"target": "ENEMY",
 					"params": [ "fly" ]
 				}
 			} 
@@ -54,12 +54,12 @@ INSERT INTO war_desc_profile (name, faction, meaning) VALUES
 	]
 })
 ("auramite_halo", "adeptusCustodes", {
-	"type": "INVULN", 
-	"params": 3 
+	"type": "SET_STAT", 
+	"params": { "field": "invuln", "val": 3 }
 })
 ("eclipse_shield", "adeptusCustodes", {
-	"type": "INVULN", 
-	"params": 5 
+	"type": "SET_STAT", 
+	"params": { "field": "invuln", "val": 5 }
 })
 ("explodes", "adeptusCustodes", {
 	"type": "EXPLODES", 
@@ -70,8 +70,8 @@ INSERT INTO war_desc_profile (name, faction, meaning) VALUES
 	} 
 })
 ("flare_shielding", "adeptusCustodes", {
-	"type": "INVULN", 
-	"params": 5 
+	"type": "SET_STAT", 
+	"params": { "field": "invuln", "val": 5 }
 })
 ("from_golden_light", "adeptusCustodes", {
 	"type": "DEEPSTRIKE"
@@ -128,8 +128,8 @@ INSERT INTO war_desc_profile (name, faction, meaning) VALUES
 	"type": "IGNORE_LOOK_OUT_SIR"
 })
 ("storm_shield", "adeptusCustodes", {
-	"type": "INVULN", 
-	"params": 3 
+	"type": "SET_STAT", 
+	"params": { "field": "invuln", "val": 3 }
 })
 ("supersonic", "adeptusCustodes", {})
 ("sworn_guardians", "adeptusCustodes", {
@@ -178,8 +178,8 @@ INSERT INTO war_desc_profile (name, faction, meaning) VALUES
 				}
 			]
 		},
-		"type": "ADD_INVULN",
-		"params": 1 
+		"type": "ADD_STAT", 
+		"params": { "field": "invuln", "val": -1 }
 	}
 })
 ("null_maidens", "adeptusCustodes", {})
@@ -193,17 +193,20 @@ INSERT INTO war_desc_profile (name, faction, meaning) VALUES
 		{
 			"type": "AURA",
 			"radius": 18,	
+			"target": "ENEMY",
 			"params": {
+				"cond": {
+					"type": "HAS_CATEGORY",
+					"params": ["psyker"]
+				},
 				"type": "AND", 
 				"params": [
 					{
 						"type": "ADD_PSYCHIC", 
-						"target": "ENEMY",
 						"params": -1 
 					},
 					{
 						"type": "ADD_DENY_THE_WITCH", 
-						"target": "ENEMY",
 						"params": -1 
 					},
 				]

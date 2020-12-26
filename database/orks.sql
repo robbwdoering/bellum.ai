@@ -149,10 +149,9 @@ INSERT INTO war_desc_profile (name, faction, meaning) VALUES
 			"type": "HAS_FACTION",
 			"params": ["ork"] 
 		},
-		"type": "INVULN__SHOOT",
-		"params": 5
+		"type": "SET_STAT__SHOOT", 
+		"params": { "field": "invuln", "val": 5 }
 	}
-
 }),
 ("no_clan", "orks", {}),
 ("open_topped", "orks", {
@@ -162,17 +161,18 @@ INSERT INTO war_desc_profile (name, faction, meaning) VALUES
 	"type": "AND",
 	"params": [
 		{
-			"type": "INVULN",
-			"params": 4
+			"type": "SET_STAT", 
+			"params": { "field": "invuln", "val": 4 }
 		},
 		{
-			"type": "MAX_WOUNDS_TAKEN_IN_ROUND",
+			"type": "MAX_DMG_PER_ROUND",
 			"params": 4
 		}
 	]
 }),
 ("ramshackle", "orks", {
-	"type": "RAMSHACKLE"
+	"type": "DMG_MAX_ROLL",
+	"params": {"max": 1, "threshold": 6}
 }),
 ("sawbonez", "orks", {}),
 ("sneaky_gits", "orks", {
