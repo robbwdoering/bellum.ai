@@ -64,6 +64,63 @@ This is the basic layout of a meaning object, where "type" is the only field req
 }
 ```
 
+## Conditional Types
+| Type               | Description                                                                                                   | Parameter Format            | Subtypes            |
+|--------------------|---------------------------------------------------------------------------------------------------------------|-----------------------------|---------------------|
+| AND                | Evaluates each sub-conditional, returning true if they all do                                                 | Array of cond. objects      |                     |
+| OR                 | Evaluates each sub-conditional, returning true if one does                                                    | Array of cond. objects      |                     |
+| XOR                | Evaluates each sub-conditional, returning true if ONLY one does                                               | Array of cond. objects      |                     |
+| NOT                | Evaluates the sub-conditional, returning true if it returns false                                             | Cond. object                |                     |
+| SHARE_SUBFACTION   | If the two units share a subfaction, like Ork <CLAN> or Marine <CHAPTER>                                      | N/A                         |                     |
+| HAS_CATEGORY       | If the unit has one of the listed categories                                                                  | Array of category names     |                     |
+| HAS_FACTION        | If the unit is part of one of the listed factions                                                             | Array of faction names      |                     |
+| HAS_STATUS         | If the unit currently has one of the listed STATUS flags from earlier in the turn, like CHARGED or FELL_BACK. | Array of status IDs         |                     |
+| HAS_STAT           | If this characteristic field is more than the given threshold value                                           | {field, val}                |                     |
+| IN_DETACHMENT_TYPE | If the unit was deployed in a detachment of one of the listed types                                           | Array of detachment types   |                     |
+| HAS_MODEL_QUANTITY | If the unit currently has at least this many models left alive                                                | number of models            |                     |
+| IN_COVER           | If the unit is currently within this type of cover. If you don't specify a subtype, it matches all types      | N/A                         | HEAVY, LIGHT, DENSE |
+| IS_PHASE           | If the current phase MATCHES the parameter, where Command is 1 and Morale is 7                                | Number representing a phase |                     |
+| IS_ROUND           | If the current round is AT LEAST the parameter, where rounds run from 1 to 5                                  | Number representing a round |                     |
+
+
+## Effect Types
+| Type               | Description                                                                                                     | Parameter Format                       | Subtypes     |
+|--------------------|-----------------------------------------------------------------------------------------------------------------|----------------------------------------|--------------|
+| AND                | A wrapper rule that applies each sub-rule                                                                       | Array of meaning objects               |              |
+| OR                 | A wrapper rule that allows the player to choose one effect. Not yet fully supported                             | Array of meaning objects               |              |
+| AURA               | Applies the sub-rule to this unit and all others within the radius                                              | Meaning object                         |              |
+| SET_STAT           | Sets a statistic (AKA characteristic field) for a unit                                                          | {field, val}                           | SHOOT, FIGHT |
+| ADD_STAT           | Adds a number to a unit's statistic (AKA characteristic field).                                                 | {field, val}                           | SHOOT, FIGHT |
+| HIT                | Adds a number to every hit roll this unit makes                                                                 | Number                                 | SHOOT, FIGHT |
+| BE_HIT             | Adds a number to every roll made to hit this unit                                                               | Number                                 | SHOOT, FIGHT |
+| HIT_REROLL         | Every time the unit makes a roll to hit, it can reroll the listed values                                        | Array of numbers                       | SHOOT, FIGHT |
+| BE_HIT_REROLL      | Every time an enemy makes a roll to hit this unit, it can reroll the listed values                              | Array of numbers                       | SHOOT, FIGHT |
+| WOUND              | Adds a number to every wound roll this unit makes                                                               | Number                                 | SHOOT, FIGHT |
+| BE_WOUNDED         | Adds a number to every roll made to wound this unit                                                             | Number                                 | SHOOT, FIGHT |
+| WOUND_REROLL       | Every time the unit makes a roll to wound, it can reroll the listed values                                      | Array of numbers                       | SHOOT, FIGHT |
+| BE_WOUNDED_REROLL  | Every time an enemy makes a roll to wound this unit, it can reroll the listed values                            | Array of numbers                       | SHOOT, FIGHT |
+| SAVE               | Adds a number to every save roll this unit makes                                                                | Number                                 | SHOOT, FIGHT |
+| SAVE_REROLL        | Every time the unit makes a roll to save, it can reroll the listed values                                       | Array of numbers                       | SHOOT, FIGHT |
+| AP                 | "Armor Peircing" - Adds a number to every armor save roll made to resist attacks from this unit                 | Number                                 | SHOOT, FIGHT |
+| AUTOHIT            | If a hit roll matches one of the given numbers, it always hits regardless of modifiers                          | Array of numbers - omission autohit    | SHOOT, FIGHT |
+| EXPLODING_HIT      | If a hit roll matches one of the given numbers, the unit can make an extra attack                               | Array of numbers                       | SHOOT, FIGHT |
+| FNP                | Every time this unit suffers a wound, it rolls a D6. If it meets the given threshold, the wound is ignored      | Number                                 | SHOOT, FIGHT |
+| MORALE_FNP         | Every time a model from this unit flees, it rolls a D6. If it meets the given threshold, it stays               | Number                                 |              |
+| MORALE_EXECUTION   | Every time this unit fails a morale test, it can choose to suffer the listed damage instead of fleeing          | String that describes damage           |              |
+| DEEPSTRIKE         | Unit can choose to deploy after the first round at least the given number of inches away from any enemies       | Number of inches - ommission implies 9 |              |
+| DMG_MAX            | Each attack against this unit can only deal a maximum of this much damage                                       | Number                                 | SHOOT, FIGHT |
+| DMG_MAX_ROLL       | For every successful attack, roll a D6. If it meets the given threshold, the damage is reduced to the given max | {max, threshold}                       | SHOOT, FIGHT |
+| ADVANCE_AND_CHARGE | Allows the unit to charge even if it advanced this turn                                                         |                                        | ONE_DIE      |
+| REROLL_CHARGES     | This unit can reroll one or both charge dice                                                                    |                                        |              |
+| MAX_DMG_PER_ROUND  | This unit can only take up to this many wounds per round                                                        | Number                                 | SHOOT, FIGHT |
+| ADD_PSYKER_CASTS   | Add this number to the number of psychic abilities this unit can use per round                                  | Number                                 |              |
+| OBJECTIVE_SECURED  | This unit takes precedence over units without this rule when determining objective holders                      |                                        |              |
+| TRANSPORT          | This unit can transport the given number of models. Usually some specific restrictions apply                    | Number                                 |              |
+| OPEN_TOPPED        | Units embarked in this transport can still fire (restricitons apply)                                            |                                        |              |
+| CANNOT_BE_PSYCHIC  | This unit cannot be targeted by psychic powers                                                                  |                                        |              |
+| ADD_PSYCHIC        | Add a number to every psychic roll this unit makes                                                              | Number                                 |              |
+| ADD_DENY_THE_WITCH | Add a number to every deny the witch roll this unit makes                                                       | Number                                 |              |
+
 ## Examples
 We begin with a very simple example of a rule, pulled from the Ork Codex:
 
@@ -159,7 +216,7 @@ And the corresponding object:
 						}
 					]
 				},
-				type: "ADVANCE_AND_CHARGE",
+				type: "ADVANCE_AND_CHARGE"
 			}
 		},
 		{
@@ -191,61 +248,4 @@ And the corresponding object:
 }
 ```
 
-This example simply uses everything we've discussed so far together, so I'll remit the detailed explanation. If you're curious to see more examples, I encourage you to look into [the actual .sql files](https://github.com/robbwdoering/bellum.ai/tree/master/database) that have been built so far, and compare the objects against what's printed in your codex. If you find a mistake, please let me know, or if you're feeling generous, you can [open a pull request](https://docs.github.com/en/free-pro-team@latest/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request) to fix it yourself!
-
-## Conditional Types
-| Type               | Description                                                                                                   | Parameter Format            | Subtypes            |
-|--------------------|---------------------------------------------------------------------------------------------------------------|-----------------------------|---------------------|
-| AND                | Evaluates each sub-conditional, returning true if they all do                                                 | Array of cond. objects      |                     |
-| OR                 | Evaluates each sub-conditional, returning true if one does                                                    | Array of cond. objects      |                     |
-| XOR                | Evaluates each sub-conditional, returning true if ONLY one does                                               | Array of cond. objects      |                     |
-| NOT                | Evaluates the sub-conditional, returning true if it returns false                                             | Cond. object                |                     |
-| SHARE_SUBFACTION   | If the two units share a subfaction, like Ork <CLAN> or Marine <CHAPTER>                                      | N/A                         |                     |
-| HAS_CATEGORY       | If the unit has one of the listed categories                                                                  | Array of category names     |                     |
-| HAS_FACTION        | If the unit is part of one of the listed factions                                                             | Array of faction names      |                     |
-| HAS_STATUS         | If the unit currently has one of the listed STATUS flags from earlier in the turn, like CHARGED or FELL_BACK. | Array of status IDs         |                     |
-| HAS_STAT           | If this characteristic field is more than the given threshold value                                           | {field, val}                |                     |
-| IN_DETACHMENT_TYPE | If the unit was deployed in a detachment of one of the listed types                                           | Array of detachment types   |                     |
-| HAS_MODEL_QUANTITY | If the unit currently has at least this many models left alive                                                | number of models            |                     |
-| IN_COVER           | If the unit is currently within this type of cover. If you don't specify a subtype, it matches all types      | N/A                         | HEAVY, LIGHT, DENSE |
-| IS_PHASE           | If the current phase MATCHES the parameter, where Command is 1 and Morale is 7                                | Number representing a phase |                     |
-| IS_ROUND           | If the current round is AT LEAST the parameter, where rounds run from 1 to 5                                  | Number representing a round |                     |
-
-
-## Effect Types
-| Type               | Description                                                                                                     | Parameter Format                       | Subtypes     |
-|--------------------|-----------------------------------------------------------------------------------------------------------------|----------------------------------------|--------------|
-| AND                | A wrapper rule that applies each sub-rule                                                                       | Array of meaning objects               |              |
-| OR                 | A wrapper rule that allows the player to choose one effect. Not yet fully supported                             | Array of meaning objects               |              |
-| AURA               | Applies the sub-rule to this unit and all others within the radius                                              | Meaning object                         |              |
-| SET_STAT           | Sets a statistic (AKA characteristic field) for a unit                                                          | {field, val}                           | SHOOT, FIGHT |
-| ADD_STAT           | Adds a number to a unit's statistic (AKA characteristic field).                                                 | {field, val}                           | SHOOT, FIGHT |
-| HIT                | Adds a number to every hit roll this unit makes                                                                 | Number                                 | SHOOT, FIGHT |
-| BE_HIT             | Adds a number to every roll made to hit this unit                                                               | Number                                 | SHOOT, FIGHT |
-| HIT_REROLL         | Every time the unit makes a roll to hit, it can reroll the listed values                                        | Array of numbers                       | SHOOT, FIGHT |
-| BE_HIT_REROLL      | Every time an enemy makes a roll to hit this unit, it can reroll the listed values                              | Array of numbers                       | SHOOT, FIGHT |
-| WOUND              | Adds a number to every wound roll this unit makes                                                               | Number                                 | SHOOT, FIGHT |
-| BE_WOUNDED         | Adds a number to every roll made to wound this unit                                                             | Number                                 | SHOOT, FIGHT |
-| WOUND_REROLL       | Every time the unit makes a roll to wound, it can reroll the listed values                                      | Array of numbers                       | SHOOT, FIGHT |
-| BE_WOUNDED_REROLL  | Every time an enemy makes a roll to wound this unit, it can reroll the listed values                            | Array of numbers                       | SHOOT, FIGHT |
-| SAVE               | Adds a number to every save roll this unit makes                                                                | Number                                 | SHOOT, FIGHT |
-| SAVE_REROLL        | Every time the unit makes a roll to save, it can reroll the listed values                                       | Array of numbers                       | SHOOT, FIGHT |
-| AP                 | "Armor Peircing" - Adds a number to every armor save roll made to resist attacks from this unit                 | Number                                 | SHOOT, FIGHT |
-| AUTOHIT            | If a hit roll matches one of the given numbers, it always hits regardless of modifiers                          | Array of numbers - omission autohit    | SHOOT, FIGHT |
-| EXPLODING_HIT      | If a hit roll matches one of the given numbers, the unit can make an extra attack                               | Array of numbers                       | SHOOT, FIGHT |
-| FNP                | Every time this unit suffers a wound, it rolls a D6. If it meets the given threshold, the wound is ignored      | Number                                 | SHOOT, FIGHT |
-| MORALE_FNP         | Every time a model from this unit flees, it rolls a D6. If it meets the given threshold, it stays               | Number                                 |              |
-| MORALE_EXECUTION   | Every time this unit fails a morale test, it can choose to suffer the listed damage instead of fleeing          | String that describes damage           |              |
-| DEEPSTRIKE         | Unit can choose to deploy after the first round at least the given number of inches away from any enemies       | Number of inches - ommission implies 9 |              |
-| DMG_MAX            | Each attack against this unit can only deal a maximum of this much damage                                       | Number                                 | SHOOT, FIGHT |
-| DMG_MAX_ROLL       | For every successful attack, roll a D6. If it meets the given threshold, the damage is reduced to the given max | {max, threshold}                       | SHOOT, FIGHT |
-| ADVANCE_AND_CHARGE | Allows the unit to charge even if it advanced this turn                                                         |                                        | ONE_DIE      |
-| REROLL_CHARGES     | This unit can reroll one or both charge dice                                                                    |                                        |              |
-| MAX_DMG_PER_ROUND  | This unit can only take up to this many wounds per round                                                        | Number                                 | SHOOT, FIGHT |
-| ADD_PSYKER_CASTS   | Add this number to the number of psychic abilities this unit can use per round                                  | Number                                 |              |
-| OBJECTIVE_SECURED  | This unit takes precedence over units without this rule when determining objective holders                      |                                        |              |
-| TRANSPORT          | This unit can transport the given number of models. Usually some specific restrictions apply                    | Number                                 |              |
-| OPEN_TOPPED        | Units embarked in this transport can still fire (restricitons apply)                                            |                                        |              |
-| CANNOT_BE_PSYCHIC  | This unit cannot be targeted by psychic powers                                                                  |                                        |              |
-| ADD_PSYCHIC        | Add a number to every psychic roll this unit makes                                                              | Number                                 |              |
-| ADD_DENY_THE_WITCH | Add a number to every deny the witch roll this unit makes                                                       | Number                                 |              |
+This example showcases the use of multiple conditionals linked together - all of the listed conditionals within each "AND" must be satisfied on each unit within the radius for the rule to take effect for that unit. The rest simply uses everything we've discussed so far together, so I'll remit the detailed explanation. If you're curious to see more examples, I encourage you to look into [the actual .sql files](https://github.com/robbwdoering/bellum.ai/tree/master/database) that have been built so far, and compare the objects against what's printed in your codex. If you find a mistake, please let me know, or if you're feeling generous, you can [open a pull request](https://docs.github.com/en/free-pro-team@latest/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request) to fix it yourself!
