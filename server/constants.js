@@ -66,7 +66,7 @@ class Profile {
 };
 exports.Profile = Profile;
 
-// NOTE: ORdering of this list matters - searched top to bottom, and takes the first it finds
+// NOTE: Ordering of this list matters - searched top to bottom, and takes the first it finds
 exports.nameSuffixMarkers = [
 	/ [wW]\/ /g, // abbreviation for with, describes equipment
 	/ s$\/ /g, // S at end of line could indicate an unnecessary plural

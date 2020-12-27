@@ -26,17 +26,34 @@ class DynamicRouter {
 		);
 
 		/**
-		 * Fetch Chart 
-		 * Get chart data for the chart identified.
+		 * Meaning Engine Refresh
+		 * This is the main entry point for calculations performed during the course of a game.
+		 * Inputs: Match State (round+phase), Board State (Unit locations + health), Profile Keys
+		 * Output: Object that contains an array of active rules for every unit, outgoing dmg matrix, incoming dmg matrix
+		 */
+		app.post('/api/dynamic/meaning/refresh', jwtCheck, async (req, res) => {
+			console.log("[POST] refresh");
+			const { matchState, boardState, profiles, lists } = req.body;
+
+			// Build an array of all the "desc" rules that apply to each of the listed units
+
+			// Build the model damage matrices, but only if the inputs have changed
+		});
+
+		/**
+		 * Fetch Force Scorecard 
+		 * Get the chart data for a force. 
 		 */
 		app.post('/api/dynamic/ForceScorecard/:listId', jwtCheck, async (req, res) => {
-			console.log("[POST forcePolar]");
-			let values = derive.drvScorecardVals(req.body.force, req.body.profile, constants.defTestProfile);
+			console.log("[POST force scorecard]");
+			const { force, profile } = req.body;
+			let scorecard = derive.drvScorecardVals(force, profile, constants.defTestProfile);
 
-			console.log('got value: ', values)
+			console.log('got value: ', scorecard)
 
-			util.sendMsg(res, {type: "SET_FORCE_SCORECARD", payload: [ req.params.listId, values ]});
+			util.sendMsg(res, {type: "SET_FORCE_SCORECARD", payload: [ req.params.listId, scorecard ]});
 		});
+
 	}
 }
 

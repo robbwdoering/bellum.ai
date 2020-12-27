@@ -1,25 +1,4 @@
-export const statuses = [
-	["advanced", {
-		type: "ADVANCED",
-		phase: 0
-	}],
-
-	["charged", {
-		type: "CHARGED",
-		phase: 0
-	}],
-
-	["engaged", {
-		cond: {
-			type: "IN_RANGE",
-			subType: "ENEMY",
-			params: { range: 1 }
-		},
-		type: "SHOOT_RESTRICTION",
-		subtype: "ENGAGED",
-		target: "SELF"
-	}],
-
+export const coverRules = [
 	["in_cover_defensible", {
 		cond: { 
 			type: "AND",
@@ -68,9 +47,9 @@ export const statuses = [
 					type: "IN_COVER",
 					subType: "HEAVY"
 				},
-				{
-					unit.
-				}
+				// {
+				// 	unit.
+				// }
 			]
 		},
 		type: "ADD_STATUSES",
@@ -105,14 +84,36 @@ export const statuses = [
 		},
 		type: "BE_HIT__SHOOT",
 		params: -1 
-	}]
+	}],
+];
+
+export const statuses = [
+	["advanced", {
+		type: "ADVANCED",
+		phase: 0
+	}],
+
+	["charged", {
+		type: "CHARGED",
+		phase: 0
+	}],
+
+	["engaged", {
+		cond: {
+			type: "IN_RANGE",
+			subType: "ENEMY",
+			params: { range: 1 }
+		},
+		type: "SHOOT_RESTRICTION",
+		subtype: "ENGAGED",
+		target: "SELF"
+	}],
+
 ];
 
 // Affects are stored / calculated against army-specific forces
 export const flags = [
 	["safe", {
 		cond: { type: "IS_SAFE" },
-
-
 	}]
 ];

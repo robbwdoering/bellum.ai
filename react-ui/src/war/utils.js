@@ -10,6 +10,37 @@ import { regex, typoMap } from "./constants";
 import { statuses, flags } from "./../meaning/context"
 import { evalCond } from "./../meaning/engine"
 
+// NOTE: Only works for strings
+export const arrEqual = (lhs, rhs) => {
+	if (!lhs && !rhs) {
+		return true;
+	}
+
+	if (!lhs || !rhs || lhs.length !== rhs.length) {
+		return false;
+	}
+
+	return !lhs.some((e, i) => {
+		switch(typeof e) {
+			//2D arrays not supported
+			case "array":
+				return true;
+
+			// If it's an object, assume its a rule object and base the equality of the rule types and orderings
+			// It's theoretically possible that this will give a false positive.
+			// Likely scenario for that is a change in paramater value - is that a thing?
+			case "object":
+				return typeof rhs[i] !== "object" || e.type !== rhs[i].type;
+
+			// For all others, run a simple equality
+			case "number":
+			case "string":
+			default:
+				return e !== rhs[i];
+		}
+	});
+}
+
 export const sanitizeString = str => {
 	if (!str) return null;
 	let ret = str.toLowerCase()
@@ -61,6 +92,22 @@ export class Model {
 		}
 	}
 
+	getWoundTrack = (unit, profile, wRemaining) => {
+		let stat;
+
+		// Find the current wound track
+		// NOTE: This assumes that the wound track array is sorted in descending order
+		// NOTE: We're doing some scope trickery here - note the use of wStat
+		let idx = unit.wound_track.findIndex(trackName => {
+			const tmpStr = sanitizeString(trackName);
+			wStat = profile.stats.find(statBlock => statBlock.name === tmpStr) || {};
+
+			return wRemaining >= wStat.wounds;
+		})
+
+		return [stat, idx];
+	};
+
 	getStat = (profile, unit, boardState, playerIdx, unitIdx, modelIdx) => {
 		// Get the stat block for this name
 		let stat = profile.stats.find(statBlock => statBlock.name === this.key) || {};
@@ -78,20 +125,14 @@ export class Model {
 			finalModelIdx += unit.models[j].quantity;
 		}
 
-		// Find the current number of wounds
-		const wRemaining = boardState.units[playerIdx][unitIdx].wounds[finalModelIdx];
 
 		// Get wound track health info
 		if (unit.wound_track && unit.wound_track.length) {
-			let wStat;
+			// Find the current number of wounds
+			const wRemaining = boardState.units[playerIdx][unitIdx].wounds[finalModelIdx];
 
-			// Find the current wound track
-			// NOTE: This assumes that the wound track array is sorted in descending order
-			// NOTE: We're doing some scope trickery here - note the use of wStat
-			let trackName = unit.wound_track.find(trackName => {
-				wStat = profile.stats.find(statBlock => statBlock.name === sanitizeString(trackName)) || {};
-				return wRemaining >= wStat.wounds;
-			})
+			// Find the wound track stat block
+			const [wStat] = getWoundTrack(unit, profile, wRemaining);
 
 			// If we found a wound track, use all its non-null values to override the default stat block's values
 			if (wStat) {
@@ -108,17 +149,35 @@ export class Model {
 	};
 };
 
-
 /**
  * This class represents one unit. It is built to be STATELESS - all fields are expected to be final.
  * This is because we do not store this data in cookie form or on the server. Rather, it is inferred
  * every time we load in a new List/Profile combination. See warReducer for details.
  */
 export class Unit {
-	constructor(json, unitIdx, playerIdx) {
+	constructor(json, unitIdx, playerIdx, profile) {
 		Object.assign(this, json, { models: json.models.map(model => new Model(model)) });
 		this.unitIdx = unitIdx;
 		this.playerIdx = playerIdx;
+
+
+
+		// Find the indices of all this units abilities and rules, for ease of access
+		if (this.abilities) {
+			this.ruleKeys = this.abilites.map(name => {
+				const sanName = sanitizeString(name);
+				return profile.desc.findIndex(obj => obj.name === sanName);
+			});
+		} else {
+			this.ruleKeys = [];
+		}
+		if (this.rules) {
+			this.ruleKeys = this.ruleKeys.concat(this.rules.map(name => {
+				const sanName = sanitizeString(name);
+				return profile.desc.findIndex(obj => obj.name === sanName);
+			});
+		}
+
 	}
 
 	// --------------
@@ -141,8 +200,8 @@ export class Unit {
 		let stat, thisPhase, thisRound;
 
 		// Iterate over every possible status that a unit can have 
-		return statuses.reduce((ret, idx) => {
-			stat = statuses[idx];
+		return allPossibilites.reduce((ret, obj, idx) => {
+			stat = obj[1];
 			// Build booleans for if this status "expires" right now, and thus should be reevaluated
 			// An undefined value for phase/turn means "reevaluated every phase/turn" respectively
 			thisPhase = stat.phase === undefined || stat.phase === matchState.phase;
@@ -165,36 +224,13 @@ export class Unit {
 		return this.applyContextCat(oldAffects)
 	};
 
-	applyFlags = (oldArr) => {
-		let stat, thisPhase, thisRound;
-
-		// Iterate over every possible status that a unit can have 
-		return statuses.reduce((ret, idx) => {
-			stat = statuses[idx];
-			// Build booleans for if this status "expires" right now, and thus should be reevaluated
-			// An undefined value for phase/turn means "reevaluated every phase/turn" respectively
-			thisPhase = stat.phase === undefined || stat.phase === matchState.phase;
-			thisRound = stat.round === undefined || stat.round === matchState.round;
-
-			// Check for statuses that are applied manually that might stick around, like Advanced or Charged
-			if (oldArr.includes(idx) && (!thisPhase || !thisRound) && !stat.cond) {
-				ret.push(idx);
-
-			// Evaluate all rules that have conditionals, and are marked for reevaluation 
-			} else if (thisPhase && thisRound && evalCond(stat.cond)) {
-				ret.push(idx);	
-			}
-
-			return ret;
-		}, []);
-	};
-
+	// applyFlags = ();
 
 	// -----------------------
 	// ACCESSORS / CONVENIENCE
 	// -----------------------
 
-	getStat = (profile, unit, boardState, playerIdx, unitIdx, modelId) => unit.models[0].getStat(profile, unit, boardState, playerIdx, unitIdx, modelId);
+	getStat = (profile, unit, boardState) => unit.models[0].getStat(profile, unit, boardState, unit.playerIdx, unit.unitIdx, 0);
 
 	pos = (boardState) => boardState.units[this.playerIdx][this.unitIdx].pos;
 
@@ -245,8 +281,8 @@ export class Unit {
 	};
 
 	canShoot = () => {
-		if (unit.)
-		return wepSome((wepProfile, model) => wepProfile.weapontype
+		// if (unit.)
+		return this.wepSome((wepProfile, model) => wepProfile.weapontype);
 	}
 }
 

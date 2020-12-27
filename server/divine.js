@@ -110,7 +110,40 @@ const fireSalvo = (model, wepProfile, ctx, profile, target) => {
 };
 exports.fireSalvo = fireSalvo;
 
+/**
+ * Calculates that one unit will deal to all enemy models in the given phase, returning an array of [mean, var] pairs.
+ * The returned array is only calculated for models that are still alive - all other values are ommitted.
+ * Additionally, the returned array is linearized (sp?) from a 2D array into 1D, since every subarray has a constant length of 2.
+ */
+const buildUnitDmgArray = (matchState, boardState, ) => {
+	let wepProfile;
+	army.units.filter(unit => canShootNow(unit, profile)).forEach(unit => {
+		// we have a list of weapons per unit
+		// we want expected damage for every enemy unit
+		unit.weapons && unit.weapons.forEach(wep => {
+			wepProfile = profile.weapons[wep];
+			const targetList = ctx.board.allInRadius(unitId, wepProfile.range, "ENEMY");
+			const { expectedDamage, variance } = targetList.reduce((acc, target) => {
+				const { tmpExpectedDamage, tmpVariance } = fireSalvo(unit, wepProfile, ctx, profile, target);
+
+				acc.expectedDamage.push(tmpExpectedDamage);
+				acc.variance.push(tmpVariance);
+				acc.boardId.push(target);
+
+				return acc;
+			}, {boardId: [], expectedDamage: [], variance: []});
+		});
+	});
+};
+
+// -----------------------------------------------
+// -----------------------------------------------
+// -----------------------------------------------
 // WARNING - code below this line is a serious WIP
+// -----------------------------------------------
+// -----------------------------------------------
+// -----------------------------------------------
+
 // ---- Divination Tool Options 
 // Command 
 	// 0.0 Calc tracking status for NN + graphs ( EVERY PHASE DOES THIS in n.0)

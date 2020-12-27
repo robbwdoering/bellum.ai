@@ -166,7 +166,7 @@ export const ballGridPos = [
   [5, sqrt3],
 ];
 
-export const terrains = [
+export const terrains = {
   // https://d1w82usnq70pt2.cloudfront.net/wp-content/uploads/2019/10/NOVA_Table.png
   NOVA: [
     {
@@ -226,4 +226,4 @@ export const terrains = [
       dim: [4.5, 2.75]
     },
   ]
-];
+};

@@ -414,24 +414,6 @@ const addPdfs = (lhs, rhs) => {
 		return { mean: rhs.mean + lhs.mean, dev: lhs.dev}
 	}
 
-	// NOTE: Whoops this code does the mixture distribution, not the sum :grimace_emoji:
-	// let invDev1 = 1 / lhs.dev;
-	// let invDev2 = 1 / rhs.dev
-	// See: https://www.johndcook.com/blog/2012/10/29/product-of-normal-pdfs/
-	// newMean = ((invDev1 * lhs.mean) + (invDev2 * rhs.mean)) / (invDev1 + invDev2);
-	// newDev = (lhs.dev * rhs.dev) / (lhs.dev + rhs.dev);
-
-	// OLD IMPLEMENTATION: Manually walks each possibility
-	// let ret = {};
-	// Object.keys(rhs).forEach(rhsDmg => {
-	// 	Object.keys(lhs).forEach(lhsDmg => {
-	// 		key = parseInt(rhsDmg) + parseInt(lhsDmg);
-	// 		pr = lhs[lhsDmg] * rhs[rhsDmg]
-	// 		ret[key] = (ret[key] || 0) + pr;
-	// 	});
-	// })
-	// Object.keys(ret).forEach(key => ret[key] < 0.001 ? delete ret[key] : null);
-
 	return {mean: rhs.mean + lhs.mean, dev: rhs.dev + lhs.dev};
 }
 

@@ -102,17 +102,17 @@ This is the basic layout of a meaning object, where "type" is the only field req
 | SAVE               | Adds a number to every save roll this unit makes                                                                | Number                                 | SHOOT, FIGHT |
 | SAVE_REROLL        | Every time the unit makes a roll to save, it can reroll the listed values                                       | Array of numbers                       | SHOOT, FIGHT |
 | AP                 | "Armor Peircing" - Adds a number to every armor save roll made to resist attacks from this unit                 | Number                                 | SHOOT, FIGHT |
-| AUTOHIT            | If a hit roll matches one of the given numbers, it always hits regardless of modifiers                          | Array of numbers - omission autohit    | SHOOT, FIGHT |
+| AUTOHIT            | If a hit roll matches one of the given numbers, it always hits regardless of modifiers                          | Array of numbers - null implies all    | SHOOT, FIGHT |
 | EXPLODING_HIT      | If a hit roll matches one of the given numbers, the unit can make an extra attack                               | Array of numbers                       | SHOOT, FIGHT |
 | FNP                | Every time this unit suffers a wound, it rolls a D6. If it meets the given threshold, the wound is ignored      | Number                                 | SHOOT, FIGHT |
-| MORALE_FNP         | Every time a model from this unit flees, it rolls a D6. If it meets the given threshold, it stays               | Number                                 |              |
-| MORALE_EXECUTION   | Every time this unit fails a morale test, it can choose to suffer the listed damage instead of fleeing          | String that describes damage           |              |
-| DEEPSTRIKE         | Unit can choose to deploy after the first round at least the given number of inches away from any enemies       | Number of inches - ommission implies 9 |              |
 | DMG_MAX            | Each attack against this unit can only deal a maximum of this much damage                                       | Number                                 | SHOOT, FIGHT |
 | DMG_MAX_ROLL       | For every successful attack, roll a D6. If it meets the given threshold, the damage is reduced to the given max | {max, threshold}                       | SHOOT, FIGHT |
+| MORALE_FNP         | Every time a model from this unit flees, it rolls a D6. If it meets the given threshold, it stays               | Number                                 |              |
+| MORALE_EXECUTION   | Every time this unit fails a morale test, it can choose to suffer the listed damage instead of fleeing          | String that describes damage           |              |
+| DEEPSTRIKE         | Unit can choose to deploy after the first round at least the given number of inches away from any enemies       | Number of inches - null implies 9 		|              |
 | ADVANCE_AND_CHARGE | Allows the unit to charge even if it advanced this turn                                                         |                                        | ONE_DIE      |
 | REROLL_CHARGES     | This unit can reroll one or both charge dice                                                                    |                                        |              |
-| MAX_DMG_PER_ROUND  | This unit can only take up to this many wounds per round                                                        | Number                                 | SHOOT, FIGHT |
+| MAX_DMG_PER_ROUND  | This unit can only take up to this many wounds per round                                                        | Number                                 | 			   |
 | ADD_PSYKER_CASTS   | Add this number to the number of psychic abilities this unit can use per round                                  | Number                                 |              |
 | OBJECTIVE_SECURED  | This unit takes precedence over units without this rule when determining objective holders                      |                                        |              |
 | TRANSPORT          | This unit can transport the given number of models. Usually some specific restrictions apply                    | Number                                 |              |
