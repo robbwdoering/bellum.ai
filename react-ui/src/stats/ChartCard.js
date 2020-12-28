@@ -34,11 +34,11 @@ export const ChartCard = props => {
 		height,
 		width,
 		chartName,
+		parentHash,
 
 		// Redux
-		chartData,
-		chartHash,
-		parentHash,
+		dynamicState,
+		dynamicHash,
 
 		// Dispatched Actions
 	} = props;
@@ -94,7 +94,7 @@ export const ChartCard = props => {
 
 	const getData = () => {
 		let histoData, res, tmpArr;
-		// console.log("getting data...", chartName, chartData)
+		// console.log("getting data...", chartName, dynamicState)
 		if (!chartName) {
 			// console.log("Exiting early....")
 			return null;
@@ -113,7 +113,7 @@ export const ChartCard = props => {
 
 				// Deal with all the shooting cases here
 				tmpArr = [];
-				res = chartData.scorecards.map((scorecard, i) => {
+				res = dynamicState.scorecards.map((scorecard, i) => {
 					let hasShootData = scorecard && scorecard.shoot && scorecard.shoot.dmgBuckets;
 
 					// Get data in {mean, deviation} form
@@ -139,7 +139,7 @@ export const ChartCard = props => {
 				
 				// Deal with all the fight cases here
 				tmpArr = [];
-				res = chartData.scorecards.map((scorecard, i) => {
+				res = dynamicState.scorecards.map((scorecard, i) => {
 					let hasFightData = scorecard && scorecard.fight && scorecard.fight.dmgBuckets;
 
 					// Get data in {mean, deviation} form
@@ -164,7 +164,7 @@ export const ChartCard = props => {
 
 				// Deal with all the resilience cases here
 				tmpArr = [];
-				res = chartData.scorecards.map((scorecard, i) => {
+				res = dynamicState.scorecards.map((scorecard, i) => {
 					let hasFightData = scorecard && scorecard.resil && scorecard.resil.dmgBuckets;
 
 					// Get data in {mean, deviation} form
@@ -182,7 +182,7 @@ export const ChartCard = props => {
 		}
 	};
 
-	// console.log("[render chartCart]", chartName, data, chartData, chartHash)
+	// console.log("[render chartCart]", chartName, data, dynamicState, dynamicHash)
 
 	const genHistogram = (svg) => {
         // scales
@@ -247,7 +247,7 @@ export const ChartCard = props => {
 	};
 
 	// Get the data from redux if it's already there
-	const data = useMemo(getData, [chartHash, parentHash])
+	const data = useMemo(getData, [dynamicHash, parentHash])
 
 	useEffect(() => {
 		if (data && data[0] || data[1] && ref.current && config) {
@@ -274,8 +274,8 @@ export const ChartCard = props => {
 	}, [data, config, chartName, parentHash]);
 
 	// Get the static config parameters, like description text
-	const constConfig = useMemo(() => getChartConfig(chartName) || {}, [chartName, parentHash, chartHash]);
-	// const desc = useMemo(genDescription, [ constConfig, chartHash ])
+	const constConfig = useMemo(() => getChartConfig(chartName) || {}, [chartName, parentHash, dynamicHash]);
+	// const desc = useMemo(genDescription, [ constConfig, dynamicHash ])
 
 	if (!data || (!data[0] && !data[1])) {
 		return (
@@ -320,8 +320,8 @@ export const ChartCard = props => {
 
 export const mapStateToProps = (state, props) => {
 	return {
-		chartData: state.warReducer.chartData,
-		chartHash: state.warReducer.chartHash
+		dynamicState: state.warReducer.dynamicState,
+		dynamicHash: state.warReducer.dynamicHash
 	};
 };
 

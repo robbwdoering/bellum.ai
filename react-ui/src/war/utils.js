@@ -100,9 +100,9 @@ export class Model {
 		// NOTE: We're doing some scope trickery here - note the use of wStat
 		let idx = unit.wound_track.findIndex(trackName => {
 			const tmpStr = sanitizeString(trackName);
-			wStat = profile.stats.find(statBlock => statBlock.name === tmpStr) || {};
+			stat = profile.stats.find(statBlock => statBlock.name === tmpStr) || {};
 
-			return wRemaining >= wStat.wounds;
+			return wRemaining >= stat.wounds;
 		})
 
 		return [stat, idx];
@@ -132,7 +132,7 @@ export class Model {
 			const wRemaining = boardState.units[playerIdx][unitIdx].wounds[finalModelIdx];
 
 			// Find the wound track stat block
-			const [wStat] = getWoundTrack(unit, profile, wRemaining);
+			const [wStat] = this.getWoundTrack(unit, profile, wRemaining);
 
 			// If we found a wound track, use all its non-null values to override the default stat block's values
 			if (wStat) {
@@ -171,13 +171,13 @@ export class Unit {
 		} else {
 			this.ruleKeys = [];
 		}
+
 		if (this.rules) {
 			this.ruleKeys = this.ruleKeys.concat(this.rules.map(name => {
 				const sanName = sanitizeString(name);
 				return profile.desc.findIndex(obj => obj.name === sanName);
-			});
+			}));
 		}
-
 	}
 
 	// --------------

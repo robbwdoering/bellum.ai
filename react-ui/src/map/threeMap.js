@@ -95,13 +95,12 @@ const Board = props => {
 		rotation,
 		totalScale,
 		amplitude,
-		primaryList,
-		secondaryList,
+		forces,
 		matchState,
 		ctrlHover,
 		isActive,
 		boardSize,
-		listHash,
+		forceHash,
 		updateUnit,
 		boardState,
 		boardHash
@@ -196,8 +195,8 @@ const Board = props => {
 		return [-4+(unitIdx*.25), 0.3, playerIdx ? -1 :-6];
 	};
 
-	const primaryUnits = useMemo(() => (primaryList && primaryList.units || []), [listHash]);
-	const secondaryUnits = useMemo(() => (secondaryList && secondaryList.units || []), [listHash]);
+	const primaryUnits = useMemo(() => (forces[0] && forces[0].units || []), [forceHash]);
+	const secondaryUnits = useMemo(() => (forces[1] && forces[1].units || []), [forceHash]);
 
 	// This is the spring that manages the position of every unit
 	// INPUT: All units, and a change to make. OUTPUT: array of fns that each return the updates for every index
@@ -318,9 +317,8 @@ export const ThreeMap = props => {
 	const {
 		boardState,
 		boardHash,
-		listHash,
-		secondaryList,
-		primaryList,
+		forceHash,
+		forces,
 		matchState,
 		curContent,
 		ctrlHover,
@@ -371,11 +369,10 @@ export const ThreeMap = props => {
 				<Board
 					{...boardConfig}
 					boardState={boardState}
-					primaryList={primaryList}
-					secondaryList={secondaryList}
+					forces={forces}
 					matchState={matchState}
 					ctrlHover={ctrlHover}
-					listHash={listHash}
+					forceHash={forceHash}
 					updateUnit={updateUnit}
 				/>
 			</Canvas>
@@ -389,9 +386,8 @@ export const mapStateToProps = (state, props) => {
 	  	boardHash: state.warReducer.boardHash,
 	  	curContent: state.appReducer.curContent,
 	  	matchState: state.warReducer.matchState,
-		primaryList: state.warReducer.primaryList,
-		secondaryList: state.warReducer.secondaryList,
-		listHash: state.warReducer.listHash
+		forces: state.warReducer.forces,
+		forceHash: state.warReducer.forceHash
 	};
 };
 

@@ -120,7 +120,7 @@ export const BarChart = props => {
 
 export const mapStateToProps = (state, props) => {
   return {
-  	reduxData: state.warReducer.chartData[props.name || "def"]
+  	reduxData: state.warReducer.dynamicData[props.name || "def"]
   };
 };
 

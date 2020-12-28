@@ -100,13 +100,13 @@ export const getUnitCover = (unit, boardState, matchState) => {
 	});
 
 	if (coverIdx !== -1) {
-		return terrains[matchState.terrain][idx];
+		return terrains[matchState.terrain][coverIdx];
 	}
 
 	return [];
 };
 
-export const getUnitAuras = (unit, boardState, forces, profiles) => {
+export const getUnitAuras = (unit, forces, profiles, boardState, matchState) => {
 	const allyIdx = unit.playerIdx, enemyIdx = allyIdx ? 0 : 1;
 	let ret = [];
 
@@ -116,7 +116,7 @@ export const getUnitAuras = (unit, boardState, forces, profiles) => {
 			forces[allyIdx].units[idx].allyAuras.forEach((auraObj, i) => {
 				if (
 					distance(boardState.units[allyIdx][idx].pos, auraHolder.pos) <= auraObj.radius) {
-					ret = ret.concat(checkAndApply(auraObj.params, profiles, auraHolder, boardState, matchState, forces[allyIdx].units[idx]));
+					ret = ret.concat(checkAndApply(auraObj.params, auraHolder, profiles, boardState, matchState, forces[allyIdx].units[idx]));
 				}
 			})
 		}
@@ -127,7 +127,7 @@ export const getUnitAuras = (unit, boardState, forces, profiles) => {
 		if (forces[enemyIdx].units[idx].enemyAuras) {
 			forces[enemyIdx].units[idx].enemyAuras.forEach((auraObj, i) => {
 				if (distance(boardState.units[enemyIdx][idx].pos, auraHolder.pos) <= auraObj.radius) {
-					ret = ret.concat(checkAndApply(auraObj.params, profiles, auraHolder, boardState, matchState, forces[enemyIdx].units[idx]));
+					ret = ret.concat(checkAndApply(auraObj.params, auraHolder, profiles, boardState, matchState, forces[enemyIdx].units[idx]));
 				}
 			})
 		}
@@ -152,13 +152,13 @@ export const mapLiving = (unitArr, callback) => {
 
 // Returns an array of every rule that has been successfully applied to this unit
 // Neccessary to wrap effects with subrules, and automaticcaly performs to the evaluation
-export const checkAndApply = (meaningObj, profiles, unit, boardState, matchState, originUnit) => {
+export const checkAndApply = (meaningObj, unit, profiles, boardState, matchState, originUnit) => {
 	if (evalCond(meaningObj.cond, profiles, unit, boardState, matchState, originUnit)) {
 		switch(meaningObj.type) {
 			case "AND":
 			case "OR":
 				return meaningObj.params.reduce((ret, subObj) => {
-					const subRes = checkAndApply(subObj, profiles, unit, boardState, matchState, originUnit)
+					const subRes = checkAndApply(subObj, unit, profiles, boardState, matchState, originUnit)
 					if (subRes.length) {
 						ret = ret.concat(subRes);
 					}
@@ -170,3 +170,16 @@ export const checkAndApply = (meaningObj, profiles, unit, boardState, matchState
 
 	return [];
 };
+
+export const meaningObjHasCondType = (meaning, type) => {
+	switch (meaning.type) {
+		case "AND":
+		case "OR":
+		case "XOR":
+			return meaning.params.some(obj => meaningObjHasCondType(obj, type));
+		case "NOT":
+			return meaningObjHasCondType(meaning.params, type);
+		default:
+			return meaning.type === type;
+	}
+}

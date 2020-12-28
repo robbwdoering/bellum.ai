@@ -28,8 +28,7 @@ export const PostMatch = props => {
 		// Redux
 		metalist,
 		metalistHash,
-		primaryList,
-		secondaryList,
+		forces,
 		listHash,
 		profiles,
 

@@ -39,8 +39,6 @@ export const UnitCard = props => {
 		chartName,
 
 		// Redux
-		chartData,
-		chartHash,
 		parentHash,
 
 		// Dispatched Actions
@@ -90,10 +88,7 @@ export const UnitCard = props => {
 }
 
 export const mapStateToProps = (state, props) => {
-	return {
-		chartData: state.warReducer.chartData,
-		chartHash: state.warReducer.chartHash
-	};
+	return {};
 };
 
 export const UnitCardContainer = connect(mapStateToProps, { })(UnitCard);

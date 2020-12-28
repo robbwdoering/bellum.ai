@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 
-export const useApi = (url, method, options = {}, handleFetch, data, execute = true) => {
+export const useApi = (url, method, options = {}, handleFetch, data) => {
     const { getAccessTokenSilently, user, isAuthenticated } = useAuth0();
     const [state, setState] = useState({
         error: null,
@@ -44,6 +44,9 @@ export const useApi = (url, method, options = {}, handleFetch, data, execute = t
                 msg.body = JSON.stringify(data);
             }
             setState(Object.assign({}, state, { loading: true }))
+
+
+            // TODO - Compress JSON
 
             // Perform the fetch asynchrounously
             console.log("[CALLING API] ", url + (urlSuffix || ""), msg.method, msg.body);

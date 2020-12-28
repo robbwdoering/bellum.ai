@@ -10,11 +10,12 @@ import { Button, Card, Grid, Dropdown, Popup, Divider, Checkbox, Modal, Tab, Tab
 import PropagateLoader from "react-spinners/PropagateLoader"
 
 import { openContents, setDemoState } from './../app/actions';
-import { ContentTypes } from './../common/constants';
+import { ContentTypes, apiOpts } from './../common/constants';
 import { phases, mapSizeOptions, terrainOptions, objectiveOptions, missionOptions } from './../war/constants';
 import { ForceCardContainer } from './../stats/ForceCard';
 import { setMatchState, setBoardState, updateUnit } from './../war/actions';
 import { sanitizeString } from './../war/utils';
+import { useApi } from "./../app/useApi";
 import './contents.css';
 
 export const Match = props => {
@@ -25,18 +26,17 @@ export const Match = props => {
 		// Parent
 
 		// Redux
-		primaryList,
-		secondaryList,
-		listHash,
+		forces,
+		profiles,
+		forceHash,
 		metalist,
-		primaryProfile,
-		secondaryProfile,
 		matchState,
 		matchHash,
 		messages,
 
 		boardState,
 		boardHash,
+		pendingFlags,
 
 		// Dispatched Actions
 		openContents,
@@ -50,6 +50,8 @@ export const Match = props => {
 	const [ turnAccordionArr, setTurnAccordionArr ]  = useState([false, false, false, false, false, false]);
 	const [ modalContent, setModalContent ]  = useState(false);
 	const [ activeTab, setActiveTab ]  = useState(0);
+
+	const refreshApi = useApi('/api/dynamic/meaning/refresh', 'POST', apiOpts, handleFetch);
 
 	const handleCpChange = (e, { val, playeridx }) => {
 		let newCount = [...matchState.cpCount];
@@ -360,6 +362,15 @@ export const Match = props => {
 		setTurnAccordionArr(newArr);
 	};
 
+	const refresh = () => {
+		// ------------------------------------------------------------------------------------
+		// TODO - DO NOT SEND FORCES, just pull what you need into this new filteredUnits array
+		// ------------------------------------------------------------------------------------
+		const filteredUnits = boardState.units.map((units, playerIdx) => units.map((unit, unitIdx) => {
+
+		}));
+		refreshApi.refresh(null, { matchState, boardState, profiles, forces });
+	};
 
 	const advancePhase = () => {
 		let newBoard = Object.assign({}, boardState);	
@@ -538,9 +549,9 @@ export const Match = props => {
 	// FUNCTIONAL LIFECYCLE
 	// --------------------
 
-	const force = useMemo(() => matchState.activePlayer ? secondaryList : primaryList, [matchHash, listHash]);
-	const profile = useMemo(() => matchState.activePlayer ? secondaryProfile : primaryProfile, [matchHash, listHash]);
-	const content = useMemo(renderPhaseContent, [ matchState.phase, matchHash, listHash, boardHash ]);
+	const force = useMemo(() => forces[matchState.activePlayer], [matchHash, forceHash]);
+	const profile = useMemo(() => profiles[matchState.activePlayer], [matchHash, forceHash]);
+	const content = useMemo(renderPhaseContent, [ matchState.phase, matchHash, forceHash, boardHash ]);
 	const phaseControlArray = useMemo(renderPhaseControl, [ matchState.phase, matchHash, turnAccordionArr ]);
 	const tabPanes = useMemo(() => ([
 		{
@@ -560,7 +571,7 @@ export const Match = props => {
 				</Menu.Item>
 			),
 			render: () => (
-				<ForceCardContainer key="primary-force-card" data={primaryList} profile={primaryProfile} handleFetch={handleFetch} playerIdx={0}/>
+				<ForceCardContainer key="primary-force-card" data={forces[0]} profile={profiles[0]} handleFetch={handleFetch} playerIdx={0}/>
 			)
 		},
 		{
@@ -571,17 +582,22 @@ export const Match = props => {
 				</Menu.Item>
 			),
 			render: () => (
-				<ForceCardContainer key="secondary-force-card" data={secondaryList} profile={secondaryProfile} handleFetch={handleFetch} playerIdx={1}/>
+				<ForceCardContainer key="secondary-force-card" data={forces[1]} profile={profiles[1]} handleFetch={handleFetch} playerIdx={1}/>
 			)
 		}
 		// Secondary Force Status
-	]), [activeTab, listHash, matchHash]);
+	]), [activeTab, forceHash, matchHash]);
 
 	console.log("Rendering match", metalist);
 	return (
 		<React.Fragment>
 			<div className="top-right-container">
-				<Button className="primaryButton" onClick={advancePhase} > Finish {phases[matchState.phase]} Phase </Button>
+				<Button className="primaryButton" loading={refreshApi.isLoading} disabled={pendingFlags} onClick={refresh} >
+					<Icon name="refresh" /> Refresh
+				</Button>
+				<Button className="primaryButton" onClick={advancePhase} >
+					<Icon name="arrow circle right" /> Finish {phases[matchState.phase]} Phase
+				</Button>
 			</div>
 
 			<Menu vertical className="phase-control">
@@ -622,17 +638,16 @@ export const mapStateToProps = (state, props) => {
     return {
 		metalist: state.warReducer.metalist,
 		metalistHash: state.warReducer.metalistHash,
-		primaryList: state.warReducer.primaryList,
-		secondaryList: state.warReducer.secondaryList,
-		listHash: state.warReducer.listHash,
+		forces: state.warReducer.forces,
+		profiles: state.warReducer.profiles,
+		forceHash: state.warReducer.forceHash,
 	  	demoState: state.appReducer.demoState,
-	  	primaryProfile: state.warReducer.primaryProfile,
-	  	secondaryProfile: state.warReducer.secondaryProfile,
 	  	matchState: state.warReducer.matchState,
 	  	matchHash: state.warReducer.matchHash,
 	  	messages: state.warReducer.messages,
 	  	boardState: state.warReducer.boardState,
-	  	boardHash: state.warReducer.boardHash
+	  	boardHash: state.warReducer.boardHash,
+	  	pendingFlags: state.warReducer.pendingFlags
     };
 };
 

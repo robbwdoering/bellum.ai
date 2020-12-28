@@ -32,11 +32,9 @@ export const PreMatch = props => {
 		// Redux
 		metalist,
 		metalistHash,
-		primaryList,
-		secondaryList,
-		listHash,
-		primaryProfile,
-		secondaryProfile,
+		forces,
+		forceHash,
+		profiles,
 		matchState,
 		boardState,
 
@@ -49,17 +47,17 @@ export const PreMatch = props => {
 	const [activeCategory, setActiveCategory] = useState(0);
 
 	const filterPrimaryList = () => {
-		console.log("filtering primary list", metalist, primaryList); 
+		console.log("filtering primary list", metalist, forces[0]); 
 		return metalist.map(e => ({ text: e.name, value: e.id }));
 	};
 
 	const filterSecondaryList = () => {
-		if (!primaryList) {
+		if (!forces[0]) {
 			return [];
 		}
 
-		console.log("filtering second list", metalist, primaryList, secondaryList); 
-		return metalist.filter(e => e.name !== primaryList.name).map(e => ({ text: e.name, value: e.id }));
+		console.log("filtering second list", metalist, forces[0], forces[1]); 
+		return metalist.filter(e => e.name !== forces[0].name).map(e => ({ text: e.name, value: e.id }));
 	};
 
 	const handleForceSelection = (e, { name, value }) => {
@@ -82,7 +80,7 @@ export const PreMatch = props => {
 		setMatchState({
 			turn: 0, // setup turn
 			phase: 0, // command phase
-			cpCount: [primaryList.cp, secondaryList.cp],
+			cpCount: [forces[0].cp, forces[1].cp],
 			activePlayer: -1,
 			mapSize: 0,
 			vpCount: [
@@ -98,7 +96,7 @@ export const PreMatch = props => {
 		});
 
 		setCookie('bellum_ai_match', { matchState }, { path: "/" });
-		setCookie('bellum_ai_forces', { lists: [primaryList.id, secondaryList.id] }, { path: "/" });
+		setCookie('bellum_ai_forces', { lists: [forces[0].id, forces[1].id] }, { path: "/" });
 		setCookie('bellum_ai_board', boardState, { path: "/" });
 
 		openContents(ContentTypes.Match);
@@ -131,8 +129,8 @@ export const PreMatch = props => {
 	const scorecardApi = useApi(`/api/dynamic/${ChartTypes.ForceScorecard}/`, 'POST', apiOpts, handleFetch);
 
 	const primaryOptions 	= useMemo(filterPrimaryList, [metalistHash]);
-	const secondaryOptions 	= useMemo(filterSecondaryList, [metalistHash, primaryList]);
-	const isEngaged 		= useMemo(() => primaryList !== null && secondaryList !== null, [listHash]);
+	const secondaryOptions 	= useMemo(filterSecondaryList, [metalistHash, forces[0]]);
+	const isEngaged 		= useMemo(() => forces[0] !== null && forces[1] !== null, [forceHash]);
 	const panes 			= useMemo(() => mainCategoryNames.map(categoryName => renderCategory(categoryName)), [activeCategory]);
 
 	const cardStyle = useMemo(() => ({
@@ -149,14 +147,14 @@ export const PreMatch = props => {
 
 	// Fetch scorecard data
 	useEffect(() => {
-		if (primaryList) {
-			scorecardApi.refresh(primaryList.id, { force: primaryList, profile: primaryProfile });
+		if (forces[0]) {
+			scorecardApi.refresh(forces[0].id, { force: forces[0], profile: profiles[0]});
 		} 
 
-		if (secondaryList) {
-			scorecardApi.refresh(secondaryList.id, { force: secondaryList, profile: secondaryProfile });
+		if (forces[1]) {
+			scorecardApi.refresh(forces[1].id, { force: forces[1], profile: profiles[1] });
 		}
-	}, [ listHash ]);
+	}, [ forceHash ]);
 
 	return (
 		<React.Fragment>
@@ -193,7 +191,7 @@ export const PreMatch = props => {
 	 						search
 	 						floating
 	 						name="secondary"
-	 						disabled={primaryList === null}
+	 						disabled={forces[0] === null}
 	 						onChange={handleForceSelection}
 	 					/>
 					</Grid.Column>
@@ -201,11 +199,11 @@ export const PreMatch = props => {
 
 				<Grid.Row className="prematch-force-row" centered>
 					<Grid.Column width={8} style={cardStyle} >
-						<ForceCardContainer key={"primary-force-card"} data={primaryList} profile={primaryProfile} handleFetch={handleFetch} playerIdx={0}/>
+						<ForceCardContainer key={"primary-force-card"} data={forces[0]} profile={profiles[0]} handleFetch={handleFetch} playerIdx={0}/>
 					</Grid.Column>
 
 					<Grid.Column width={8} style={cardStyle} >
-						<ForceCardContainer key={"secondary-force-card"} data={secondaryList} profile={secondaryProfile} handleFetch={handleFetch} playerIdx={1}/>
+						<ForceCardContainer key={"secondary-force-card"} data={forces[1]} profile={profiles[1]} handleFetch={handleFetch} playerIdx={1}/>
 					</Grid.Column>
 				</Grid.Row>
 
@@ -228,13 +226,11 @@ export const mapStateToProps = (state, props) => {
   return {
 		metalist: state.warReducer.metalist,
 		metalistHash: state.warReducer.metalistHash,
-		primaryList: state.warReducer.primaryList,
-		secondaryList: state.warReducer.secondaryList,
-		listHash: state.warReducer.listHash,
+		forces: state.warReducer.forces,
+		forceHash: state.warReducer.forceHash,
 	  	demoState: state.appReducer.demoState,
 	  	prematchData: state.warReducer.prematchData,
-	  	primaryProfile: state.warReducer.primaryProfile,
-	  	secondaryProfile: state.warReducer.secondaryProfile,
+	  	profiles: state.warReducer.profiles,
 	  	matchState: state.warReducer.matchState,
 	  	matchHash: state.warReducermatchHash,
 	  	boardState: state.warReducerboardState

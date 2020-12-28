@@ -28,16 +28,41 @@ class DynamicRouter {
 		/**
 		 * Meaning Engine Refresh
 		 * This is the main entry point for calculations performed during the course of a game.
+		 *
 		 * Inputs: Match State (round+phase), Board State (Unit locations + health), Profile Keys
-		 * Output: Object that contains an array of active rules for every unit, outgoing dmg matrix, incoming dmg matrix
+		 *
+		 * Output: Jagged 5D Array called a "damage matrix". 
+		 * D1: playerIdx
+		 * D2: unitIdx
+		 * D3: enemyUnitIdx
+		 * D4: There is an entry in these array for every unique model/weapon combination 
+		 * D5: This array holds [mean, deviation] for the expected damage
+		 *
+		 * By design, most entries in the third dimension will be 0 for all but the initial request.
+		 * This is because we skip units in various ways:
+		 * 		Only interactions involving a "flagged" unit will have non-0 entries
+		 *			(i.e. every flagged unit populates a full row  in one array, and a whole column in the other)
+		 *		Only interactions involving living units are run/stored
 		 */
 		app.post('/api/dynamic/meaning/refresh', jwtCheck, async (req, res) => {
 			console.log("[POST] refresh");
 			const { matchState, boardState, profiles, lists } = req.body;
 
-			// Build an array of all the "desc" rules that apply to each of the listed units
+			// D1 
+			const dmgMatrices = boardState.units.map((units, playerIdx) => (
+				// D2
+				units.map(unit, unitIdx) => (
+					// D3
+					boardState.units[playerIdx ? 0 : 1].map((enemyUnit, enemyUnitIdx) => {
+						// If either unit is dead or both are unflagged, skip this unit
+						if (!unit.pos || !enemyUnit.pos || (!unit.flag && !enemyUnit.flag)) {
 
-			// Build the model damage matrices, but only if the inputs have changed
+						}
+
+						// Else get D4 and D5 from the divination engine
+					});
+				)	
+			);
 		});
 
 		/**

@@ -26,9 +26,7 @@ import './contents.css';
 
 export const Content = props => {
 	const {
-		primaryList,
-		secondaryList,
-		listHash,
+		forces,
 		curContent,
 		windowCtx,
 		matchState,
@@ -55,8 +53,8 @@ export const Content = props => {
 	});
 
 	const metalistApi = useApi('/api/static/metalist', 'GET', apiOpts, handleFetch);
-	const primaryListApi = useApi('/api/static/list/true/', 'GET', apiOpts, handleFetch);
-	const secondaryListApi = useApi('/api/static/list/false/', 'GET', apiOpts, handleFetch);
+	const primaryForceApi = useApi('/api/static/list/true/', 'GET', apiOpts, handleFetch);
+	const secondaryForceApi = useApi('/api/static/list/false/', 'GET', apiOpts, handleFetch);
 	const [ cookies, setCookie ] = useCookies([]);
 	const [cookieSaveInt, setCookieSaveInt] = useState(-1);
 
@@ -66,15 +64,14 @@ export const Content = props => {
 		// Only store if we're already storing
 		console.log("checking before cleanup...", curContent)
 		if (curContent === ContentTypes.Match && cookies.bellum_ai_match) {
-			console.log("SAVING CONTENT", {matchState, boardState, primaryList, secondaryList});
+			console.log("SAVING CONTENT", { matchState, boardState });
 			setCookie('bellum_ai_match', { matchState }, { path: "/" });
-			// if (primaryList && secondaryList) setCookie('bellum_ai_forces', { lists: [primaryList.id || 0, secondaryList.id || 0] }, { path: "/" });
 			setCookie('bellum_ai_board', { boardState } , { path: "/" });
 		}
 	};
 
 	useEffect(() => {
-		if (curContent === ContentTypes.Match && primaryList && secondaryList) {
+		if (curContent === ContentTypes.Match && forces[0] && forces[1]) {
 			saveToCookies();
 		}
 	}, [matchState && matchState.phase])
@@ -86,8 +83,8 @@ export const Content = props => {
 		// TODO: Move this cookie to local storage?
 		if (cookies.bellum_ai_forces) {
 			let stored = cookies.bellum_ai_forces;
-			primaryListApi.refresh(stored.lists[0]);
-			secondaryListApi.refresh(stored.lists[1]);
+			primaryForceApi.refresh(stored.lists[0]);
+			secondaryForceApi.refresh(stored.lists[1]);
 		}
 
 		if (cookies.bellum_ai_match) {
@@ -195,8 +192,7 @@ export const mapStateToProps = (state, props) => {
   	demoState: state.appReducer.demoState,
   	matchState: state.warReducer.matchState,
 	matchHash: state.warReducer.matchHash,
-	primaryList: state.warReducer.primaryList,
-	secondaryList: state.warReducer.secondaryList,
+	forces: state.warReducer.forces,
 	boardState: state.warReducer.boardState,
 	boardHash: state.warReducer.boardHash
   };

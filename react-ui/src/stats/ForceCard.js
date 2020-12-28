@@ -30,8 +30,8 @@ export const ForceCard = props => {
 		metalist,
 		metalistHash,
 		listHash,
-		chartData,
-		chartHash,
+		dynamicState,
+		dynamicHash
 
 		// Dispatched Actions
 	} = props;
@@ -113,21 +113,21 @@ export const ForceCard = props => {
 	);
 
 	const calcPolarConfig = () => {
-		console.log("GENERATING POLAR CFG", chartData);
-		return (!chartData || !chartData.scorecards[playerIdx] || !chartData.scorecards[playerIdx].shoot) ? { chartHash } : {
+		console.log("GENERATING POLAR CFG", dynamicState);
+		return (!dynamicState || !dynamicState.scorecards[playerIdx] || !dynamicState.scorecards[playerIdx].shoot) ? { dynamicHash } : {
 			height: 120,
 			width: 120,
-			chartHash,
+			dynamicHash,
 			data: {
 				variables: getChartConfig(ChartTypes.SummaryRadar).variables,
 				sets: [{
 					key: 1,
 					label: 'Force Scores',
 					values: {
-						shoot: chartData.scorecards[playerIdx].shoot.score,
-						fight: chartData.scorecards[playerIdx].fight.score,
-						control: chartData.scorecards[playerIdx].control.score,
-						resil: chartData.scorecards[playerIdx].resil.score 
+						shoot: dynamicState.scorecards[playerIdx].shoot.score,
+						fight: dynamicState.scorecards[playerIdx].fight.score,
+						control: dynamicState.scorecards[playerIdx].control.score,
+						resil: dynamicState.scorecards[playerIdx].resil.score 
 					}
 				}]
 			}
@@ -141,7 +141,7 @@ export const ForceCard = props => {
 	const header = useMemo(() => data && metalist && metalist.find(e => e.id === data.id), [data && data.id, metalistHash]);
 
 	// Fetch data and size for the chart
-	const polarConfig = useMemo(calcPolarConfig, [style, listHash, chartHash]);
+	const polarConfig = useMemo(calcPolarConfig, [style, listHash, dynamicHash]);
 
 	// Populate the table
 	const unitRows = useMemo(renderAllUnits, [listHash, unitShowIdx] );
@@ -215,8 +215,8 @@ export const mapStateToProps = (state, props) => {
 		metalist: state.warReducer.metalist,
 		metalistHash: state.warReducer.metalistHash,
 		listHash: state.warReducer.listHash,
-		chartData: state.warReducer.chartData,
-		chartHash: state.warReducer.chartHash,
+		dynamicState: state.warReducer.dynamicState,
+		dynamicHash: state.warReducer.dynamicHash,
 	};
 };
 
