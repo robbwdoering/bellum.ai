@@ -5,7 +5,7 @@ const constants = require('./constants');
 
 /**
  * Calculates the expected damage for one weapon for one unit against one enemy.
- * The building block upon which the shooting phase is built - treat with reverence and care.
+ * The building block upon which the engine is built - treat with reverence and care.
  */
 const fireSalvo = (model, wepProfile, ctx, profile, target) => {
 	let shotPd, successPr, hitPr, woundPr, savePr, avgDamage, tmpVal;
@@ -110,123 +110,7 @@ const fireSalvo = (model, wepProfile, ctx, profile, target) => {
 };
 exports.fireSalvo = fireSalvo;
 
-/**
- * Calculates that one unit will deal to all enemy models in the given phase, returning an array of [mean, var] pairs.
- * The returned array is only calculated for models that are still alive - all other values are ommitted.
- * Additionally, the returned array is linearized (sp?) from a 2D array into 1D, since every subarray has a constant length of 2.
- */
-const buildUnitDmgArray = (matchState, boardState, ) => {
-	let wepProfile;
-	army.units.filter(unit => canShootNow(unit, profile)).forEach(unit => {
-		// we have a list of weapons per unit
-		// we want expected damage for every enemy unit
-		unit.weapons && unit.weapons.forEach(wep => {
-			wepProfile = profile.weapons[wep];
-			const targetList = ctx.board.allInRadius(unitId, wepProfile.range, "ENEMY");
-			const { expectedDamage, variance } = targetList.reduce((acc, target) => {
-				const { tmpExpectedDamage, tmpVariance } = fireSalvo(unit, wepProfile, ctx, profile, target);
-
-				acc.expectedDamage.push(tmpExpectedDamage);
-				acc.variance.push(tmpVariance);
-				acc.boardId.push(target);
-
-				return acc;
-			}, {boardId: [], expectedDamage: [], variance: []});
-		});
-	});
-};
-
-// -----------------------------------------------
-// -----------------------------------------------
-// -----------------------------------------------
-// WARNING - code below this line is a serious WIP
-// -----------------------------------------------
-// -----------------------------------------------
-// -----------------------------------------------
-
-// ---- Divination Tool Options 
-// Command 
-	// 0.0 Calc tracking status for NN + graphs ( EVERY PHASE DOES THIS in n.0)
-	// 0.1 Predict points + damage gained by every possible strategem (do this every phase ONLY if they have that tab open)
-	// 0.2 Predict VP gained this round
-// Move 
-	// 1.1 Divine stats based on given configuration 
-		// 3.1 and store
-		// 4.1 and store
-		// 5.1, and pair with fall back options
-			// Highlight units that can fall back and shoot
-			// Highlight if enemy unit is vulnerable to shooting (top of list for any allies)
-
-	// 1.2 Divine moves that would capture objectives
-		// Calc all units that can move to an objective
-		// Calc all units that can capture an objective immediately
-// Psychic
-	// 2.1 
-// Shoot 
-	// 3.1 Divine the enemy's shooting options within engagement range
-	// 3.2 Calc your shooting options within cur range 
-	// 3.3 Divine expected VP, casualties, etc. from currently planned shots (on top of existing performance)
-// Charge 
-	// 4.1 Calc the enemy's charging options within engagement range
-// Fight 
-	// 5.1 Calc the enemy's fighting options as they currently stand 
-	// 5.2 Calc our fighting options as they currently stand 
-	// 5.3 Calc expected exchanges from each permutation of the combat order (if it's small... if over 1000, maybe don't?)
-// Morale 
-	// 6.1 Calc morale chances given current (or hypothetical) losses
-
-// ---- Battle Round outline - AUTO 
-
-// ---- Battle Round outline - ASSISTED
-// Command 
-	// Gain command point
-	// Gain Victory Points
-	// Stratagem Check 
-// Move 
-	// Re-divine 1.1 every time the user 
-// Psychic
-	// 
-// Shoot 
-// Charge 
-// Fight 
-// Morale 
-// Gain Victory Points
-
-/**
- * 3.1 Calc the enemy's shooting options within engagement range
- */
-const calcShootingWithinEngagement = (army, board, profile) => {
-	// For every unit
-	army.units.filter(unit => canShootNextTurn(unit, profile)).forEach(unit => {
-
-	});
-};
-
-/**
- * 3.2 Calc your shooting options within cur range.
- */
-const calcShootingOptions = (army, ctx, profile) => {
-	let wepProfile;
-	army.units.filter(unit => canShootNow(unit, profile)).forEach(unit => {
-		// we have a list of weapons per unit
-		// we want expected damage for every enemy unit
-		unit.weapons && unit.weapons.forEach(wep => {
-			wepProfile = profile.weapons[wep];
-			const targetList = ctx.board.allInRadius(unitId, wepProfile.range, "ENEMY");
-			const { expectedDamage, variance } = targetList.reduce((acc, target) => {
-				const { tmpExpectedDamage, tmpVariance } = fireSalvo(unit, wepProfile, ctx, profile, target);
-
-				acc.expectedDamage.push(tmpExpectedDamage);
-				acc.variance.push(tmpVariance);
-				acc.boardId.push(target);
-
-				return acc;
-			}, {boardId: [], expectedDamage: [], variance: []});
-		});
-	});
-};
-
-applyPdMods = (origVal, unit, modTypes, optional) => {
+const applyPdMods = (origVal, unit, modTypes, optional) => {
 	let ret = origVal, doBreak = false;
 
 	// Loop through every modification type, adding it's value if it's present
@@ -253,7 +137,7 @@ applyPdMods = (origVal, unit, modTypes, optional) => {
 	return origVal + ret;
 }
 
-applyAddMods = (origVal, unit, modTypes, optional) => {
+const applyAddMods = (origVal, unit, modTypes, optional) => {
 	let ret = 0, doBreak = false;
 
 	// Loop through every modification type, adding it's value if it's present
@@ -263,22 +147,11 @@ applyAddMods = (origVal, unit, modTypes, optional) => {
 		.forEach(mod => {
 			if (doBreak) return;
 			switch(mod.type) {
-				case "REPLACE_HIT":
-				case "REPLACE_HIT_SHOOT":
-				case "REPLACE_HIT_FIGHT":
-				case "REPLACE_WOUND":
-				case "REPLACE_WOUND_SHOOT":
-				case "REPLACE_WOUND_FIGHT":
-				case "REPLACE_SAVE":
-				case "REPLACE_SAVE_SHOOT":
-				case "REPLACE_SAVE_FIGHT":
-				case "REPLACE_INVULN":
-				case "REPLACE_INVULN_SHOOT":
-				case "REPLACE_INVULN_FIGHT":
-				case "REPLACE_AP":
-				case "REPLACE_AP_SHOOT":
-				case "REPLACE_AP_FIGHT":
-				case "REPLACE_AP_TARGET":
+				case "SET_HIT":
+				case "SET_WOUND":
+				case "SET_SAVE":
+				case "SET_INVULN":
+				case "SET_AP":
 					// TODO: add support for multiple replaces overriding eachother. Don't just take the first one, take the best one (?)
 					ret = mod.params.value - origVal; // subtract origVal to cancel out addition in return statement
 					doBreak = true;
@@ -292,7 +165,7 @@ applyAddMods = (origVal, unit, modTypes, optional) => {
 	return origVal + ret;
 };
 
-applyRerollMods = (origVal, unit, modTypes, optional) => {
+const applyRerollMods = (origVal, unit, modTypes, optional) => {
 	let ret, tmpVal, tmpArr;
 
 	// Loop through every modification type, adding it's value if it's present
@@ -490,57 +363,6 @@ const fireAgain = (arr, numRemaining) => {
 	return ret;
 }
 
-
-const setShootingOptions = (unit, ctx, profile) => {
-};
-
-// HELPERS - Boolean checks for simplification and readbility
-const isInEngagementRange = (unit, target) => {
-	return ctx.board.distance(unit.boardId, target || "ENEMY") < unit.divs.engagementDistance;
-};
-
-const isValidShootingTarget = (unit, ctx, wepProf, target) => {
-	return (
-		(!target.status.includes("ENGAGED") || (unit.status.includes("ENGAGED") && ctx.board.distance(unit.boardId, target.boardId) < 3))
-		// TODO: Do LOS / obfucscation here
-	);
-}
-
-// HELPER
-const canShootNextTurn = (unit, profile, ctx) => {
-	let hasCantShootTag = unit.mods.includes("CANNOT_SHOOT");
-	if (hasCantShootTag) hasCantShootTag = unit.mods.find("CANNOT_SHOOT").expiration > ctx.curTime + 10;
-	const engagedExceptions = e => e.type === "FALLBACK_SHOOT" || e.type === "SHOOT_ENGAGED" || e.type === "BIG_GUNS_NEVER_TIRE";
-
-	return (
-		// Units that are engaged usually can't shoot next turn, unless there's an exception for them or they have pistols
-		(!unit.status.includes("ENGAGED") || !unit.mods.find(engagedExceptions) || unit.weapons.find(wep => profile.weapons[wep].type === "PISTOL")) &&
-
-		// Units that don't have ranged weapons can't shoot
-		(unit.weapons.find(wep => profile.weapons[wep].range)) && 
-
-		(!isInEngagementRange(unit)) &&
-
-		// Units that have a "CANNOT_SHOOT" tag can't shoot!
-		(!hasCantShootTag)
-	);
-};
-
-const canShootNow = (unit, profile) => {
-	let hasCantShootTag = unit.mods.includes("CANNOT_SHOOT");
-
-	return (
-		// Units that are engaged usually can't shoot next turn, unless there's an exception for them or they have pistols
-		(!unit.status.includes("ENGAGED") || unit.weapons.find(wep => profile.weapons[wep].type === "PISTOL")) &&
-
-		// Units that don't have ranged weapons, or aren't within range of any enemies can't shoot
-		(unit.weapons.find(wep => profile.weapons[wep].range && profile.weapons[wep].range > ctx.board.distance(unit.boardId, "ENEMY"))) && 
-
-		// Units that have a "CANNOT_SHOOT" tag can't shoot!
-		(!hasCantShootTag)
-	);
-}
-
 // HELPER
 const addWeapon = (profile, dict, mods = []) => {
 	if (dict[profile.name]) {
@@ -615,6 +437,148 @@ const getFiringList = (unit, profile) => {
 
 	}
 }
+
+// -----------------------------------------------
+// -----------------------------------------------
+// -----------------------------------------------
+// WARNING - code below this line is a serious WIP
+// -----------------------------------------------
+// -----------------------------------------------
+// -----------------------------------------------
+
+// ---- Divination Tool Options 
+// Command 
+	// 0.0 Calc tracking status for NN + graphs ( EVERY PHASE DOES THIS in n.0)
+	// 0.1 Predict points + damage gained by every possible strategem (do this every phase ONLY if they have that tab open)
+	// 0.2 Predict VP gained this round
+// Move 
+	// 1.1 Divine stats based on given configuration 
+		// 3.1 and store
+		// 4.1 and store
+		// 5.1, and pair with fall back options
+			// Highlight units that can fall back and shoot
+			// Highlight if enemy unit is vulnerable to shooting (top of list for any allies)
+
+	// 1.2 Divine moves that would capture objectives
+		// Calc all units that can move to an objective
+		// Calc all units that can capture an objective immediately
+// Psychic
+	// 2.1 
+// Shoot 
+	// 3.1 Divine the enemy's shooting options within engagement range
+	// 3.2 Calc your shooting options within cur range 
+	// 3.3 Divine expected VP, casualties, etc. from currently planned shots (on top of existing performance)
+// Charge 
+	// 4.1 Calc the enemy's charging options within engagement range
+// Fight 
+	// 5.1 Calc the enemy's fighting options as they currently stand 
+	// 5.2 Calc our fighting options as they currently stand 
+	// 5.3 Calc expected exchanges from each permutation of the combat order (if it's small... if over 1000, maybe don't?)
+// Morale 
+	// 6.1 Calc morale chances given current (or hypothetical) losses
+
+// ---- Battle Round outline - AUTO 
+
+// ---- Battle Round outline - ASSISTED
+// Command 
+	// Gain command point
+	// Gain Victory Points
+	// Stratagem Check 
+// Move 
+	// Re-divine 1.1 every time the user 
+// Psychic
+	// 
+// Shoot 
+// Charge 
+// Fight 
+// Morale 
+// Gain Victory Points
+
+/**
+ * 3.1 Calc the enemy's shooting options within engagement range
+ */
+const calcShootingWithinEngagement = (army, board, profile) => {
+	// For every unit
+	army.units.filter(unit => canShootNextTurn(unit, profile)).forEach(unit => {
+
+	});
+};
+
+/**
+ * 3.2 Calc your shooting options within cur range.
+ */
+const calcShootingOptions = (army, ctx, profile) => {
+	let wepProfile;
+	army.units.filter(unit => canShootNow(unit, profile)).forEach(unit => {
+		// we have a list of weapons per unit
+		// we want expected damage for every enemy unit
+		unit.weapons && unit.weapons.forEach(wep => {
+			wepProfile = profile.weapons[wep];
+			const targetList = ctx.board.allInRadius(unitId, wepProfile.range, "ENEMY");
+			const { expectedDamage, variance } = targetList.reduce((acc, target) => {
+				const { tmpExpectedDamage, tmpVariance } = fireSalvo(unit, wepProfile, ctx, profile, target);
+
+				acc.expectedDamage.push(tmpExpectedDamage);
+				acc.variance.push(tmpVariance);
+				acc.boardId.push(target);
+
+				return acc;
+			}, {boardId: [], expectedDamage: [], variance: []});
+		});
+	});
+};
+
+
+const setShootingOptions = (unit, ctx, profile) => {
+};
+
+// HELPERS - Boolean checks for simplification and readbility
+const isInEngagementRange = (unit, target) => {
+	return ctx.board.distance(unit.boardId, target || "ENEMY") < unit.divs.engagementDistance;
+};
+
+const isValidShootingTarget = (unit, ctx, wepProf, target) => {
+	return (
+		(!target.status.includes("ENGAGED") || (unit.status.includes("ENGAGED") && ctx.board.distance(unit.boardId, target.boardId) < 3))
+		// TODO: Do LOS / obfucscation here
+	);
+}
+
+// HELPER
+const canShootNextTurn = (unit, profile, ctx) => {
+	let hasCantShootTag = unit.mods.includes("CANNOT_SHOOT");
+	if (hasCantShootTag) hasCantShootTag = unit.mods.find("CANNOT_SHOOT").expiration > ctx.curTime + 10;
+	const engagedExceptions = e => e.type === "FALLBACK_SHOOT" || e.type === "SHOOT_ENGAGED" || e.type === "BIG_GUNS_NEVER_TIRE";
+
+	return (
+		// Units that are engaged usually can't shoot next turn, unless there's an exception for them or they have pistols
+		(!unit.status.includes("ENGAGED") || !unit.mods.find(engagedExceptions) || unit.weapons.find(wep => profile.weapons[wep].type === "PISTOL")) &&
+
+		// Units that don't have ranged weapons can't shoot
+		(unit.weapons.find(wep => profile.weapons[wep].range)) && 
+
+		(!isInEngagementRange(unit)) &&
+
+		// Units that have a "CANNOT_SHOOT" tag can't shoot!
+		(!hasCantShootTag)
+	);
+};
+
+const canShootNow = (unit, profile) => {
+	let hasCantShootTag = unit.mods.includes("CANNOT_SHOOT");
+
+	return (
+		// Units that are engaged usually can't shoot next turn, unless there's an exception for them or they have pistols
+		(!unit.status.includes("ENGAGED") || unit.weapons.find(wep => profile.weapons[wep].type === "PISTOL")) &&
+
+		// Units that don't have ranged weapons, or aren't within range of any enemies can't shoot
+		(unit.weapons.find(wep => profile.weapons[wep].range && profile.weapons[wep].range > ctx.board.distance(unit.boardId, "ENEMY"))) && 
+
+		// Units that have a "CANNOT_SHOOT" tag can't shoot!
+		(!hasCantShootTag)
+	);
+}
+
 
 const genAlphaStrike = (army, rhs) => {
 	return {

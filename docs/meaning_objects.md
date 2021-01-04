@@ -101,7 +101,8 @@ This is the basic layout of a meaning object, where "type" is the only field req
 | BE_WOUNDED_REROLL  | Every time an enemy makes a roll to wound this unit, it can reroll the listed values                            | Array of numbers                       | SHOOT, FIGHT |
 | SAVE               | Adds a number to every save roll this unit makes                                                                | Number                                 | SHOOT, FIGHT |
 | SAVE_REROLL        | Every time the unit makes a roll to save, it can reroll the listed values                                       | Array of numbers                       | SHOOT, FIGHT |
-| AP                 | "Armor Peircing" - Adds a number to every armor save roll made to resist attacks from this unit                 | Number                                 | SHOOT, FIGHT |
+| SET_AP             | Set number to every armor save roll made to resist attacks from this unit                 					   | Number                                 | SHOOT, FIGHT |
+| ADD_AP             | Add to number to add to every armor save roll made to resist attacks from this unit                 		       | Number                                 | SHOOT, FIGHT |
 | AUTOHIT            | If a hit roll matches one of the given numbers, it always hits regardless of modifiers                          | Array of numbers - null implies all    | SHOOT, FIGHT |
 | EXPLODING_HIT      | If a hit roll matches one of the given numbers, the unit can make an extra attack                               | Array of numbers                       | SHOOT, FIGHT |
 | FNP                | Every time this unit suffers a wound, it rolls a D6. If it meets the given threshold, the wound is ignored      | Number                                 | SHOOT, FIGHT |

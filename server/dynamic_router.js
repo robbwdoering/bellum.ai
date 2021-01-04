@@ -47,6 +47,8 @@ class DynamicRouter {
 		app.post('/api/dynamic/meaning/refresh', jwtCheck, async (req, res) => {
 			console.log("[POST] refresh");
 			const { matchState, boardState, profiles, lists } = req.body;
+			let ret = [];
+			let salvoResult, mean, dev;
 
 			// D1 
 			const dmgMatrices = boardState.units.map((units, playerIdx) => (
@@ -56,10 +58,24 @@ class DynamicRouter {
 					boardState.units[playerIdx ? 0 : 1].map((enemyUnit, enemyUnitIdx) => {
 						// If either unit is dead or both are unflagged, skip this unit
 						if (!unit.pos || !enemyUnit.pos || (!unit.flag && !enemyUnit.flag)) {
-
+							return 0;
 						}
+						ret = []
 
-						// Else get D4 and D5 from the divination engine
+						// D4
+						unit.models && unit.models.forEach(models => {
+							models.weapons && models.weapons.forEach(wep => {
+								wepProfile = profile.weapons[wep];
+								salvoResult = fireSalvo(unit, wepProfile, ctx, profile, target);
+								mean = calcMean(salvoResult);
+								dev = calcDeviation(salvoResult, mean);
+
+								// D5
+								ret.push([mean, dev]);
+							});
+						});
+
+						return ret;
 					});
 				)	
 			);

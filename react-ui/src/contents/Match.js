@@ -368,6 +368,8 @@ export const Match = props => {
 		// ------------------------------------------------------------------------------------
 		const filteredUnits = boardState.units.map((units, playerIdx) => units.map((unit, unitIdx) => {
 
+			return {
+			};
 		}));
 		refreshApi.refresh(null, { matchState, boardState, profiles, forces });
 	};
