@@ -1,11 +1,11 @@
 # Bellum.ai 
-This web tool aims to provide three services to players of the popular tabaletop miniature wargame [Warhammer 40,000](https://www.theguardian.com/lifeandstyle/2019/jan/21/heroin-for-middle-class-nerds-how-warhammer-took-over-gaming-games-workshop). It is a work in progress.
+This web tool aims to provide three services to players of a popular tabletop miniature wargame. It is a work in progress.
 
 1. Analyse Lists: Upload your Battlescribe lists for next level Mathhammer.
 2. Play Faster: Update the tool as you play to always know which dice come next.
 3. Learn Tactics: Live statistical feedback, suggested paths of action, and more to come. 
 
-If interested in how we're translating complex Warhammer 40k rules into computer-readable formats, please see the ["Meaning Object" documentation](https://github.com/robbwdoering/bellum.ai/tree/master/docs/meaning_objects.md).
+If interested in how we're translating complex rules into computer-readable formats, please see the ["Meaning Object" documentation](https://github.com/robbwdoering/bellum.ai/tree/master/docs/meaning_objects.md).
 
 If interested in the technical details of how rules are applied during a match, please see the ["Meaning Engine" documentation](https://github.com/robbwdoering/bellum.ai/tree/master/docs/meaning_engine.md).
 

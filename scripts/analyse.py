@@ -4,9 +4,9 @@ import glob
 
 
 def printUsage():
-	print "This program fetches all the weapon profiles from an xml .cat file, and translates them to JSON."	
+	print "This sums up the meaning objects at the given directory, and outputs to a simple markdown file." 
 	print "Usage: "
-	print "parse.py [directory]"
+	print "analyse.py [directory]"
 
 def main():
 	# Validate CLE arguments 

@@ -1,6 +1,11 @@
 import os
 import sys
 
+def printUsage():
+	print "This script goes through the list below and reads each .cat file if present, translating each into a .sql file using parse_faction.py"	
+	print "Usage: "
+	print "parse.py [source_path] [dest_path]"
+
 FACTION_LIST = {
 	"craftworlds": "Aeldari - Craftworlds.cat",
 	"drukhari": "Aeldari - Drukhari.cat",
@@ -54,11 +59,6 @@ FACTION_LIST = {
 	"genestealer_cults": "Tyranids - Genestealer Cults.cat",
 	"tyranids": "Tyranids.cat"
 };
-
-def printUsage():
-	print "This program fetches all the weapon profiles from an xml .cat file, and translates them to JSON."	
-	print "Usage: "
-	print "parse.py [source_path] [dest_path]"
 
 def main():
 	# Validate CLE arguments 

@@ -2,6 +2,9 @@ import sys
 import re
 import xml.etree.ElementTree as ET
 
+## parse_faction.py
+## This script goes through the given .cat XML file, and flags a tiny fraction of the data to be remembered in three .sql files 
+
 def san(str):
 	return str.replace(" ", "_").replace("'", "").lower()
 
