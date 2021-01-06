@@ -77,7 +77,6 @@ def main():
 		dest = dest + "/"
 
 	for factionItem in FACTION_LIST.items():
-		print "DEALING WITH FACTION ITEM: ", factionItem
 		destPath = dest + factionItem[0] 
 		if (not os.path.isdir(destPath)):
 			os.mkdir(destPath)

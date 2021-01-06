@@ -1,0 +1,13 @@
+INSERT INTO war_stat_profile (faction, name, attacks, ballistics, weapons, move, save, strength, invuln, toughness, wounds, leadership) VALUES
+("servants_of_the_abyss", "cultist_firebrand",	"3",	3+,	3+,	6,	4+,	4,	6,	4,	3,	6),
+("servants_of_the_abyss", "obsidius_mallex",	"4",	2+,	2+,	6,	3+,	4,	6,	4,	5,	9),
+("servants_of_the_abyss", "rogue_psyker",	"2",	4+,	4+,	6,	5+,	3,	6,	3,	4,	8),
+("servants_of_the_abyss", "negavolt_cultists",	"3",	4+,	3+,	6,	6+,	3,	6,	3,	1,	8),
+("servants_of_the_abyss", "black_legionnaire",	"1",	3+,	3+,	6,	3+,	4,	6,	4,	1,	7),
+("servants_of_the_abyss", "traitor_guardsman",	"1",	4+,	4+,	6,	5+,	3,	6,	3,	1,	6),
+("servants_of_the_abyss", "traitor_sergeant",	"2",	4+,	4+,	6,	5+,	3,	6,	3,	1,	7),
+("servants_of_the_abyss", "chaos_beastman",	"1",	4+,	3+,	6,	5+,	4,	6,	4,	1,	6),
+("servants_of_the_abyss", "traitor_commissar",	"3",	3+,	2+,	6,	4+,	3,	6,	3,	4,	9),
+("servants_of_the_abyss", "chaos_ogryn",	"4",	4+,	3+,	6,	5+,	5,	6,	5,	6,	8),
+("servants_of_the_abyss", "cultist",	"1",	4+,	4+,	6,	6+,	3,	6,	3,	1,	5),
+("servants_of_the_abyss", "cultist_champion",	"2",	4+,	4+,	6,	6+,	3,	6,	3,	1,	6),

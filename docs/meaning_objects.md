@@ -99,7 +99,8 @@ This is the basic layout of a meaning object, where "type" is the only field req
 | BE_WOUNDED         | Adds a number to every roll made to wound this unit                                                             | Number                                 | SHOOT, FIGHT |
 | WOUND_REROLL       | Every time the unit makes a roll to wound, it can reroll the listed values                                      | Array of numbers                       | SHOOT, FIGHT |
 | BE_WOUNDED_REROLL  | Every time an enemy makes a roll to wound this unit, it can reroll the listed values                            | Array of numbers                       | SHOOT, FIGHT |
-| SAVE               | Adds a number to every save roll this unit makes                                                                | Number                                 | SHOOT, FIGHT |
+| SET_SAVE           | Sets every save roll this unit makes                                                                			   | Number                                 | SHOOT, FIGHT |
+| ADD_SAVE           | Adds a number to every save roll this unit makes                                                                | Number                                 | SHOOT, FIGHT |
 | SAVE_REROLL        | Every time the unit makes a roll to save, it can reroll the listed values                                       | Array of numbers                       | SHOOT, FIGHT |
 | SET_AP             | Set number to every armor save roll made to resist attacks from this unit                 					   | Number                                 | SHOOT, FIGHT |
 | ADD_AP             | Add to number to add to every armor save roll made to resist attacks from this unit                 		       | Number                                 | SHOOT, FIGHT |
@@ -108,11 +109,16 @@ This is the basic layout of a meaning object, where "type" is the only field req
 | FNP                | Every time this unit suffers a wound, it rolls a D6. If it meets the given threshold, the wound is ignored      | Number                                 | SHOOT, FIGHT |
 | DMG_MAX            | Each attack against this unit can only deal a maximum of this much damage                                       | Number                                 | SHOOT, FIGHT |
 | DMG_MAX_ROLL       | For every successful attack, roll a D6. If it meets the given threshold, the damage is reduced to the given max | {max, threshold}                       | SHOOT, FIGHT |
+| PASS_MORALE | Automatically pass all morale tests | | |
+| MORALE_REROLL | This unit can re-roll failed Morale tests | | |
 | MORALE_FNP         | Every time a model from this unit flees, it rolls a D6. If it meets the given threshold, it stays               | Number                                 |              |
 | MORALE_EXECUTION   | Every time this unit fails a morale test, it can choose to suffer the listed damage instead of fleeing          | String that describes damage           |              |
 | DEEPSTRIKE         | Unit can choose to deploy after the first round at least the given number of inches away from any enemies       | Number of inches - null implies 9 		|              |
 | ADVANCE_AND_CHARGE | Allows the unit to charge even if it advanced this turn                                                         |                                        | ONE_DIE      |
+| FALL_AND_CHARGE | Allows the unit to charge even if it fell back this turn | | |
+| SET_ADVANCE_DISTANCE | Sets the number of inches the model will move if it advances |                                        | |
 | REROLL_CHARGES     | This unit can reroll one or both charge dice                                                                    |                                        |              |
+| CHARGE_DMG | Upon a successful charge, inflict damage on units in engagement range if a rolled D6 meets a threshold. | { dmg, threshold } | |
 | MAX_DMG_PER_ROUND  | This unit can only take up to this many wounds per round                                                        | Number                                 | 			   |
 | ADD_PSYKER_CASTS   | Add this number to the number of psychic abilities this unit can use per round                                  | Number                                 |              |
 | OBJECTIVE_SECURED  | This unit takes precedence over units without this rule when determining objective holders                      |                                        |              |
@@ -121,6 +127,12 @@ This is the basic layout of a meaning object, where "type" is the only field req
 | CANNOT_BE_PSYCHIC  | This unit cannot be targeted by psychic powers                                                                  |                                        |              |
 | ADD_PSYCHIC        | Add a number to every psychic roll this unit makes                                                              | Number                                 |              |
 | ADD_DENY_THE_WITCH | Add a number to every deny the witch roll this unit makes                                                       | Number                                 |              |
+| BATLLEFORGED_MOD | This rule regards how one can legally construct an battleforged force - it is ignored in game 					   |  										|              |
+| ACTION | Represents some sort of action the unit can take. Not really covered yet in app, just vague timing warnings. 	|  										| BATTLE |
+| SPLIT_UP | This rule allows the unit to split up after deployment. Not supported. |  										| |
+| FREE_MOVEMENT | This unit can move over enemy units without penalty, though cannot end their turn within engagement range as usual | | |
+| CAN_GRENADE_PISTOL | This unit can fire grenades and pistols while firing other weapons | | |
+| MULT_SHOTS | Mutliply the number of shots form this unit by a constant value | | |
 
 ## Examples
 We begin with a very simple example of a rule, pulled from the Ork Codex:

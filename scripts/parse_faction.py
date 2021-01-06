@@ -6,7 +6,7 @@ import xml.etree.ElementTree as ET
 ## This script goes through the given .cat XML file, and flags a tiny fraction of the data to be remembered in three .sql files 
 
 def san(str):
-	return str.replace(" ", "_").replace("'", "").lower()
+	return str.replace(" ", "_").replace("-", "_").replace("'", "").lower()
 
 def printUsage():
 	print "This program fetches all the weapon profiles from an xml .cat file, and translates them to JSON."	
@@ -25,7 +25,12 @@ def getChar(name, root):
 def tagIs(obj, string):
 	return obj.tag.split("}")[-1] == string 
 
-def parseWeapon(name, faction, profile, wepFile):
+def parseWeapon(name, faction, profile, wepFile, foundStrings):
+	if (name in foundStrings):
+		# print "Found duplicate stat: ", name	
+		return
+
+	foundStrings.append(name)
 	ap 			= getChar("AP", profile)
 	damage 		= getChar("D", profile)
 	rng 		= getChar("Range", profile)
@@ -54,7 +59,12 @@ def parseWeapon(name, faction, profile, wepFile):
 		faction, name, ap, damage, rng, strength, weapontype, shots, abilStr)
 	wepFile.write(newLine)
 
-def parseStat(name, faction, profile, statFile):
+def parseStat(name, faction, profile, statFile, foundStrings):
+	if (name in foundStrings):
+		# print "Found duplicate stat: ", name	
+		return
+	foundStrings.append(name)
+
 	attacks		= getChar("A", profile)
 	ballistics	= getChar("BS", profile)
 	weapons		= getChar("WS", profile)
@@ -77,14 +87,52 @@ def parseStat(name, faction, profile, statFile):
 		faction, name, attacks, ballistics, weapons, move, save, strength, invuln, toughness, wounds, leadership)
 	statFile.write(newLine)
 
-def parseDesc(name, faction, profile, descFile):
-	val = getChar("Description", profile).replace("\n", " ")
-	val = "{\n\t-- " + val + '\n\t"type": "",\n\t"params":\n}),\n'
-	# val = val.encode("utf-8", "ignore")
+def parseDesc(name, faction, profile, descFile, foundStrings, univNames, isRule):
+	if (name in foundStrings):
+		print "Found duplicate desc: ", name	
+		return
 
-	# Write the main line
+	if (name in univNames):
+		print "Skipping universal name: ", name
+		return
+
+	# Add this name to the set of known names
+	foundStrings.append(name)
+
+	# Get the text for this description
+	val = ""
+
+	if (isRule):
+		# Rules have text in a description tag 
+		for desc in profile.iter(None):
+			if (tagIs(desc, "description")):
+				val = desc.text.encode("utf-8", "ignore").replace('"', "").replace("'", "")
+				break;
+	else:
+		# Abilites have text in a named Characteristic tag 
+		val = getChar("Description", profile).replace("\n", " ")
+
+	# Add a starter meaning object
+	val = "{\n\t-- " + val + '\n\t"type": "",\n\t"params":\n}),\n'
+
+# Write the main line
 	newLine = '("{0}", "{1}", '.format(faction, name) + val
-	descFile.write(newLine + val)
+	descFile.write(newLine)
+
+def getUniversalNames(univDirPath):
+	if (univDirPath[-1] != "/"):
+		univDirPath = univDirPath + "/"
+
+	descArr = []
+	with open(univDirPath + "desc.sql", "r") as pFile:
+		for line in pFile:
+			if (line[0:8] == '("univ",'):
+				nameStart = line.find('"', 8) + 1
+				nameEnd   = line.find('"', nameStart)
+
+				descArr.append(line[nameStart:nameEnd])
+
+	return descArr
 
 
 def main():
@@ -98,40 +146,53 @@ def main():
 	catPath = sys.argv[2];
 	resPath = sys.argv[3];
 
-	print "Starting Faction Parse for ", faction, "\n"
+	if (resPath[-1] != "/"):
+		resPath = resPath + "/"
+
+
+	univNames = getUniversalNames(resPath + "../univ/")
 
 	# Open and parse the cat file into a python object
-	print "Parsing CAT file..."
+	# print "Parsing CAT file..."
 	root = ET.parse(catPath).getroot()
 
 	# Open the result file 
-	print "Opening result file..."
-	wepFile = open(resPath+"/weapon.sql", "w")
+	# print "Opening result file..."
+	wepFile = open(resPath+"weapon.sql", "w")
 	wepFile.write("INSERT INTO war_weapon_profile (faction, name, ap, damage, range, strength, weapontype, shots, meaning) VALUES\n")
 
-	descFile = open(resPath+"/desc.sql", "w")
+	descFile = open(resPath+"desc.sql", "w")
 	descFile.write("INSERT INTO war_desc_profile (faction, name, meaning) VALUES\n")
 
-	statsFile = open(resPath+"/stat.sql", "w")
+	statsFile = open(resPath+"stat.sql", "w")
 	statsFile.write("INSERT INTO war_stat_profile (faction, name, attacks, ballistics, weapons, move, save, strength, invuln, toughness, wounds, leadership) VALUES\n")
+
+	wepNames = []
+	descNames = []
+	statNames = []
 
 	# TODO
 	# descFile = open(resPath+"/powers.sql", "w");
 	# selectionEntries = root.find('sharedSelectionEntries')	
 	for profile in root.iter(None):
+
 		if (tagIs(profile, "profile")):
-			typeName = profile.get("typeName")
 			name = san(profile.get("name")).encode("utf-8", "ignore").replace('"', '')
+			typeName = profile.get("typeName")
 
 			# Fill out weapon entries
 			if (typeName == "Weapon"):
-				parseWeapon(name, faction, profile, wepFile)
+				parseWeapon(name, faction, profile, wepFile, wepNames)
 
 			elif (typeName == "Abilities"):
-				parseDesc(name, faction, profile, descFile)	
+				parseDesc(name, faction, profile, descFile, descNames, univNames, False)	
 
 			elif (typeName == "Unit"):
-				parseStat(name, faction, profile, statsFile)	
+				parseStat(name, faction, profile, statsFile, statNames)	
+
+		elif (tagIs(profile, "rule")):
+			name = san(profile.get("name")).encode("utf-8", "ignore").replace('"', '')
+			parseDesc(name, faction, profile, descFile, descNames, univNames, True)	
 
 	wepFile.close()
 	descFile.close()

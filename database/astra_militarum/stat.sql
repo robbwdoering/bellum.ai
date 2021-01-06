@@ -1,0 +1,13 @@
+INSERT INTO war_stat_profile (faction, name, attacks, ballistics, weapons, move, save, strength, invuln, toughness, wounds, leadership) VALUES
+("astra_militarum", "lord_castellan_creed",	"3",	3+,	3+,	6,	4+,	3,	6,	3,	4,	9),
+("astra_militarum", "sergeant_stonetooth_harker",	"4",	3+,	3+,	6,	5+,	4,	6,	3,	3,	7),
+("astra_militarum", "colonel_iron_hand_straken",	"4",	3+,	2+,	6,	3+,	6,	6,	4,	5,	9),
+("astra_militarum", "colour_sergeant_jarran_kell",	"3",	3+,	3+,	6,	4+,	3,	6,	3,	4,	7),
+("astra_militarum", "tempestor_prime",	"3",	3+,	3+,	6,	4+,	3,	6,	3,	4,	8),
+("astra_militarum", "taurox_prime",	"*",	*,	6+,	*,	3+,	6,	6,	6,	10,	7),
+("astra_militarum", "tempestor",	"2",	3+,	3+,	6,	4+,	3,	6,	3,	1,	7),
+("astra_militarum", "knight_commander_pask",	"*",	*,	6+,	*,	3+,	7,	6,	8,	12,	8),
+("astra_militarum", "gotfret_de_montbard",	"4",	4+,	3+,	6,	4+,	3,	6,	3,	4,	7),
+("astra_militarum", "sly_marbo",	"4",	2+,	2+,	6,	5+,	3,	6,	3,	4,	7),
+("astra_militarum", "mukaali_rider_sergeant",	"2",	4+,	4+,	8,	4+,	3,	6,	5,	3,	7),
+("astra_militarum", "mukaali_rider",	"1",	4+,	4+,	8,	4+,	3,	6,	5,	3,	6),
