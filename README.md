@@ -14,7 +14,7 @@ If interested in a high level description, read on!
 ## Client Implementation
 - The client for this application is a React single page application. 
 - State is managed centrally via Redux, which also serves as the primary interface for REST communication with the server.
-- It uses [Three.js](https://threejs.org/) for 3D graphics + interaction, [D3.js](https://d3js.org/) for data visualization, [react-spring](https://www.react-spring.io/) for animation, and [Semantic UI](https://semantic-ui.com/) as a layout framework. See package.json for a full dependency list.
+- It uses [Three.js](https://threejs.org/) for 3D graphics + interaction, [D3.js](https://d3js.org/) for data visualization, [react-spring](https://www.react-spring.io/) for animation, and [Semantic UI](https://semantic-ui.com/) for layout. See package.json for a full dependency list.
 - Authentication is handled via custom components provided by a SSO service, [Auth0](https://auth0.com/), both for login services and secure communication with the server's REST API.
 - Includes a custom parsing engine that can transform a plain-text [Battlescribe](https://battlescribe.net/) file into a usuable JSON object. Backed by regex.
 

@@ -235,7 +235,7 @@ INSERT INTO war_desc_profile (faction, name, meaning) VALUES
 			"type": "HAS_CATEGORY",
 			"params": ["goff_stormboyz"] 
 		},
-		"type": "PASS_MORALE"
+		"type": "MORALE_PASS"
 	}
 }),
 ("orks", "stormboyz_strike", {
@@ -275,7 +275,7 @@ INSERT INTO war_desc_profile (faction, name, meaning) VALUES
 ("orks", "sawbones", {
 	-- At the end of your Movement phase, Mad Dok Grotsnik can attempt surgery on a single friendly ORK INFANTRY or BIKER model within 1 of him. If he does so, roll a D6 to determine if the surgery is successful. On a 1 the surgery fails, and the model you were attempting to heal loses a wound. On a 2+ the surgery succeeds, and that model regains D3 lost wounds. A model can only be the target of a surgery attempt once per turn.
 	"type": "ACTION",
-	"params": "MOVEMENT"
+	"params": 3 
 }),
 ("orks", "green_tide", {
 	-- If this unit includes 20 or more models, add 1 to the Attacks characteristic of each model in the unit.
@@ -541,7 +541,7 @@ INSERT INTO war_desc_profile (faction, name, meaning) VALUES
 	"params": 1
 }),
 ("orks", "nitnuckle_and_lunk", {
-	-- Twice per battle, when Mek BOss Buzzgob uses the Mekaniak Boss ability to repair a model, the Grot Oilers can assist in the repairs. If they do, the model being repaired regains 1 additional lost wound.  Each time a roll is made to wound this unit, if Mek Boss Buzzgob is on the battlefield, use that models Toughness characteristic. Each time a Grot Oiler in this unit is destroyed, it is ignored for the purposes of Morale and Combat Attrition tests.
+	-- Twice per battle, when Mek BOss Buzzgob uses the Mekaniak Boss ability to repair a model, the Grot Oilers can assist in the repairs. If they do, the model being repaired regains 1 additional lost wound.  Each time a roll is made to wound this unit, if Mek Boss Buzzgob is on the battlefield, use that models Toughness characteristic. Each time a Grot Oiler in this unit is destroyed, it is ignored for the purposes of Morale and Combat Attrition tests. ""
 	"type": "ACTION",
 	"warning": "You can only use this twice per battle."
 	"params": 2
@@ -677,198 +677,404 @@ INSERT INTO war_desc_profile (faction, name, meaning) VALUES
 }),
 ("orks", "blood_axes", {
 	-- A unit with this kultur gains the benefit of cover, even while they are not entirely on or in a terrain feature, if the enemy model making the attack is at least 18 away.  In addition, units with this kultur can shoot or charge (but not both) even if they Fell Back in the same turn – if such a unit is embarked, it can only do so if the Transport that Fell Back also has this kultur.
-	"type": "",
-	"params":
+	"type": "OR",
+	"warning": "See text.",
+	"params": [
+	 	{ "type": "FALL_AND_CHARGE" },
+	 	{ "type": "FALL_AND_SHOOT" }
+	]
 }),
 ("orks", "deathskulls", {
 	-- Models with this Kultur have a 6+ invulnerable save. In addition, you can re-roll a single hit roll, a single wound roll, and a single damage roll for each unit with this kultur each time it shoots or fights.  In addition, INFANTRY units with this kultur gain the Dis is Ours! Zogg Off! ability, even if they do not have the Troops battlefield role.
-	"type": "",
-	"params":
+	"type": "AND",
+	"warning": "See text.",
+	"params": [
+	 	{
+	 		"type": "SET_STAT",
+	 		"params": { "field": "invuln", "val": 6 }
+	 	}	
+	]
 }),
 ("orks", "evil_sunz", {
 	-- Add 1 to the Move characteristic of models with this kultur (adding 2 instead if that model is a SPEED FREEK), and add 1 to Advance and charge rolls made for them.  In addition, models with this kultur do not suffer the penalty to their hit rolls for Advancing and firing Assault weapons.
-	"type": "",
-	"params":
+	"type": "AND",
+	"warning": "See Kultur",
+	"params": [
+	 	{
+	 		"type": "ADD_STAT",
+	 		"params": { "field": "move", "val": 1}
+	 	},
+	 	{
+	 		"cond": {
+	 			"type": "HAS_CATEGORY",
+	 			"params": ["speed_freek"]	
+	 		}
+	 		"type": "ADD_STAT",
+	 		"params": { "field": "move", "val": 1 }
+	 	},
+	 	{
+	 		"type": "ADD_ADVANCE",
+	 		"params": 1
+	 	},
+	 	{
+	 		"type": "ADD_CHARGE",
+	 		"params": 1
+	 	},
+	 	{
+	 		"type": "ADVANCE_SHOOT",
+	 		"subType": "ASSAULT"
+	 	}
+	]
 }),
 ("orks", "bad_moons", {
 	-- Re-roll hit rolls of 1 for attacks made by models with this kultur in the Shooting phase.
-	"type": "",
-	"params":
+	"type": "HIT_REROLL",
+	"subType": "SHOOT",
+	"params": [1]
 }),
-("orks", "freebooterz", {
+("orks", "freebooterz", {}),
 	-- Add 1 to hit rolls for attacks made by models with this kultur if any other friendly unit with this kultur within 24 has destroyed an enemy unit this phase.
-	"type": "",
-	"params":
-}),
 ("orks", "goffs", {
 	-- Each time you roll an unmodified hit roll of 6 for an attack with a melee weapon made by a model with this kultur, immediately make an additional hit roll against the same target using the same weapon.  These additional hit rolls cannot themselves generate any further hit rolls.
-	"type": "",
-	"params":
+	"type": "EXPLODING_HIT",
+	"subType": "FIGHT",
+	"params": [6]
 }),
 ("orks", "snakebites", {
 	-- Roll a dice each time a model with this Kultur loses a wound.  On a 6, the wound is not lost.  If a model has a similar ability (e.g. the Supa-Cybork Shiny Gubbinz or Ramshackle ability) you can choose which ability to use when a model loses a wound, but you cannot use both.
-	"type": "",
-	"params":
+	"type": "FNP",
+	"params": 6
 }),
 ("orks", "no_clan", {
 	-- You can take units from multiple Clans and Mobs, but you lose access to particular Clan Kultures and Subkulturs
-	"type": "",
-	"params":
+	"type": "BATTLEFORGED_MOD"
 }),
-("orks", "boomboyz", {
+("orks", "boomboyz", {}),
 	-- Blow It UP!  Improve the Strength and Armour Penetration characteristics of rokkit and stikkbomb weapons (these are weapons that have the name ‘rokkit’ or ‘stikkbomb’ in their profile e.g. rokkit launcha, stikkbomb chukka), as well as tankbusta bombs, wing missiles, kannons, killkannons, deffkannons, da boomer and lobbas equipped on models in a unit with this Subkultur by 1 (e.g. AP -2 becomes AP -3). Note that for combiweapons, this bonus only applies to attacks made with the rokkit launcha profile. 
-	"type": "",
-	"params":
-}),
-("orks", "feral_orks", {
+("orks", "feral_orks", {}),
 	-- Wildboyz: WARBOSS, WEIRDBOY, NOBZ and BOYZ only (excluding BIKER and MEGA ARMOUR). Models in a unit with this Subkultur can pile in up to 6. When making an Advance roll for a unit with this Subkultur, roll two additional dice and discard two of the results.
-	"type": "",
-	"params":
-}),
 ("orks", "flyboyz", {
 	-- Crucial Velocity: FLY models only. When resolving an attack made with a ranged weapon against a unit with this Subkultur by a model that is more than 1 away, that unit is treated as having the benefit of cover to its saving throw. When resolving an attack made with a melee weapon against a unit with this Subkultur in a turn in which it was more than 1 away from any enemy units at the start of the preceding Charge phase, subtract 1 from the hit roll
-	"type": "",
-	"params":
+	"cond": {
+		"type": "AND",
+		"params": [
+	 		"cond": {
+	 			"type": "HAS_CATEGORY",
+	 			"params": ["fly"]	
+	 		}
+		],
+	}
+	"type": "AND",
+	"params":[
+	 	{
+	 		"type": "ADD_STAT",
+	 		"subType": "SHOOT",
+			"warning": "Only applies if the model will start the charge phase outside of engagement range.",
+	 		"params": { "field": "save", "val": -1}
+	 	},	
+	 	{
+	 		"type": "BE_HIT",
+	 		"subType": "FIGHT",
+			"warning": "Only applies if the model started the charge phase outside of engagement range.",
+			"params": -1
+	 	},	
+	]
 }),
-("orks", "grot_mobs", {
+("orks", "grot_mobs", {}),
 	-- Cheeky Zoggers: GRETCHIN models only. Models in a unit with this Subkultur gain a 6+ invulnerable save. When resolving an attack by a VEHICLE model in a unit with this Subkultur, re-roll a hit roll of 1
-	"type": "",
-	"params":
-}),
 ("orks", "huntas", {
 	-- Sneaky Devils: INFANTRY models only (excluding GRETCHIN). Whilst a model in a unit with this Subkultur is on or within a terrain feature, it gains a 5+ invulnerable save. When resolving an attack made with a melee weapon by a model in a unit with this Subkultur, while that model or any model in the target unit is on or within a terrain feature, improve the weapon’s Armour Penetration characteristic by 1 for that attack (e.g. AP -2 becomes AP -3).
-	"type": "",
-	"params":
+	"cond": {
+		"type": "HAS_CATEGORY",
+		"params": ["infantry"]	
+	},
+	"type": "AND",
+	"params": [
+	 	{
+	 		"cond": {
+	 			"type": "HAS_COVER"
+	 		}
+	 		"type": "SET_STAT",
+	 		"params": { "field": "invuln", "val": 5}
+	 	},	
+	 	{
+	 		"cond": {
+	 			"type": "HAS_COVER",
+	 			"target": "ENEMY"
+	 		}
+	 		"type": "ADD_AP",
+	 		"subType": "FIGHT",
+	 		"params": -1
+	 	},	
+	]
 }),
 ("orks", "pyromaniacs", {
-	-- Arsonists: You can re-roll any and all of the dice when determining the number of shots made for burnas, skorchas, burna bottles, burna exhausts, killa jets and skorcha missiles equipped on models in a unit with this Subkultur. When resolving an attack made with the melee profile of a burna equipped on a model with this Subkultur, you can re-roll the wound roll. When resolving the burna bombs ability for a unit with this Subkultur, add 1 to each roll.
-	"type": "",
-	"params":
+	-- Arsonists: You can re-roll any and all of the dice when determining the number of shots made for burnas, skorchas, burna bottles, burna exhausts, killa jets and skorcha missiles equipped on models in a unit with this Subkultur.
+	When resolving an attack made with the melee profile of a burna equipped on a model with this Subkultur, you can re-roll the wound roll. When resolving the burna bombs ability for a unit with this Subkultur, add 1 to each roll.
+	"type": "AND",
+	"warning": "See text for exact weapon name list. Also improves the Burna Bombs ability."
+	"params": [
+	 	{
+	 		"cond": {
+	 			"type": "WEAPON_NAME",
+	 			"params": ["burna", "skorcha", "burna bottle", "burna exhaust", "killa jet", "skorcha missile"]
+	 		}
+	 		"type": "REROLL_NUM_SHOTS",
+	 	},	
+	 	{
+	 		"cond": {
+	 			"type": "WEAPON_NAME",
+	 			"params": ["burna"]
+	 		}
+	 		"type": "WOUND_REROLL",
+	 		"subType": "FIGHT"
+	 	}
+	]
 }),
 ("orks", "tin_eads", {
 	-- Krush n Krump!: KILLA KANS, DEFFDREADS, MEGA ARMOUR, MORKANAUTS, GORKANAUTS and STOMPAS only. When resolving an attack made with a melee weapon by a model in a unit with this Subkultur, add 1 to the hit roll. 
-	"type": "",
-	"params":
+	"cond": {
+		"type": "HAS_CATEGORY",
+		"params": ["killa_kans", "deffdreads", "mega_armour", "morkanauts", "gorkanauts", "stompas"]	
+	},
+	"type": "HIT",
+	"subType": "FIGHT",
+	"params": 1
 }),
 ("orks", "madboyz", {
 	-- Frantic: INFANTRY and BIKER units only (excluding GRETCHIN). At the start of each battle round, roll one D3 and consult the table below to establish what effect applies to units with this Subkultur until the end of the battle round. This roll cannot be re-rolled. 1. Moroniks : When resolving an attack that targets a unit with this Subkultur, add 1 to the saving throw (invulnerable saving throws are unaffected). 2. Nuttaz : Units with this Subkultur automatically pass Morale tests. 3. Frenzies: Add 1 to the Strength characteristic of models in a unit with this Subkultur
-	"type": "",
-	"params":
+	"type": "ACTION",
+	"params": 0
 }),
 ("orks", "gitstoppa_shells", {
 	-- Model with a Kustom Shoota, Kombi Weapon with Skorcha or Kombi Weapon with Rokkit Launcha only. Add 1 to the strength and damage of that weapons Shoota or Kustom Shoota profile. Improve the AP of that weapon by 1.
-	"type": "",
-	"params":
+	"type": "MODEL_SPECIFIC"
 }),
 ("orks", "morgogs_finkin_cap", {
 	-- BLOOD AXE model only. If the bearer is your Warlord, you can generate a second Warlord Trait for them. If the bearer is not your Warlord, generate a Warlord Trait for them (note that the bearer is only regarded as your Warlord for the purposes of that Warlord Trait). The same Warlord Trait cannot be generated for both the bearer and your Warlord.
-	"type": "",
-	"params":
+	"type": "BATTLEFORGED_MOD"
 }),
 ("orks", "ard_as_nails", {
 	-- Add 1 to your warlords Toughness characteristic.
-	"type": "",
-	"params":
+	"type": "ADD_STAT",
+	"params": { "field": "toughness", "val": 1 }
 }),
 ("orks", "big_killa_boss", {
 	-- Add 1 to the wound rolls for your warlord attacks if they are targeting vehicle or monster.
-	"type": "",
-	"params":
+	"cond": {
+		"type": "HAS_CATEGORY",
+ 		"target": "ENEMY",
+		"params": ["vehicle", "monster"]
+	}
+	"type": "WOUND",
+	"params": 1
 }),
 ("orks", "brutal_but_kunnin", {
 	-- You can re-roll failed hit rolls for your warlord in the fight phase. In addition increase the damage characteristic of your warlords melee weapons by 1  if he finished a charge move or performed heroic intervention this turn.
-	"type": "",
-	"params":
+	"type": "AND",
+	"params": [
+	 	{
+	 		"type": "HIT_REROLL",
+	 		"subType": "FIGHT"
+	 	},	
+	 	{
+	 		"cond": {
+	 			"type": "HAS_STATUS",
+	 			"params": ["CHARGED", "INTERVENED"]
+	 		}
+	 		"type": "DMG",
+	 		"params": 1
+	 	},	
+	]
 }),
 ("orks", "da_best_armour_teef_can_buy", {
 	-- Your warlord gets 4+ invulnerable save.
-	"type": "",
-	"params":
+	"type": "SET_STAT",
+	"params": { "field": "invuln", "val": 4 }
 }),
 ("orks", "follow_me_ladz!", {
 	-- Your Warlord gains the Waaagh! and Breakin’ Heads abilities (pg 85). If your Warlord already has the Waaagh! and Breakin’ Heads abilities, the range of each ability is increased by 3. In addition, if your army is Battle-forged, you receive an additional +1 Command Point.
-	"type": "",
-	"params":
+	"type": "BATTLEFORGED_MOD"
 }),
 ("orks", "kunnin_but_brutal", {
 	-- At the start of the first battle round but before the first turn begins, you can remove your warlord and up to D3 friendly units from the battlefield and set them up again as described in the deployment section of the mission you are playing. If you pick a transport, the units embarked on it are also redeployed.
-	"type": "",
-	"params":
+	"type": "ACTION",
+	"subType": "SETUP"
 }),
 ("orks", "might_is_right", {
 	-- Add 1 to this Warlords Strength and Attacks characteristic.
-	"type": "",
-	"params":
+	"type": "AND",
+	"params": [
+	 	{
+	 		"type": "ADD_STAT",
+	 		"params": { "field": "strength", "val": 1 }
+	 	},	
+	 	{
+	 		"type": "ADD_STAT",
+	 		"params": { "field": "attacks", "val": 1 }
+	 	},	
+	]
 }),
 ("orks", "surly_as_a_squiggoth", {
 	-- You can re-roll failed morale tests for friendly Snakebitez within 6 of your warlord. Friendly Snakebitez gretchin units within 12 of your warlord automatically pass morale tests.
-	"type": "",
-	"params":
+	"type": "AND", 
+	"params": [
+		{
+			"type": "AURA",
+			"radius": 6,
+			"params": {
+				"cond": {"type": "SHARE_SUBFACTION"},
+		 		"type": "MORALE_REROLL"
+			}
+		},
+		{
+			"type": "AURA",
+			"radius": 12,
+			"params": {
+				"cond": {
+					"type": "AND",
+					"params": [
+						{ "type": "SHARE_SUBFACTION" },
+						{ "type": "HAS_CATEGORY", "params": ["gretchin"]}
+					]
+				},
+		 		"type": "MORALE_PASS"
+			}
+		}
+	]
 }),
 ("orks", "grot_riggers_(battle_fortress)", {
 	-- In your Command phase, this model regains up to 1 lost wound.
-	"type": "",
-	"params":
+	"type": "ACTION",
+	"params": 1
 }),
 ("orks", "grot_riggers", {
 	-- In your Command phase, this model regains up to 1 lost wound.
-	"type": "",
-	"params":
+	"type": "ACTION",
+	"params": 1
 }),
 ("orks", "shoot_em_again!", {
 	-- If this model remains stationary or moves under half speed in its Movement phase (i.e. it moves a distance in inches less than half of its current Move characteristic) it can shoot twice in the following Shooting phase with its killkannon or lobba (the weapon must target the same unit both times).
-	"type": "",
-	"params":
+	"cond": {
+		"type": "AND",
+		"params": [
+			{
+				"type": "HAS_STATUS",
+				"params": ["STATIONARY"]	
+			},
+			{
+				"type": "USING_WEAPON",
+				"params": ["killkannon", "lobba"]	
+			}
+		]
+	}
+	"type": "MULT_SHOTS",
+	"warning": "All shots from one weapon must be at the same target."
+	"params": 2
 }),
 ("orks", "battle_fortress", {
 	-- This model can Fall Back in the Movement phase and still shoot and/or charge in the same turn. In addition, this model ignores the penalty for moving and firing Heavy weapons, and can – except when firing Overwatch – still fire its weapons if enemy units are within 1 of it (but only its twin big shootas or twin skorchas can target units that are within 1 of it – other guns must target other units). Finally, this model only gains a bonus to its saving throws for being in cover if at least half of the model is obscured from the firer.
-	"type": "",
-	"params":
+	"type": "AND",
+	"warning": "See text."
+	"params": [
+	 	{"type": "FALL_AND_CHARGE"},
+	 	{"type": "FALL_AND_SHOOT"},
+	 	{"type": "MOVE_SHOOT_HEAVY"}
+	]
 }),
-("orks", "da_revolushun!", {
+("orks", "da_revolushun!", {}),
 	-- Friendly Gretchin units can use this model’s Leadership instead of their own whilst they are within 6 of this model. 
-	"type": "",
-	"params":
-}),
 ("orks", "red_gobbo", {
 	-- This model can be included in an Ork Detachment without preventing other units in that Detachment from gaining a Clan Kultur. Note, however, that this model does not itself benefit from any Clan Kultur.
-	"type": "",
-	"params":
+	"type": "BATTLEFORGED_MOD"
 }),
 ("orks", "has_yoo_been_a_good_little_grot_this_year?", {
 	-- At the end of your Movement phase, you can select one other friendly Gretchin unit within 3 of this model. If you do, roll one D6; on a 1, that unit suffers 1 mortal wound. On a 2+, models in that unit count as being equipped  with stikkbombs until the end of the battle.
-	"type": "",
-	"params":
+	"type": "ACTION",
+	"params": 2
 }),
 ("orks", "ghazghkull’s_waaagh!_banner", {
 	-- When a model in a friendly GOFF ORK unit within 6 of this model would lose a wound, and this model is within 3 of a friendly GHAZGHKULL THRAKA unit, roll one D6; on a 6+ that wound is not lost.
-	"type": "",
-	"params":
+	"cond": {
+		"type": "IN_RANGE",
+		"radius": 3
+		"params": {
+			"type": "HAS_CATEGORY",
+			"params": "ghazghkull_thraka"
+		}
+	},
+	"type": "AURA",
+	"radius": 6,
+	"params": {
+		"cond": {
+			"type": "HAS_SUBFACTION",
+			"params": ["goff"]
+		},
+		"type": "FNP", 
+		"params": 6
+	}
 }),
 ("orks", "suspiciously_lucky", {
 	-- This model has a 2+ invulnerable save.
-	"type": "",
-	"params":
+	"type": "SET_STAT",
+	"params": { "field": "invuln", "val": 2 }
 }),
 ("orks", "accidental_figurehead", {
 	-- Friendly GOFF GRETCHIN units can use this model’s Leadership instead of their own whilst they are within 12 of this model.
-	"type": "",
-	"params":
+	"type": "AURA",
+	"radius": 12,
+	"params": {
+		"cond": {
+			"type": "",
+			"params": [
+				{
+					"type": "HAS_SUBFACTION",
+					"params": ["goff"]
+				},
+				{
+					"type": "HAS_CATEGORY",
+					"params": ["gretchin"]
+				}
+			]
+		},
+		"type": "SHARE_STAT",
+ 		"params": ["leadership"]
+	}
 }),
 ("orks", "keep_up!", {
 	-- At the start of your Movement phase, if this model is within 3 of a friendly GHAZGHKULL THRAKA unit, add 2 to this model’s Move characteristic until the end of that phase. 
-	"type": "",
-	"params":
+	"cond": {
+		"type": "IN_RANGE",
+		"radius": 3,
+		"params": {
+			"type": "HAS_CATEGORY",
+			"params": "ghazghkull_thraka"
+		}
+	},
+	"type": "ADD_STAT",
+	"params": { "field": "move", "val": 2 }
 }),
 ("orks", "‘da_boss’_best_grot", {
 	-- This model can be included in an Ork Detachment without preventing other units from that Detachment from gaining a Clan Kultur or Subkultur if that Detachment also includes Ghazghkull Thraka. Note, however, that this model does not benefit from any Clan Kultur.
-	"type": "",
-	"params":
+	"type": "BATTLEFORGED_MOD"
 }),
 ("orks", "da_biggest_boss", {
 	-- Use this Stratagem before the battle. Select one WARBOSS model in your army. Add 1 to that model’s Wounds and Attacks characteristics and it gains a 4+ invulnerable save. You can only use this Stratagem once per battle, and only if your army does not include GHAZGHKULL THRAKA.
-	"type": "",
-	"params":
+	"type": "AND",
+	"params": [
+	 	{
+	 		"type": "ADD_STAT",
+	 		"params": {"field": "wounds", "val": 1}
+	 	},	
+	 	{
+	 		"type": "ADD_STAT",
+	 		"params": {"field": "attacks", "val": 1}
+	 	},	
+	 	{
+	 		"type": "SET_STAT",
+	 		"params": {"field": "invuln", "val": 4}
+	 	},
+	]
 }),
 ("orks", "da_kleverest_boss", {
 	-- Use this Stratagem before the battle. Select one BIG MEK model in your army. Add 1 to that model’s Wounds and Attacks characteristics and change its Weapon Skill to 2+. You can only use this Stratagem once per battle, and only if your army does not include MEK BOSS BUZZGOB.
@@ -876,36 +1082,25 @@ INSERT INTO war_desc_profile (faction, name, meaning) VALUES
 	"params": [
 		{
 			"type": "ADD_STAT",
-			"params": {
-				"field": "wounds",
-				"val": 1
-			}
+			"params": {"field": "wounds", "val": 1}
 		},
 		{
 			"type": "ADD_STAT",
-			"params": {
-				"field": "attacks",
-				"val": 1
-			}
+			"params": {"field": "attacks", "val": 1}
 		},
 		{
 			"type": "SET_STAT",
-			"params": {
-				"field": "weapons",
-				"val": 2
-			}
+			"params": {"field": "weapons", "val": 2}
 		}
 	]
 }),
-("orks", "klever_spanner", {
+("orks", "klever_spanner", {}),
 	-- Use this Stratagem before the battle. Select one LOOTAS or BURNA BOYZ unit from your army that contains 9 or less models for 1CP, or one LOOTAS or BURNA BOYZ unit from your army that contains 10 or more models for 2CP. Whilst that unit contains one or more Spanners, you can roll one additional dice and discard one when determining the number of shots for burnas or deffguns equipped on models in that unit. Each unit can only be selected for this Stratagem once per battle.
-	"type": "",
-	"params":
-}),
 ("orks", "kustom_force_field_(bm_w/_kff)", {
 	--  Friendly Ork units have a 5+ invulnerable save against ranged attacks whilst they are wholly within 9 of this model. While this model is embarked, the model transporting it has a 5+ invulnerable save against ranged attacks.’
 	"type": "AURA",
 	"warning": "If embarked, this applies to just the transport instead all units in an aura.",
+	"radius": 9,
 	"params": {
 		"cond": {
 			"type": "HAS_FACTION",
@@ -917,18 +1112,49 @@ INSERT INTO war_desc_profile (faction, name, meaning) VALUES
 }),
 ("orks", "too_tuff_for_deff", {
 	-- This model has a 5+ invulnerable save. Each time this model would lose a wound, roll one D6: on a 5+, that wound is not lost.
-	"type": "",
-	"params":
+	"type": "AND",
+	"params": [
+	 	{
+	 		"type": "SET_STAT",
+	 		"params": {"field": "invuln", "val": 5}
+	 	},	
+	 	{
+	 		"type": "FNP",
+	 		"params": 5
+	 	},	
+	]
 }),
 ("orks", "breakin_heads", {
 	-- If a GOFF unit fails a Morale test while it is within 3 of a friendly model with this ability, this model can restore order with a brutal display of violence. If they do so, the unit suffers D3 mortal wounds but the Morale test is then considered to have been passed.
-	"type": "",
-	"params":
+	"type": "AURA",
+	"radius": 3,
+	"params": {
+		"cond": {
+			"type": "SHARE_SUBFACTION"
+		},
+		"type": "MORALE_EXECUTION",
+		"params": "D3M"
+	}
 }),
 ("orks", "waaagh!", {
 	-- Friendly GOFF INFANTRY units within 6 of this model at the start of the Charge phase can charge even if they Advanced this turn.
-	"type": "",
-	"params":
+	"type": "AURA",
+	"radius": 6,
+	"params": {
+		"cond": {
+			"type": "AND",
+			"params": [
+				{
+					"type": "SHARE_SUBFACTION"
+				},
+				{
+					"type": "HAS_CATEGORY",
+					"params": ["infantry"] 
+				},
+			]
+		},
+		"type": "ADVANCE_AND_CHARGE"
+	}
 }),
 ("orks", "foul_temper", {
 	-- While this Warlord has fewer wounds remaining than its Wounds characteristic, add 3 to its Attacks characteristic.
@@ -954,108 +1180,140 @@ INSERT INTO war_desc_profile (faction, name, meaning) VALUES
 }),
 ("orks", "grukks_meanest_ladz", {
 	-- While this unit is within 6 of a friendly GRUKK FACE-RIPPA model, add 1 to the Attacks characteristics of each NOBZ model in this unit.
-	"type": "",
-	"params":
+	"type": "MODEL_SPECIFIC"
 }),
 ("orks", "mega_charge", {
 	-- Each time a charge roll is made for this unit, roll one additional D6 and discard one.
-	"type": "",
-	"params":
+	"type": "CHARGE_REROLL",
+	"subType": "ONE_DIE"
 }),
 ("orks", "gorks_one", {
 	-- Add 1 to hit rolls and wound rolls for attacks made by your Warlord in the Fight phase.
-	"type": "",
-	"params":
+	"type": "AND",
+	"params": [
+	 	{
+	 		"type": "HIT",
+	 		"subType": "FIGHT",
+	 		"params": 1
+	 	},	
+	 	{
+	 		"type": "WOUND",
+	 		"subType": "FIGHT",
+	 		"params": 1
+	 	},	
+	]
 }),
 ("orks", "morks_one", {
 	-- Add 1 to wound rolls for shooting attacks made by your Warlord. 
-	"type": "",
-	"params":
+	"type": "WOUND",
+	"subType": "SHOOT",
+	"params": 1
 }),
-("orks", "dread_mek", {
+("orks", "dread_mek", {}),
 	-- Model with the Big Mekaniak ability only. When your Warlord uses its Big Mekaniak ability to repair a DREAD WAAAGH! unit, add 1 to the number of wounds regained
-	"type": "",
-	"params":
-}),
-("orks", "back_seat_driver", {
+("orks", "back_seat_driver", {}),
 	-- While your Warlord is embarked within a BLITZ BRIGADE TRANSPORT, add 1 to that transport’s Move characteristic. In addition, while your Warlord is embarked within it, that transport gains the ’Ere We Go ability.
-	"type": "",
-	"params":
-}),
 ("orks", "goffs___da_lucky_stikk", {
 	-- The bearer can re-roll any hit and wound rolls in the fight phase. In addition any friendly Goff characters within 6 of the bearer can add 1 to their hit rolls in the fight phase.
-	"type": "",
-	"params":
+	"type": "AND",
+	"params": [
+	 	{
+	 		"type": "HIT_REROLL",
+	 		"subType": "FIGHT",
+	 	},	
+	 	{
+	 		"type": "WOUND_REROLL",
+	 		"subType": "FIGHT",
+	 	},	
+	 	{
+			"type": "AURA",
+			"radius": 6,
+			"params": {
+				"cond": {
+					"type": "AND",
+					"params": [
+					 	{"type": "SHARE_SUBFACTION"},
+					 	{
+					 		"type": "HAS_CATEGORY",
+					 		"params": ["character"]
+					 	}
+					]
+				},
+				"type": "HIT", 
+		 		"subType": "FIGHT",
+				"params": 1
+			}
+		}
+	]
 }),
-("orks", "rezmekkas_redder_armour", {
+("orks", "rezmekkas_redder_armour", {}),
 	-- Add 1 to the Move characteristic of a TRANSPORT while the bearer is embarked within it. In addition, if the bearer is embarked, then at the start of your Movement phase roll a D6 for each enemy unit within 1 of the TRANSPORT the bearer is embarked upon. On a 4+ that unit suffers D3 mortal wounds.
-	"type": "",
-	"params":
-}),
 ("orks", "da_fixer_upperz", {
 	-- DEATHSKULLS model only. The bearer gains the Big Mekaniak ability. If the bearer already has the Big Mekaniak ability, the target of the ability regains 3 lost wounds instead of D3 each time it is used.
-	"type": "",
-	"params":
+	"type": "BATTLEFORGED_MOD"
 }),
 ("orks", "the_badskull_banner", {
 	-- You can activate this once per battle at the start of your morale phase, if you do so then for the rest of this morale phase all friendly Freebootas units automatically pass morale tests.
-	"type": "",
-	"params":
+	"type": "ACTION",
+	"subType": "BATTLE",
+	"params": 7 
 }),
 ("orks", "super_cybork_body", {
 	-- Each time the bearer loses a wound, roll a d6; on a roll of 5+ that wound is not lost. You cannot make a Dokks Tools roll for this model if you do so.
-	"type": "",
-	"params":
+	"type": "FNP",
+	"warning": "Restricts Dokk's Tools use if used."
+	"params": 5 
 }),
-("orks", "scorched_gitbonez", {
+("orks", "scorched_gitbonez", {}),
 	-- Psyker only. You can add 1 to psychic tests by the bearer manifesting powers from the Power of the WAAAAGH! discipline.
-	"type": "",
-	"params":
-}),
 ("orks", "skargrim’s__snazztrike", {
 	-- DEFFKILLA WARTRIKE only. Add 1 to the bearer’s Toughness characteristic. In addition, the bearer gains a 5+ invulnerable save.
-	"type": "",
-	"params":
+	"type": "AND",
+	"params": [
+	 	{
+	 		"type": "ADD_STAT",
+	 		"params": { "field": "toughness", "val": 1 }
+	 	},	
+	 	{
+	 		"type": "SET_STAT",
+	 		"params": { "field": "invuln", "val": 5 }
+	 	},	
+	]
 }),
 ("orks", "da_blitzshouta", {
 	-- At the start of your Shooting phase, if the bearer is embarked within a BLITZ BRIGADE BATTLEWAGON, pick an enemy unit that is visible to that BATTLEWAGON. Until the end of the phase, re-roll hit rolls of 1 for attacks made by friendly BLITZ BRIGADE units within 6 of that BATTLEWAGON that target the enemy unit you picked.
-	"type": "",
-	"params":
+	"type": "ACTION",
+	"params": 4
 }),
 ("orks", "tezdreks_stompa_power_field", {
 	-- The bearer has a 5+ invulnerable save.
-	"type": "",
-	"params":
+	"type": "SET_STAT",
+	"params": { "field": "invuln", "val": 5 }
 }),
 ("orks", "stompa_mob", {
 	-- Use this Stratagem when choosing your army. Pick an ORK Super-heavy Detachment from your army to be a Stompa Mob Specialist Detachment. STOMPA units in that Detachment gain the STOMPA MOB keyword. In addition, you can pick one model in that Stompa Mob Specialist Detachment to gain the CHARACTER keyword. However, the only Warlord Trait it can be given is either Gork’s One or Mork’s One (see right) and the only relic it can take is Tezdrek’s Stompa Power Field (see right).
-	"type": "",
-	"params":
+	"type": "BATTLEFORGED_MOD"
 }),
 ("orks", "kult_of_speed", {
 	-- Use this Stratagem when choosing your army. Pick an ORK Detachment from your army to be a Kult of Speed Specialist Detachment. SPEED FREEKS in that Detachment gain the KULT OF SPEED keyword.
-	"type": "",
-	"params":
+	"type": "BATTLEFORGED_MOD"
 }),
 ("orks", "dread_waaagh!", {
 	-- Use this Stratagem when choosing your army. Pick an ORK Detachment from your army to be a Dread Waaagh! Specialist Detachment. BIG MEKS, GORKANAUTS, MORKANAUTS, DEFF DREADS and KILLA KANS in that Detachment gain the DREAD WAAAGH! keyword.
-	"type": "",
-	"params":
+	"type": "BATTLEFORGED_MOD"
 }),
 ("orks", "blitz_brigade", {
 	-- Use this Stratagem when choosing your army. Pick an ORK Detachment from your army to be a Blitz Brigade Specialist Detachment. WARBOSSES, BATTLEWAGONS, GUNWAGONS and BONEBREAKA units in that Detachment gain the BLITZ BRIGADE keyword.
-	"type": "",
-	"params":
+	"type": "BATTLEFORGED_MOD"
 }),
 ("orks", "squig_hide_tyres", {
 	-- SPEED FREEKS (excluding named characters and units that can FLY), BATTLEWAGON , GUNWAGON , BONEBREAKA or TRUKK unit only. Add 2 to the unit’s Move characteristic.
-	"type": "",
-	"params":
+	"type": "ADD_STAT",
+	"params": { "field": "move", "val": 2 }
 }),
 ("orks", "souped_up_speshul", {
 	-- BOOMDAKKA SNAZZWAGON unit only. Souped-up Speshul replaces the unit’s mek speshul.
-	"type": "",
-	"params":
+	"type": "BATTLEFORGED_MOD"
 }),
 ("orks", "gyroscopic_whirligig", {
 	-- SHOKKJUMP DRAGSTA unit only. You can use this unit’s Shokk Tunnel ability when Advancing, even if you did not roll a 4+. In addition, this unit does not suffer any mortal wounds as a result of the Shokk Tunnel ability.
@@ -1156,11 +1414,13 @@ INSERT INTO war_desc_profile (faction, name, meaning) VALUES
 	"type": "AND",
 	"params": [
 		{
-			"type": "AUTOHIT__SHOOT",
+			"type": "AUTOHIT",
+	 		"subType": "SHOOT",
 			"params": [6]
 		},
 		{
-			"type": "EXPLODING_HIT__SHOOT",
+			"type": "EXPLODING_HIT",
+	 		"subType": "SHOOT",
 			"params": [6]
 		}
 	]
