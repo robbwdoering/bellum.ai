@@ -71,27 +71,34 @@ This is the basic layout of a meaning object, where "type" is the only field req
 | OR                 | Evaluates each sub-conditional, returning true if one does                                                    | Array of cond. objects      |                     |
 | XOR                | Evaluates each sub-conditional, returning true if ONLY one does                                               | Array of cond. objects      |                     |
 | NOT                | Evaluates the sub-conditional, returning true if it returns false                                             | Cond. object                |                     |
-| IN_RANGE | Evaluates the sub-conditional for every unit within range, returning true if any do | | |
+| IN_RADIUS | Default evaluates the sub-conditional for every unit within range, and subtypes allow access to non-unit targets. 		 | Subconditional | OBJECTIVE |
 | SHARE_SUBFACTION   | If the two units share a subfaction, like Ork <CLAN> or Marine <CHAPTER>                                      | N/A                         |                     |
 | HAS_CATEGORY       | If the unit has one of the listed categories                                                                  | Array of category names     |                     |
 | HAS_FACTION        | If the unit is part of one of the listed factions                                                             | Array of faction names      |                     |
 | HAS_STATUS         | If the unit currently has one of the listed STATUS flags from earlier in the turn, like CHARGED or FELL_BACK. | Array of status IDs         |                     |
 | HAS_STAT           | If this characteristic field is more than the given threshold value                                           | {field, val}                |                     |
+| HAS_EQUIPMENT      | If this model is equipped with at least one entry in the listed equipment. 					| Array of equipment names                |                     |
 | IN_DETACHMENT_TYPE | If the unit was deployed in a detachment of one of the listed types                                           | Array of detachment types   |                     |
 | HAS_MODEL_QUANTITY | If the unit currently has at least this many models left alive                                                | number of models            |                     |
-| IN_COVER           | If the unit is currently within this type of cover. If you don't specify a subtype, it matches all types      | N/A                         | HEAVY, LIGHT, DENSE |
+| IN_COVER           | If the unit is currently within this type of cover. If you don't specify a subtype, it matches all types      | | |
+| IN_HALF_RANGE           | If the unit is currently attacking a unit that is closer than half the range of the weapon being used    | N/A                         | HEAVY, LIGHT, DENSE |
 | IS_PHASE           | If the current phase MATCHES the parameter, where Command is 1 and Morale is 7                                | Number representing a phase |                     |
 | IS_ROUND           | If the current round is AT LEAST the parameter, where rounds run from 1 to 5                                  | Number representing a round |                     |
 
 
 ## Effect Types
+There are three types of rules:
+1. Rules that are dependent on the setup of the board, like auras.
+2. Rules that are dependent on attacker and defender stats, like most weapon abilties.
+3. Rules that are only dependent on the attacker's starting profile, like most unit abilites.
+
 | Type               | Description                                                                                                     | Parameter Format                       | Subtypes     |
 |--------------------|-----------------------------------------------------------------------------------------------------------------|----------------------------------------|--------------|
 | AND                | A wrapper rule that applies each sub-rule                                                                       | Array of meaning objects               |              |
 | OR                 | A wrapper rule that allows the player to choose one effect. Not yet fully supported                             | Array of meaning objects               |              |
 | AURA               | Applies the sub-rule to this unit and all others within the radius                                              | Meaning object                         |              |
-| SET_STAT           | Sets a statistic (AKA characteristic field) for a unit                                                          | {field, val}                           | SHOOT, FIGHT |
-| ADD_STAT           | Adds a number to a unit's statistic (AKA characteristic field).                                                 | {field, val}                           | SHOOT, FIGHT |
+| SET_STAT           | Sets a statistic (AKA characteristic field) for a unit                                                          | {field, val}                           | SHOOT, FIGHT, OVERWATCH |
+| ADD_STAT           | Adds a number to a unit's statistic (AKA characteristic field).                                                 | {field, val}                           | SHOOT, FIGHT, OVERWATCH |
 | HIT                | Adds a number to every hit roll this unit makes                                                                 | Number                                 | SHOOT, FIGHT |
 | BE_HIT             | Adds a number to every roll made to hit this unit                                                               | Number                                 | SHOOT, FIGHT |
 | HIT_REROLL         | Every time the unit makes a roll to hit, it can reroll the listed values                                        | Array of numbers                       | SHOOT, FIGHT |
@@ -110,14 +117,20 @@ This is the basic layout of a meaning object, where "type" is the only field req
 | EXPLODING_WOUND      | If a wound roll matches one of the given numbers, the unit deals mortal damage 							   | { triggers, dmg }| SHOOT, FIGHT |
 | FNP                | Every time this unit suffers a wound, it rolls a D6. If it meets the given threshold, the wound is ignored      | Number                                 | SHOOT, FIGHT |
 | DMG            	 | Adds a number to every instance of damage dealt by this unit 												   | Number                                 | SHOOT, FIGHT |
+| TAKE_DMG           | Adds a number to every instance of damage dealt to this unit 												   | Number                                 | SHOOT, FIGHT |
+| SET_DMG          	 | Sets the damage characteristic of any attack made by this unit 												   | Damage string                                 | SHOOT, FIGHT |
+| DMG_REROLL     	 | Reroll any damage dice for attacks made by this unit | ONE_DIE | SHOOT, FIGHT |
 | DMG_MAX            | Each attack against this unit can only deal a maximum of this much damage                                       | Number                                 | SHOOT, FIGHT |
 | DMG_MAX_ROLL       | For every successful attack, roll a D6. If it meets the given threshold, the damage is reduced to the given max | {max, threshold}                       | SHOOT, FIGHT |
+| DMG_TAKEN_MULT       | Multiply any damage received by this (int or float) number | Number                       | SHOOT, FIGHT |
 | PASS_MORALE | Automatically pass all morale tests | | |
+| MORALE | Adds a number to every morale roll this unit makes | Number | |
 | MORALE_REROLL | This unit can re-roll failed Morale tests | | |
 | MORALE_FNP         | Every time a model from this unit flees, it rolls a D6. If it meets the given threshold, it stays               | Number                                 |              |
 | MORALE_EXECUTION   | Every time this unit fails a morale test, it can choose to suffer the listed damage instead of fleeing          | String that describes damage           |              |
 | DEEPSTRIKE         | Unit can choose to deploy after the first round at least the given number of inches away from any enemies       | Number of inches - null implies 9 		|              |
 | ADVANCE_AND_CHARGE | Allows the unit to charge even if it advanced this turn                                                         |                                        | ONE_DIE      |
+| ADVANCE_AND_SHOOT | Allows the unit to shoot even if it advanced this turn; subtype restricts weapon types |                                         |  HEAVY, PISTOL, RAPIDFIRE |
 | FALL_AND_CHARGE | Allows the unit to charge even if it fell back this turn | | |
 | FALL_AND_SHOOT | Allows the unit to shoot even if it fell back this turn | | |
 | SET_ADVANCE_DISTANCE | Sets the number of inches the model will move if it advances |                                        | |
@@ -136,7 +149,7 @@ This is the basic layout of a meaning object, where "type" is the only field req
 | CANNOT_BE_PSYCHIC  | This unit cannot be targeted by psychic powers                                                                  |                                        |              |
 | ADD_PSYCHIC        | Add a number to every psychic roll this unit makes                                                              | Number                                 |              |
 | ADD_DENY_THE_WITCH | Add a number to every deny the witch roll this unit makes                                                       | Number                                 |              |
-| BATLLEFORGED_MOD | This rule regards how one can legally construct an battleforged force - it is ignored in game 					   |  										|              |
+| BATLLEFORGED_MOD | This rule regards how one can legally construct a battleforged force, or some related pre-match activity				   |  										|              |
 | ACTION | Represents some sort of action the unit can take. Not really covered yet in app, just vague timing warnings. 	|  										| BATTLE, SETUP |
 | SPLIT_UP | This rule allows the unit to split up after deployment. Not supported. |  										| |
 | FREE_MOVEMENT | This unit can move over enemy units without penalty, though cannot end their turn within engagement range as usual | | |
@@ -147,6 +160,10 @@ This is the basic layout of a meaning object, where "type" is the only field req
 | AIRCRAFT | Unit must pivot up to 90 degrees then move in a straight line| | |
 | SNIPER | Unit may target characters in the shooting phase and ignro the Look Out, Sir rule| | |
 | CP_REFUND | Rule triggers when command points are spent, and usually allows user to sometimes gain / refund CP | | |
+| LAST_STAND | When a model in this unit dies, it has a chance to fire before doing so | | |
+| CAN_INTERVENE | This unit can use the "Heroic Intervention" ability usually reserved for characters | | |
+| ADD_AURA_RADIUS | All other auras made by this unit have a range increased by this many inches | Number | |
+| BLAST | Special weapon ability stronger against units with more models - see text | | |
 
 
 ## Examples
@@ -280,7 +297,15 @@ This example showcases the use of multiple conditionals linked together - all of
 
 
 ## Weaknesses
-- Doesn't handle rules that are "trinary" - that is, involve three units. Exampe is Ork's "biker_doks_tools"
-- Doesn't handle OR rules, like Defensible Cover 
-- Doesn't handle actions, which is any rule along the lines of "At the end of your X phase, this model can Y". Right now it just alerts the user on the phase when possible, but does not provide any detail on the action; users are expected to consult the text.
-- Doesn't handle rules that are highly model specific. Many rules are technically model specific, like most Auras, but are treated as unit specific.
+- Rules that are "trinary" - that is, involve three units. Exampe is Ork's "biker_doks_tools"
+- OR rules, like Defensible Cover 
+- Actions, which is any rule along the lines of "At the end of your X phase, this model can Y". Right now it just alerts the user on the phase when possible, but does not provide any detail on the action; users are expected to consult the text.
+- Rules that are highly model specific
+- Most psychic rules, even stuff like "add one Deny The Witch cast"
+- Finnicky range stuff that dictates where to measure from when firing, like "hover_tank".
+- Stratagems, except for those used before the battle to improve units
+- Abilities that modify aura radii, like Custodes' "void_of_the_emperor".
+- Abilities that have arbitrary stuff happening on an event, like "double dmg dice when roll a wound of 6". See Custodes' slayer_of_the_unclean
+- Rules that involve any sort of calculations / multiplication of two inputs, like "increase attacks by 2 for every wound lost".
+- Rules that set the weapontype of a weapon to some arbitrary value 
+
