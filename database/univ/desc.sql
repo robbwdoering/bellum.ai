@@ -32,7 +32,7 @@ INSERT INTO war_desc_profile (faction, name, meaning) VALUES
 	"radius": 3,
 	"params": {
 		"threshold": 6,
-		"dmg": 1,
+		"dmg": "1M",
 	} 
 }),
 ("univ", "explodes_(6+/9/d6)", {
@@ -41,7 +41,7 @@ INSERT INTO war_desc_profile (faction, name, meaning) VALUES
 	"radius": "9",
 	"params": {
 		"threshold": 6,
-		"dmg": "D6",
+		"dmg": "D6M",
 	} 
 }),
 ("univ", "explodes_(6+/2d6/2d6)", {
@@ -50,7 +50,7 @@ INSERT INTO war_desc_profile (faction, name, meaning) VALUES
 	"radius": "2D6",
 	"params": {
 		"threshold": 6,
-		"dmg": "2D6",
+		"dmg": "2D6M",
 	} 
 }),
 ("univ", "explodes_(6+/3/d3)", {
@@ -59,7 +59,7 @@ INSERT INTO war_desc_profile (faction, name, meaning) VALUES
 	"radius": 3,
 	"params": {
 		"threshold": 6,
-		"dmg": "D3",
+		"dmg": "D3M",
 	} 
 }),
 ("univ", "explodes_(4+/d6/d3)", {
@@ -68,7 +68,7 @@ INSERT INTO war_desc_profile (faction, name, meaning) VALUES
 	"radius": "D6",
 	"params": {
 		"threshold": 4,
-		"dmg": "D3",
+		"dmg": "D3M",
 	} 
 }),
 ("univ", "explodes_(4+/6/d6)", {
@@ -77,7 +77,7 @@ INSERT INTO war_desc_profile (faction, name, meaning) VALUES
 	"radius": 6,
 	"params": {
 		"threshold": 4,
-		"dmg": "D6",
+		"dmg": "D6M",
 	} 
 }),
 ("univ", "explodes_(6/3d6/d6)", {
@@ -86,6 +86,24 @@ INSERT INTO war_desc_profile (faction, name, meaning) VALUES
 	"radius": "3D6",
 	"params": {
 		"threshold": 6,
-		"dmg": "D6",
+		"dmg": "D6M",
+	} 
+}),
+("univ", "explodes_(4+/d6/d3)", {
+	-- If this model is reduced to 0 wounds, roll a D6 before removing it from the battlefield and before any embarked models disembark. On a 4+ it explodes, and each unit within D6 suffers D3 mortal wounds.
+	"type": "EXPLODES",
+	"radius": "D6",
+	"params": {
+		"threshold": 4,
+		"dmg": "D3M",
+	} 
+}),
+("univ", "explodes_(4+/6/d6)", {
+	-- If this model is reduced to 0 wounds, roll a D6 before removing it from the battlefield and before any embarked models disembark. On a 4+ it explodes, and each unit within 6 suffers D6 mortal wounds.
+	"type": "EXPLODES",
+	"radius": 6,
+	"params": {
+		"threshold": 4,
+		"dmg": "D6M",
 	} 
 }),

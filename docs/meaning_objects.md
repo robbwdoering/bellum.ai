@@ -107,6 +107,7 @@ This is the basic layout of a meaning object, where "type" is the only field req
 | ADD_AP             | Add to number to add to every armor save roll made to resist attacks from this unit                 		       | Number                                 | SHOOT, FIGHT |
 | AUTOHIT            | If a hit roll matches one of the given numbers, it always hits regardless of modifiers                          | Array of numbers - null implies all    | SHOOT, FIGHT |
 | EXPLODING_HIT      | If a hit roll matches one of the given numbers, the unit can make an extra attack                               | Array of numbers                       | SHOOT, FIGHT |
+| EXPLODING_WOUND      | If a wound roll matches one of the given numbers, the unit deals mortal damage 							   | { triggers, dmg }| SHOOT, FIGHT |
 | FNP                | Every time this unit suffers a wound, it rolls a D6. If it meets the given threshold, the wound is ignored      | Number                                 | SHOOT, FIGHT |
 | DMG            	 | Adds a number to every instance of damage dealt by this unit 												   | Number                                 | SHOOT, FIGHT |
 | DMG_MAX            | Each attack against this unit can only deal a maximum of this much damage                                       | Number                                 | SHOOT, FIGHT |
@@ -143,6 +144,9 @@ This is the basic layout of a meaning object, where "type" is the only field req
 | MULT_SHOTS | Mutliply the number of shots form this unit by a constant value | | |
 | REROLL_SHOTS | Reroll any or all of the dice when rolling to determine number of shots | | |
 | SHARE_STAT | AURA ONLY: Sets some stats of units within the aura to the value held by the aura holder| | |
+| AIRCRAFT | Unit must pivot up to 90 degrees then move in a straight line| | |
+| SNIPER | Unit may target characters in the shooting phase and ignro the Look Out, Sir rule| | |
+| CP_REFUND | Rule triggers when command points are spent, and usually allows user to sometimes gain / refund CP | | |
 
 
 ## Examples
@@ -273,3 +277,10 @@ And the corresponding object:
 ```
 
 This example showcases the use of multiple conditionals linked together - all of the listed conditionals within each "AND" must be satisfied on each unit within the radius for the rule to take effect for that unit. The rest simply uses everything we've discussed so far together, so I'll remit the detailed explanation. If you're curious to see more examples, I encourage you to look into [the actual .sql files](https://github.com/robbwdoering/bellum.ai/tree/master/database) that have been built so far, and compare the objects against what's printed in your codex. If you find a mistake, please let me know, or if you're feeling generous, you can [open a pull request](https://docs.github.com/en/free-pro-team@latest/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request) to fix it yourself!
+
+
+## Weaknesses
+- Doesn't handle rules that are "trinary" - that is, involve three units. Exampe is Ork's "biker_doks_tools"
+- Doesn't handle OR rules, like Defensible Cover 
+- Doesn't handle actions, which is any rule along the lines of "At the end of your X phase, this model can Y". Right now it just alerts the user on the phase when possible, but does not provide any detail on the action; users are expected to consult the text.
+- Doesn't handle rules that are highly model specific. Many rules are technically model specific, like most Auras, but are treated as unit specific.

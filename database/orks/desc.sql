@@ -30,7 +30,8 @@ INSERT INTO war_desc_profile (faction, name, meaning) VALUES
 			"type": "HAS_FACTION",
 			"params": ["ork"] 
 		},
-		"type": "SET_STAT__SHOOT", 
+		"type": "SET_STAT", 
+ 		"subType": "SHOOT",
 		"params": { "field": "invuln", "val": 5 }
 	}
 }),
@@ -42,7 +43,8 @@ INSERT INTO war_desc_profile (faction, name, meaning) VALUES
 			"type": "HAS_FACTION",
 			"params": ["ork"] 
 		},
-		"type": "SET_STAT__SHOOT", 
+		"type": "SET_STAT", 
+ 		"subType": "SHOOT",
 		"params": { "field": "invuln", "val": 5 }
 	}
 }),
@@ -186,7 +188,8 @@ INSERT INTO war_desc_profile (faction, name, meaning) VALUES
 			"type": "HAS_CATEGORY",
 			"params": ["goff_ork"]
 		},
-		"type": "HIT_REROLL__FIGHT",
+		"type": "HIT_REROLL",
+ 		"subType": "FIGHT",
 		"params": [1]
 	}
 }),
@@ -809,8 +812,7 @@ INSERT INTO war_desc_profile (faction, name, meaning) VALUES
 	]
 }),
 ("orks", "pyromaniacs", {
-	-- Arsonists: You can re-roll any and all of the dice when determining the number of shots made for burnas, skorchas, burna bottles, burna exhausts, killa jets and skorcha missiles equipped on models in a unit with this Subkultur.
-	When resolving an attack made with the melee profile of a burna equipped on a model with this Subkultur, you can re-roll the wound roll. When resolving the burna bombs ability for a unit with this Subkultur, add 1 to each roll.
+	-- Arsonists: You can re-roll any and all of the dice when determining the number of shots made for burnas, skorchas, burna bottles, burna exhausts, killa jets and skorcha missiles equipped on models in a unit with this Subkultur. When resolving an attack made with the melee profile of a burna equipped on a model with this Subkultur, you can re-roll the wound roll. When resolving the burna bombs ability for a unit with this Subkultur, add 1 to each roll.
 	"type": "AND",
 	"warning": "See text for exact weapon name list. Also improves the Burna Bombs ability."
 	"params": [
@@ -1025,7 +1027,7 @@ INSERT INTO war_desc_profile (faction, name, meaning) VALUES
 	"radius": 12,
 	"params": {
 		"cond": {
-			"type": "",
+			"type": "AND",
 			"params": [
 				{
 					"type": "HAS_SUBFACTION",
@@ -1106,7 +1108,8 @@ INSERT INTO war_desc_profile (faction, name, meaning) VALUES
 			"type": "HAS_FACTION",
 			"params": ["ork"] 
 		},
-		"type": "SET_STAT__SHOOT", 
+		"type": "SET_STAT", 
+ 		"subType": "SHOOT",
 		"params": { "field": "invuln", "val": 5 }
 	}
 }),
@@ -1156,15 +1159,12 @@ INSERT INTO war_desc_profile (faction, name, meaning) VALUES
 		"type": "ADVANCE_AND_CHARGE"
 	}
 }),
-("orks", "foul_temper", {
+("orks", "foul_temper", {}),
 	-- While this Warlord has fewer wounds remaining than its Wounds characteristic, add 3 to its Attacks characteristic.
-	"type": "",
-	"params":
-}),
 ("orks", "musik", {
 	-- At the start of each battle round, select one type of musik below for this model to perform until the end of that battle round. * Goffik Rokk: While a friendly GOFF INFANTRY unit is within 6 of this model, add 1 to the Strength characteristic of models in that unit. * Eavy Metal: While a friendly GOFF INFANTRY unit with the No Mukkin About kultur is within 6 of this model, the additional hit as a result of that ability is generated on an unmodified roll of a 5+ instead of a 6.
-	"type": "",
-	"params":
+	"type": "ACTION",
+	"params": 1
 }),
 ("orks", "keepin_order", {
 	-- Roll a D6 for each model that flees from a GOFF unit that is within 3 of any friendly GOFF units with this ability when the Morale test is taken. On a 6, that model does not flee.
@@ -1315,99 +1315,111 @@ INSERT INTO war_desc_profile (faction, name, meaning) VALUES
 	-- BOOMDAKKA SNAZZWAGON unit only. Souped-up Speshul replaces the unit’s mek speshul.
 	"type": "BATTLEFORGED_MOD"
 }),
-("orks", "gyroscopic_whirligig", {
+("orks", "gyroscopic_whirligig", {}),
 	-- SHOKKJUMP DRAGSTA unit only. You can use this unit’s Shokk Tunnel ability when Advancing, even if you did not roll a 4+. In addition, this unit does not suffer any mortal wounds as a result of the Shokk Tunnel ability.
-	"type": "",
-	"params":
-}),
 ("orks", "sizzly_rivets", {
 	-- KUSTOM BOOSTA BLASTA unit only. When resolving an attack made with a rivet kannon by a model in this unit, an unmodified wound roll of 6 inflicts 1 mortal wound on the target in addition to any other damage. 
-	"type": "",
-	"params":
+	"cond": {
+		"type": "USING_WEAPON",
+		"params": ["rivet_kannon"]
+	}
+	"type": "EXPLODING_WOUND",
+	"params": {
+		"triggers": [6],
+		"dmg": "1M"
+	}
 }),
 ("orks", "korkscrew", {
 	-- MEGATRAKK SCRAPJET unit only. The first time this unit finishes a consolidation move in each Fight phase, it can immediately fight again.
-	"type": "",
-	"params":
+	"type": "ACTION",
+	"params": 5
 }),
 ("orks", "nitro_powered_squigs", {
 	-- RUKKATRUKK SQUIGBUGGY unit only. When resolving an attack made by this unit’s squig launcha or heavy squig launcha, add 1 to the wound roll.
-	"type": "",
-	"params":
+	"cond": {
+		"type": "USING_WEAPON",
+		"params": ["squig_launcha", "heavy_squig_launcha"]
+	},
+	"type": "WOUND",
+	"params": 1
 }),
-("orks", "gorks_roar", {
+("orks", "gorks_roar", {}),
 	-- DEFFKILLA WARTRIKE model only. Add 4 to the Range characteristic of this model’s killa jet and change the Type characteristic of its burna profile to Assault 6.
-	"type": "",
-	"params":
-}),
 ("orks", "da_boomer", {
 	-- BATTLEWAGON , BONEBREAKA or GUNWAGON model with killkannon only. Da Boomer replaces a killkannon and has the following profile:
-	"type": "",
-	"params":
+	"type": "BATTLEFORGED_MOD"
 }),
 ("orks", "zagzap", {
 	-- BATTLEWAGON , BONEBREAKA or GUNWAGON model with zzap gun only. Zagzap replaces a zzap gun and has the following profile:
-	"type": "",
-	"params":
+	"type": "BATTLEFORGED_MOD"
 }),
 ("orks", "forktress", {
 	-- BATTLEWAGON , BONEBREAKA or GUNWAGON model only. The model has a Save characteristic of 3+ and a 5+ invulnerable save.
-	"type": "",
-	"params":
+	"type": "AND",
+	"params": [
+	 	{
+	 		"type": "SET_STAT",
+	 		"params": { "field": "save", "val": 3 }
+	 	},	
+	 	{
+	 		"type": "SET_STAT",
+	 		"params": { "field": "invuln", "val": 5 }
+	 	},	
+	]
 }),
 ("orks", "pincha", {
 	-- Model with grabbin’ klaw only. Pincha replaces the model’s grabbin’ klaw and has the following profile:
-	"type": "",
-	"params":
+	"type": "BATTLEFORGED_MOD"
 }),
 ("orks", "red_rolla", {
 	-- BONEBREAKA model only. Replace the model’s Bonebreaka Ram ability with the following: ‘Red Rolla: When this model makes a charge move, add 6 to its Attacks characteristic until the end of the turn.
-	"type": "",
-	"params":
+	"type": "ACTION",
+	"params": 5
 }),
 ("orks", "orkymatic_pistons", {
 	-- KILLA KANS, DEFF DREADS, MORKANAUT or GORKANAUT unit only. Add 3 to the unit’s Move characteristic. You can re-roll Advance rolls made for the unit.
-	"type": "",
-	"params":
+	"type": "AND",
+	"params": [
+	 	{
+	 		"type": "SET_STAT",
+	 		"params": { "field": "move", "val": 3 }
+	 	},	
+	 	{ "type": "ADVANCE_REROLL" }
+	]
 }),
 ("orks", "sparkly_bitz", {
 	-- KILLA KANS, DEFF DREADS, MORKANAUT or GORKANAUT unit only. Improve the unit’s Ballistic Skill characteristic by 1 (e.g. a Ballistic Skill characteristic of 5+ becomes 4+).
-	"type": "",
-	"params":
+	"type": "ADD_STAT",
+	"params": { "field": "ballistics", "val": -1 }
 }),
 ("orks", "dirty_gubbinz", {
 	-- KILLA KANS or DEFF DREADS unit only. When resolving an attack made with a ranged weapon against this unit, subtract 1 from the hit roll.
-	"type": "",
-	"params":
+	"type": "BE_HIT",
+	"subType": "SHOOT",
+	"params": -1
 }),
 ("orks", "slug_gubbin", {
 	-- GORKANAUT model only. Slug gubbin replaces the model’s deffstorm mega-shoota and has the following profile:
-	"type": "",
-	"params":
+	"type": "BATTLEFORGED_MOD"
 }),
-("orks", "gog_klaw", {
+("orks", "gog_klaw", {}),
 	-- GORKANAUT or MORKANAUT model only. When rolling to determine the Damage characteristic of the crush profile of the bearer’s klaw of gork (or possibly mork), rolls of less than 4 count as 4.
-	"type": "",
-	"params":
-}),
-("orks", "blitza_gatler", {
+("orks", "blitza_gatler", {}),
 	-- STOMPA only. The model’s supa-gatler has a Damage characteristic of 2. In addition, when rolling for the weapon’s Psycho-dakka-blasta ability, you can re-roll the D6 once per phase.
-	"type": "",
-	"params":
-}),
 ("orks", "ere_we_go!", {
 	-- You can re-roll charge rolls for this unit.  When doing so, you can re-roll all or any of the dice.
 	"type": "CHARGE_REROLL"
 }),
-("orks", "mob_rule", {
+("orks", "mob_rule", {}),
 	-- When using the Leadership characteristic of this unit, you can use either its own Leadership characteristic, or you can choose for the characteristic to be equal to either the number of models in the unit, or the number of models in another friendly unit within 6 that has this ability.
-	"type": "",
-	"params":
-}),
 ("orks", "crash_and_burn", {
 	-- If this model is reduced to 0 wounds, roll a D6 before removing it from the battlefield.  On a 6 it crashes and explodes, and each unit within 6 suffers D3 mortal wounds.
-	"type": "",
-	"params":
+	"type": "EXPLODES",
+	"radius": 6,
+	"params": {
+		"threshold": 6,
+		"dmg": "D3M",
+	} 
 }),
 ("orks", "dakka_dakka_dakka", {
 	-- Each time you roll an unmodified hit roll of 6 for an attack with a ranged weapon by a model in this unit, that hit roll succeeds regardless of modifiers.
@@ -1427,112 +1439,135 @@ INSERT INTO war_desc_profile (faction, name, meaning) VALUES
 }),
 ("orks", "speed_mob", {
 	-- The first time this unit sets up on the battlefield, all of its models must be placed within 6 of at least one other  model from the unit.  From that point onwards each model operates independently and is treated as a separate unit for all rules purposes.
-	"type": "",
-	"params":
+	"type": "SPLIT_UP"
 }),
 ("orks", "grots", {
 	-- Units comprised entirely of GRETCHIN cannot benefit from any Clan Kultur.  In addition, Ork Stratagems can only be used on these units if the Stratagem explicitly states so (e.g. the Grot Shields Stratagem)
-	"type": "",
-	"params":
+	"type": "BATTLEFORGED_MOD"
 }),
 ("orks", "gunz_for_hire", {
 	-- FLASHGITZ units (including Kaptin Badrukk) can be included in an ORK detachment without preventing other units in that Detachment from gaining a Clan Kulture.  Note, howerever, that the FLASHGITZ units do not themselves benefit from any Clan Kultur unless the Clan Kultur selected for the Detachment is the FREEBOOTERZ Clan Kultur.
-	"type": "",
-	"params":
+	"type": "BATTLEFORGED_MOD"
 }),
-("orks", "biker_doks_tools", {
+("orks", "biker_doks_tools", {}),
 	-- When a <CLAN> INFANTRY or <CLAN> BIKER model would lose a wound within 3 of any friendly <CLAN> PAINBOYS, roll one D6; on a 6, that wound is not lost.
-	"type": "",
-	"params":
-}),
 ("orks", "open_topped", {
 	-- Models embarked on this model can attack in their Shooting phase. Measure the range and draw line of sight from any point on this model.  When they do so, any restrictions or modifiers that apply to this model also apply to its passengers. For example, the passengers cannot shoot if this model has Fallen Back in the same turn. While this transport is within Engagement Range of any enemy units, embarked units cannot shoot, except with any Pistols they are equipped with.
 	"type": "OPEN_TOPPED"
 }),
 ("orks", "supersonic", {
 	-- Each time this model moves, first pivot it on the spot up to 90 degrees (this does not contribute to how far the model moves), and then move the model straight forwards, Note that it cannot pivot again after the initial pivot.  when the model Advances, increase its Move characteristic by 20 until the end of the phase - do not roll a dice.
-	"type": "",
-	"params":
+	"type": "AIRCRAFT"
 }),
-("orks", "artillery", {
+("orks", "artillery", {}),
 	-- An Artillery model can only fire its ranged weapon if a friendly Grot Gunner unit is within 3.  A single Grot Gunner cannot operate multiple artillery models in a single turn.  If all of the Grot Gunners within 6 of a Big Gun are slain, it immediately shuts down and is removed from play.
-	"type": "",
-	"params":
-}),
 ("orks", "mekaniak", {
 	-- At the end of your Movement phase, this model can repair a single friendly <CLAN> VEHICLE within 1.  That model regains 1 wound lost earlier in the battle.  A vehicle can only be repaired once each turn.
-	"type": "",
-	"params":
+	"type": "ACTION",
+	"params": 2
 }),
 ("orks", "big_mekaniak", {
 	-- At the end of your Movement phase, this model can repair a single friendly (CLAN) Vehicle  model within 3. That model regains D3 lost wounds. A model can only be repaired once per turn.
-	"type": "",
-	"params":
+	"type": "ACTION",
+	"params": 2
 }),
 ("orks", "big_bike_mekaniak", {
 	-- At the end of your Movement phase, if it didnt move more than 6, this model can repair a single friendly (Clan); VEHICLE (other than models that can FLY) within 1.  That model regains D3 wounds lost earlier in the battle.  A vehicle can only be repaired once each turn.
-	"type": "",
-	"params":
+	"type": "ACTION",
+	"params": 2
 }),
 ("orks", "waaagh!_(biker)", {
 	-- Friendly Ork Infantry and Biker units within 6 of this model at the start of the Charge phase can charge even if they Advanced this turn.
-	"type": "",
-	"params":
+	"type": "AURA",
+	"radius": 6,
+	"params": {
+		"cond": {
+			"type": "HAS_CATEGORY",
+			"params": ["infantry", "biker"]
+		},
+		"type": "ADVANCE_AND_CHARGE"
+	}
 }),
 ("orks", "throat_slittas", {
 	-- Add 1 to wound rolls for attacks made with this units melee weapons when targeting enemy units wholly within or on a terrain feature.
-	"type": "WOUND__FIGHT",
 	"cond": {
 		"type": "IN_COVER",
 		"target": "ENEMY"
 	},
+	"type": "WOUND",
+	"subType": "FIGHT",
 	"warning": "Applies to units in any terrain feature, not just those that give cover.",
 	"params": 1
 }),
-("orks", "explodes_(4+/d6/d3)", {
-	-- If this model is reduced to 0 wounds, roll a D6 before removing it from the battlefield and before any embarked models disembark. On a 4+ it explodes, and each unit within D6 suffers D3 mortal wounds.
-	"type": "",
-	"params":
-}),
-("orks", "explodes_(4+/6/d6)", {
-	-- If this model is reduced to 0 wounds, roll a D6 before removing it from the battlefield and before any embarked models disembark. On a 4+ it explodes, and each unit within 6 suffers D6 mortal wounds.
-	"type": "",
-	"params":
-}),
 ("orks", "speed_freek", {
 	-- Your warlord and any Evil Sunz unit within 6 of him can charge even if they fell back this turn.
-	"type": "",
-	"params":
+	"type": "AURA",
+	"radius": 6,
+	"params": {
+ 		"cond": {"type": "SHARE_SUBFACTION"}
+		"type": "ADVANCE_AND_CHARGE"
+	}
 }),
 ("orks", "proper_killy", {
 	-- Add 1 to your Warlord’s Attacks characteristic. In addition, improve the Armour Penetration characteristic of melee weapons this Warlord is equipped with by 1 during any turn in which they made a charge move, were charged, or performed a Heroic Intervention (e.g. AP -1 becomes AP -2).’
-	"type": "",
-	"params":
+	"type": "AND",
+	"params": [
+	 	{
+	 		"type": "ADD_STAT",
+	 		"params": { "field": "attacks", "val": -1 }
+	 	},	
+	 	{
+	 		"cond": {
+	 			"type": "HAS_STATUS",
+	 			"params": ["CHARGED", "WAS_CHARGED", "INTERVENED"]
+	 		}
+	 		"type": "AP",
+	 		"params": -1 
+	 	},	
+	]
 }),
 ("orks", "opportunist", {
 	-- Each time you select a target for a weapon this Warlord is making an attack with, you can ignore the Look Out, Sir rule, if the target is within 18.
-	"type": "",
-	"params":
+	"type": "SNIPER",
+	"warning": "Only applies if target is within 18."
 }),
 ("orks", "killa_reputation", {
 	-- Re-roll 1s to hit in the fight phase for friendly Freebootas while they are within 6 of your warlord.
-	"type": "",
-	"params":
-}),
+	"type": "AURA",
+	"radius": 6,
+	"params": {
+		"cond": {"type": "SHARE_SUBFACTION"},
+		"type": "HIT_REROLL", 
+ 		"subType": "FIGHT",
+		"params": [1]
+	}
 ("orks", "ive_got_a_plan,_ladz!", {
 	-- If you use a Stratagem roll 1 die for each command point. If you roll a 6 the command point is immediately refunded.
-	"type": "",
-	"params":
+	"type": "CP_REFUND"
 }),
 ("orks", "big_red_button", {
 	-- Once per battle, at the start of the Shooting phase, the driver of the Looted Vehicle can hit the inviting and mysterious red button mounted on his dashboard. When he does, roll a D3 on the table below to see what happens.
-	"type": "",
-	"params":
+	"type": "ACTION",
+	"subType": "BATTLE",
+	"params": 4
 }),
 ("orks", "speedwaaagh!", {
 	-- Friendly <CLAN> BIKER and VEHICLE units within 6 of this model at the start of the Charge phase can charge even if they Advanced this turn.
-	"type": "",
-	"params":
+	"type": "AURA",
+	"radius": 6,
+	"params": {
+		"cond": {
+			"type": "AND",
+			"params": [
+			 	{"type": "SHARE_SUBFACTION"},
+			 	{
+			 		"type": "HAS_CATEGORY",
+			 		"params": ["biker", "vehicle"]
+			 	},	
+			]
+		},
+		"type": "ADVANCE_AND_CHARGE"
+	}
 }),
 ("orks", "ramshackle", {
 	-- Roll a D6 each time this model suffers damage from an attack that has a Damage characteristic of more than 1.  On a roll of 6, reduce the damage caused by the Attack to 1.
@@ -1541,11 +1576,10 @@ INSERT INTO war_desc_profile (faction, name, meaning) VALUES
 }),
 ("orks", "small_bomms", {
 	-- Twice per battle, in your Movement phase, after this model makes a Normal Move or Advances, you can select one enemy unit this model moved across as part of that move. If you do, roll one D6 for each model in that unit (to a maximum of 10 dice): for each 5+, that unit suffers 1 mortal wound.
-	"type": "",
-	"params":
+	"type": "ACTION",
+	"params": 2
 }),
 ("orks", "scoutin_ahead", {
 	-- During deployment, you can set up a unit of Deffkoptas behind enemy lines instead of placing it on the battlefield.  At the end of any of your Movement phases, the Deffkoptas can swoop around to ambush the foe - set them up anywhere on the battlefield that is more than 9 away from any enemy models and within 14 of a battlefield edge.
-	"type": "",
-	"params":
+	"type": "DEEPSTRIKE"
 }),
