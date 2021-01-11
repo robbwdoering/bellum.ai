@@ -30,8 +30,8 @@ const fireSalvo = (model, wepProfile, ctx, profile, target) => {
 	// ---------------------------------------------------
 
 	// 1.1 Calculate probabilty of hitting the target
-	tmpVal = applyAddMods(modelStat.ballistics, model, ["HIT", `HIT_${mode}`], wepProfile);
-	tmpVal = applyAddMods(tmpVal, target, ["BE_HIT"], wepProfile);
+	tmpVal = applyPrMods(modelStat.ballistics, model, [""], wepProfile);
+	tmpVal = applyPrMods(tmpVal, target, ["BE_HIT"], wepProfile);
 	hitPr = tmpVal < 7 ? (7 - tmpVal) / 6.0 : 0; // Translate "n-up" value into probability
 
 	// Modify probabilty in response to reroll rules
@@ -39,17 +39,17 @@ const fireSalvo = (model, wepProfile, ctx, profile, target) => {
 	// hitPr = applyRerollMods(hitPr, target, ["BE_HIT__REROLL", `BE_HIT_${mode}__REROLL`], wepProfile); // TODO: Is this a rule that exists?
 
 	// 1.2 Calculate probability of wounding the target
-	let tmpToughness = applyAddMods(targetStat.toughness, target, ["TOUGHNESS", `TOUGHNESS_${mode}`], wepProfile);
-	tmpVal = applyAddMods(calcToWound(strStat, tmpToughness), model, ["WOUND", `WOUND_${mode}`, "REPLACE_WOUND", `REPLACE_WOUND_${mode}`], wepProfile);
+	let tmpToughness = applyPrMods(targetStat.toughness, target, ["TOUGHNESS", `TOUGHNESS_${mode}`], wepProfile);
+	tmpVal = applyPrMods(calcToWound(strStat, tmpToughness), model, ["WOUND", `WOUND_${mode}`, "REPLACE_WOUND", `REPLACE_WOUND_${mode}`], wepProfile);
 	woundPr = tmpVal < 7 ? (7 - tmpVal) / 6.0 : 0; // Translate "n-up" value into probability
 
 	// 1.3 Calculate probability of the target saving 
-	tmpVal = applyAddMods(targetStat.save, target, ["SAVE", "REPLACE_SAVE", `SAVE_${mode}`, `REPLACE_SAVE_${mode}`], wepProfile);
-	let invuln = applyAddMods(targetStat.invuln || 7, target, ["INVULN", "REPLACE_INVULN", `REPLACE_INVULN_${mode}`], wepProfile);
+	tmpVal = applyPrMods(targetStat.save, target, ["SAVE", "REPLACE_SAVE", `SAVE_${mode}`, `REPLACE_SAVE_${mode}`], wepProfile);
+	let invuln = applyPrMods(targetStat.invuln || 7, target, ["INVULN", "REPLACE_INVULN", `REPLACE_INVULN_${mode}`], wepProfile);
 
 	// Calculate AP (affects save)
-	let AP = applyAddMods(wepProfile.ap || 0, model, ["AP", `AP_${mode}`, "REPLACE_AP", `REPLACE_AP_${mode}`], wepProfile);
-	AP = applyAddMods(AP, target, ["AP_TARGET", "REPLACE_AP_TARGET"], wepProfile);
+	let AP = applyPrMods(wepProfile.ap || 0, model, ["AP", `AP_${mode}`, "REPLACE_AP", `REPLACE_AP_${mode}`], wepProfile);
+	AP = applyPrMods(AP, target, ["AP_TARGET", "REPLACE_AP_TARGET"], wepProfile);
 
 	// Choose the higher of normal save with Armor Piercing applied, or invulnerable save
 	if (tmpVal - AP > invuln) {
@@ -137,36 +137,63 @@ const applyPdMods = (origVal, unit, modTypes, optional) => {
 	return origVal + ret;
 }
 
-const applyAddMods = (origVal, unit, modTypes, optional) => {
-	let ret = 0, doBreak = false;
+/**
+ * Applies rules that modify the "probability" of an attack, AKA chance of success.
+ */
+const applyThresholdMods = (origVal, stepIdx, unit, effects) => {
+	if (!effects || effects.length === 0) {
+		return origVal;
+	}
 
-	// Loop through every modification type, adding it's value if it's present
-	modTypes
-		.map(type => unit.mods && unit.mods.find(mod => mod.type === type))
-		.filter(mod => mod && (!mod.cond || mod.cond.isSatisfied(optional)))
-		.forEach(mod => {
-			if (doBreak) return;
-			switch(mod.type) {
-				case "SET_HIT":
-				case "SET_WOUND":
-				case "SET_SAVE":
-				case "SET_INVULN":
-				case "SET_AP":
-					// TODO: add support for multiple replaces overriding eachother. Don't just take the first one, take the best one (?)
-					ret = mod.params.value - origVal; // subtract origVal to cancel out addition in return statement
-					doBreak = true;
+	let ret = origVal;
+	effects.some(effect => {
+		// If this effect is used in this stage
+		if (effect.type in phasePrEffects[stepIdx]) {
+			switch (effect) {
+				case "HIT":
+				case "BE_HIT":
+				case "WOUND":
+				case "BE_WOUNDED":
+					// These rules are worded like "add a number to every hit roll", but the value here is the threshold
+					// So we're just subtracting this paramater value instead of adding it
+					ret -= effect.params;
 					break;
 
-				default:
-					ret += mod.params.value;
+				case "SET_WOUND":
+				case "SET_SAVE":
+				case "SET_AP":
+					ret = effect.params;
+					return true;
+
+				case "AUTOHIT":
+					ret = 1;
+					return true;
+
+				case "ADD_SAVE":
+				case "ADD_AP":
+					ret += effect.params;
+					break;
+
+				case "FNP":
 			}
-		});
+		}
+	});
 
 	return origVal + ret;
 };
 
 const applyRerollMods = (origVal, unit, modTypes, optional) => {
 	let ret, tmpVal, tmpArr;
+
+	effects.some(effect => {
+		switch (effect) {
+			case "HIT_REROLL":
+			case "BE_HIT_REROLL":
+			case "WOUND_REROLL":
+			case "BE_WOUNDED_REROLL":
+			case "SAVE_REROLL":
+		}
+	})
 
 	// Loop through every modification type, adding it's value if it's present
 	tmpArr = modTypes

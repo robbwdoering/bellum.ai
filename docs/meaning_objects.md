@@ -100,11 +100,9 @@ There are three types of rules:
 | IF_ELSE              | Evaluates the conditional, returning the first effect if true and the second if false                              | Array of meaning objects (len 2)    |                          |
 | AURA                 | Applies the sub-rule to this unit and all others within the radius                                                 | Meaning object                      |                          |
 
-### Basic Combat 
+### Combat - Chance of success 
 | Type                 | Description                                                                                                        | Parameter Format                    | Subtypes                 |
 |----------------------|--------------------------------------------------------------------------------------------------------------------|-------------------------------------|--------------------------|
-| SET_STAT             | Sets a statistic (AKA characteristic field) for a unit                                                             | {field, val}                        | SHOOT, FIGHT, OVERWATCH  |
-| ADD_STAT             | Adds a number to a unit's statistic (AKA characteristic field).                                                    | {field, val}                        | SHOOT, FIGHT, OVERWATCH  |
 | HIT                  | Adds a number to every hit roll this unit makes                                                                    | Number                              | SHOOT, FIGHT             |
 | BE_HIT               | Adds a number to every roll made to hit this unit                                                                  | Number                              | SHOOT, FIGHT             |
 | HIT_REROLL           | Every time the unit makes a roll to hit, it can reroll the listed values                                           | Array of numbers                    | SHOOT, FIGHT             |
@@ -120,9 +118,11 @@ There are three types of rules:
 | SET_AP               | Set number to every armor save roll made to resist attacks from this unit                                          | Number                              | SHOOT, FIGHT             |
 | ADD_AP               | Add to number to add to every armor save roll made to resist attacks from this unit                                | Number                              | SHOOT, FIGHT             |
 | AUTOHIT              | If a hit roll matches one of the given numbers, it always hits regardless of modifiers                             | Array of numbers - null implies all | SHOOT, FIGHT             |
-| EXPLODING_HIT        | If a hit roll matches one of the given numbers, either inflict mortal wounds or cause another shot to be taken     | { triggers, dmg OR shots }          | INSTEAD                  |
-| EXPLODING_WOUND      | If a wound roll matches one of the given numbers, the unit deals mortal damage                                     | { triggers, dmg OR shots }          | INSTEAD                  |
 | FNP                  | Every time this unit suffers a wound, it rolls a D6. If it meets the given threshold, the wound is ignored         | Number                              | SHOOT, FIGHT             |
+
+### Combat - Amplitude of Success
+| Type                 | Description                                                                                                        | Parameter Format                    | Subtypes                 |
+|----------------------|--------------------------------------------------------------------------------------------------------------------|-------------------------------------|--------------------------|
 | DMG                  | Adds a number to every instance of damage dealt by this unit                                                       | Number                              | SHOOT, FIGHT             |
 | TAKE_DMG             | Adds a number to every instance of damage dealt to this unit                                                       | Number                              | SHOOT, FIGHT             |
 | SET_DMG              | Sets the damage characteristic of any attack made by this unit                                                     | Damage string                       | SHOOT, FIGHT             |
@@ -133,22 +133,31 @@ There are three types of rules:
 | DMG_TAKEN_MULT       | Multiply any damage received by this (int or float) number                                                         | Number                              | SHOOT, FIGHT             |
 | MAX_DMG_PER_ROUND    | This unit can only take up to this many wounds per round                                                           | Number                              |                          |
 | SELF_HIT_DMG         | If any of the dice rolled to hit are in the trigger list, then the bearer suffers damage after resolving attacks   | { triggers, dmg }                   |                          |
-| PASS_MORALE          | Automatically pass all morale tests                                                                                |                                     |                          |
+| SET_SHOTS_PER_SALVO  | [WEAPON ONLY] - each attack with this weapon uses the given number of shots                                        | Shots string                        |                          |
+| MULT_SHOTS           | Mutliply the number of shots form this unit by a constant value                                                    |                                     |                          |
+| REROLL_SHOTS         | Reroll any or all of the dice when rolling to determine number of shots                                            |                                     |                          |
+
+### Combat - General 
+| Type                 | Description                                                                                                        | Parameter Format                    | Subtypes                 |
+|----------------------|--------------------------------------------------------------------------------------------------------------------|-------------------------------------|--------------------------|
+| SET_STAT             | Sets a statistic (AKA characteristic field) for a unit                                                             | {field, val}                        | SHOOT, FIGHT, OVERWATCH  |
+| ADD_STAT             | Adds a number to a unit's statistic (AKA characteristic field).                                                    | {field, val}                        | SHOOT, FIGHT, OVERWATCH  |
+| SHARE_STAT           | AURA ONLY: Sets some stats of units within the aura to the value held by the aura holder                           |                                     |                          |
 | MORALE               | Adds a number to every morale roll this unit makes                                                                 | Number                              |                          |
 | MORALE_REROLL        | This unit can re-roll failed Morale tests                                                                          |                                     |                          |
 | MORALE_FNP           | Every time a model from this unit flees, it rolls a D6. If it meets the given threshold, it stays                  | Number                              |                          |
 | MORALE_EXECUTION     | Every time this unit fails a morale test, it can choose to suffer the listed damage instead of fleeing             | String that describes damage        |                          |
+| PASS_MORALE          | Automatically pass all morale tests                                                                                |                                     |                          |
 | LAST_STAND           | When a model in this unit dies, it has a chance to fire before doing so                                            |                                     |                          |
 | BLAST                | Special weapon ability stronger against units with more models - see text                                          |                                     |                          |
-| MAX_ATTACKS          | This unit can only make this many attacks per phase (used for shooting and fighting)                               |                                     |                          |
-| SET_SHOTS_PER_SALVO  | [WEAPON ONLY] - each attack with this weapon uses the given number of shots                                        | Shots string                        |                          |
+| MAX_ATTACKS          | This unit can only make this many attacks per phase  								                                |                                     |                          |
+| MAX_USES             | This weapon can only be used a set number of times - default is once per battle                                    |                                     | ROUND                    |
 | IGNORE_COVER         | Attacks from this unit ignore cover                                                                                |                                     |                          |
 | IGNORE_LOS           | Attacks from this unit ignore line of sight (i.e. can choose targets that are not visible to the attacker)         |                                     |                          |
 | SNIPER               | Unit may target characters in the shooting phase and ignro the Look Out, Sir rule                                  |                                     |                          |
 | CAN_GRENADE_PISTOL   | This unit can fire grenades and pistols while firing other weapons                                                 |                                     |                          |
-| MULT_SHOTS           | Mutliply the number of shots form this unit by a constant value                                                    |                                     |                          |
-| REROLL_SHOTS         | Reroll any or all of the dice when rolling to determine number of shots                                            |                                     |                          |
-| SHARE_STAT           | AURA ONLY: Sets some stats of units within the aura to the value held by the aura holder                           |                                     |                          |
+| EXPLODING_HIT        | If a hit roll matches one of the given numbers, either inflict mortal wounds or cause another shot to be taken     | { triggers, dmg OR shots }          | INSTEAD                  |
+| EXPLODING_WOUND      | If a wound roll matches one of the given numbers, the unit deals mortal damage                                     | { triggers, dmg OR shots }          | INSTEAD                  |
 
 ### Movement
 | Type                 | Description                                                                                                        | Parameter Format                    | Subtypes                 |
@@ -170,6 +179,8 @@ There are three types of rules:
 | AIRCRAFT             | Unit must pivot up to 90 degrees then move in a straight line                                                      |                                     |                          |
 
 ### Psychic
+| Type                 | Description                                                                                                        | Parameter Format                    | Subtypes                 |
+|----------------------|--------------------------------------------------------------------------------------------------------------------|-------------------------------------|--------------------------|
 | ADD_PSYKER_CASTS     | Add this number to the number of psychic abilities this unit can use per round                                     | Number                              |                          |
 | CANNOT_BE_PSYCHIC    | This unit cannot be targeted by psychic powers                                                                     |                                     |                          |
 | ADD_PSYCHIC          | Add a number to every psychic roll this unit makes                                                                 | Number                              |                          |
@@ -181,7 +192,6 @@ There are three types of rules:
 | ACTION               | Represents some sort of action the unit can take. Not really covered yet in app, just vague timing warnings.       |                                     | BATTLE, SETUP            |
 | CP_REFUND            | Rule triggers when command points are spent, and usually allows user to sometimes gain / refund CP                 |                                     |                          |
 | ADD_AURA_RADIUS      | All other auras made by this unit have a range increased by this many inches                                       | Number                              |                          |
-| MAX_USES             | This weapon can only be used a set number of times - default is once per battle                                    |                                     | ROUND                    |
 | OBJECTIVE_SECURED    | This unit takes precedence over units without this rule when determining objective holders                         |                                     |                          |
 | TRANSPORT            | This unit can transport the given number of models. Usually some specific restrictions apply                       | Number                              |                          |
 | OPEN_TOPPED          | Units embarked in this transport can still fire (restricitons apply)                                               |                                     |                          |
