@@ -65,25 +65,25 @@ This is the basic layout of a meaning object, where "type" is the only field req
 ```
 
 ## Conditional Types
-| Type               | Description                                                                                                   | Parameter Format            | Subtypes            |
-|--------------------|---------------------------------------------------------------------------------------------------------------|-----------------------------|---------------------|
-| AND                | Evaluates each sub-conditional, returning true if they all do                                                 | Array of cond. objects      |                     |
-| OR                 | Evaluates each sub-conditional, returning true if one does                                                    | Array of cond. objects      |                     |
-| XOR                | Evaluates each sub-conditional, returning true if ONLY one does                                               | Array of cond. objects      |                     |
-| NOT                | Evaluates the sub-conditional, returning true if it returns false                                             | Cond. object                |                     |
-| IN_RADIUS | Default evaluates the sub-conditional for every unit within range, and subtypes allow access to non-unit targets. 		 | Subconditional | OBJECTIVE |
-| SHARE_SUBFACTION   | If the two units share a subfaction, like Ork <CLAN> or Marine <CHAPTER>                                      | N/A                         |                     |
-| HAS_CATEGORY       | If the unit has one of the listed categories                                                                  | Array of category names     |                     |
-| HAS_FACTION        | If the unit is part of one of the listed factions                                                             | Array of faction names      |                     |
-| HAS_STATUS         | If the unit currently has one of the listed STATUS flags from earlier in the turn, like CHARGED or FELL_BACK. | Array of status IDs         |                     |
-| HAS_STAT           | If this characteristic field is more than the given threshold value                                           | {field, val}                |                     |
-| HAS_EQUIPMENT      | If this model is equipped with at least one entry in the listed equipment. 					| Array of equipment names                |                     |
-| IN_DETACHMENT_TYPE | If the unit was deployed in a detachment of one of the listed types                                           | Array of detachment types   |                     |
-| HAS_MODEL_QUANTITY | If the unit currently has at least this many models left alive                                                | number of models            |                     |
-| IN_COVER           | If the unit is currently within this type of cover. If you don't specify a subtype, it matches all types      | | |
-| IN_HALF_RANGE           | If the unit is currently attacking a unit that is closer than half the range of the weapon being used    | N/A                         | HEAVY, LIGHT, DENSE |
-| IS_PHASE           | If the current phase MATCHES the parameter, where Command is 1 and Morale is 7                                | Number representing a phase |                     |
-| IS_ROUND           | If the current round is AT LEAST the parameter, where rounds run from 1 to 5                                  | Number representing a round |                     |
+| Type               | Description                                                                                                       | Parameter Format            | Subtypes            |
+|--------------------|-------------------------------------------------------------------------------------------------------------------|-----------------------------|---------------------|
+| AND                | Evaluates each sub-conditional, returning true if they all do                                                     | Array of cond. objects      |                     |
+| OR                 | Evaluates each sub-conditional, returning true if one does                                                        | Array of cond. objects      |                     |
+| XOR                | Evaluates each sub-conditional, returning true if ONLY one does                                                   | Array of cond. objects      |                     |
+| NOT                | Evaluates the sub-conditional, returning true if it returns false                                                 | Cond. object                |                     |
+| IN_RADIUS          | Default evaluates the sub-conditional for every unit within range, and subtypes allow access to non-unit targets. | Subconditional              | OBJECTIVE           |
+| SHARE_SUBFACTION   | If the two units share a subfaction, like Ork <CLAN> or Marine <CHAPTER>                                          | N/A                         |                     |
+| HAS_CATEGORY       | If the unit has one of the listed categories                                                                      | Array of category names     | AND                 |
+| HAS_FACTION        | If the unit is part of one of the listed factions                                                                 | Array of faction names      |                     |
+| HAS_STATUS         | If the unit currently has one of the listed STATUS flags from earlier in the turn, like CHARGED or FELL_BACK.     | Array of status IDs         |                     |
+| HAS_STAT           | If this characteristic field is more than the given threshold value                                               | {field, val}                |                     |
+| HAS_EQUIPMENT      | If this model is equipped with at least one entry in the listed equipment.                                        | Array of equipment names    |                     |
+| IN_DETACHMENT_TYPE | If the unit was deployed in a detachment of one of the listed types                                               | Array of detachment types   |                     |
+| HAS_MODEL_QUANTITY | If the unit currently has at least this many models left alive                                                    | number of models            |                     |
+| IN_COVER           | If the unit is currently within this type of cover. If you don't specify a subtype, it matches all types          |                             |                     |
+| IN_HALF_RANGE      | If the unit is currently attacking a unit that is closer than half the range of the weapon being used             | N/A                         | HEAVY, LIGHT, DENSE |
+| IS_PHASE           | If the current phase MATCHES the parameter, where Command is 1 and Morale is 7                                    | Number representing a phase |                     |
+| IS_ROUND           | If the current round is AT LEAST the parameter, where rounds run from 1 to 5                                      | Number representing a round |                     |
 
 
 ## Effect Types
@@ -92,78 +92,102 @@ There are three types of rules:
 2. Rules that are dependent on attacker and defender stats, like most weapon abilties.
 3. Rules that are only dependent on the attacker's starting profile, like most unit abilites.
 
-| Type               | Description                                                                                                     | Parameter Format                       | Subtypes     |
-|--------------------|-----------------------------------------------------------------------------------------------------------------|----------------------------------------|--------------|
-| AND                | A wrapper rule that applies each sub-rule                                                                       | Array of meaning objects               |              |
-| OR                 | A wrapper rule that allows the player to choose one effect. Not yet fully supported                             | Array of meaning objects               |              |
-| AURA               | Applies the sub-rule to this unit and all others within the radius                                              | Meaning object                         |              |
-| SET_STAT           | Sets a statistic (AKA characteristic field) for a unit                                                          | {field, val}                           | SHOOT, FIGHT, OVERWATCH |
-| ADD_STAT           | Adds a number to a unit's statistic (AKA characteristic field).                                                 | {field, val}                           | SHOOT, FIGHT, OVERWATCH |
-| HIT                | Adds a number to every hit roll this unit makes                                                                 | Number                                 | SHOOT, FIGHT |
-| BE_HIT             | Adds a number to every roll made to hit this unit                                                               | Number                                 | SHOOT, FIGHT |
-| HIT_REROLL         | Every time the unit makes a roll to hit, it can reroll the listed values                                        | Array of numbers                       | SHOOT, FIGHT |
-| BE_HIT_REROLL      | Every time an enemy makes a roll to hit this unit, it can reroll the listed values                              | Array of numbers                       | SHOOT, FIGHT |
-| WOUND              | Adds a number to every wound roll this unit makes                                                               | Number                                 | SHOOT, FIGHT |
-| BE_WOUNDED         | Adds a number to every roll made to wound this unit                                                             | Number                                 | SHOOT, FIGHT |
-| WOUND_REROLL       | Every time the unit makes a roll to wound, it can reroll the listed values                                      | Array of numbers                       | SHOOT, FIGHT |
-| BE_WOUNDED_REROLL  | Every time an enemy makes a roll to wound this unit, it can reroll the listed values                            | Array of numbers                       | SHOOT, FIGHT |
-| SET_SAVE           | Sets every save roll this unit makes                                                                			   | Number                                 | SHOOT, FIGHT |
-| ADD_SAVE           | Adds a number to every save roll this unit makes                                                                | Number                                 | SHOOT, FIGHT |
-| SAVE_REROLL        | Every time the unit makes a roll to save, it can reroll the listed values                                       | Array of numbers                       | SHOOT, FIGHT |
-| SET_AP             | Set number to every armor save roll made to resist attacks from this unit                 					   | Number                                 | SHOOT, FIGHT |
-| ADD_AP             | Add to number to add to every armor save roll made to resist attacks from this unit                 		       | Number                                 | SHOOT, FIGHT |
-| AUTOHIT            | If a hit roll matches one of the given numbers, it always hits regardless of modifiers                          | Array of numbers - null implies all    | SHOOT, FIGHT |
-| EXPLODING_HIT      | If a hit roll matches one of the given numbers, the unit can make an extra attack                               | Array of numbers                       | SHOOT, FIGHT |
-| EXPLODING_WOUND      | If a wound roll matches one of the given numbers, the unit deals mortal damage 							   | { triggers, dmg }| SHOOT, FIGHT |
-| FNP                | Every time this unit suffers a wound, it rolls a D6. If it meets the given threshold, the wound is ignored      | Number                                 | SHOOT, FIGHT |
-| DMG            	 | Adds a number to every instance of damage dealt by this unit 												   | Number                                 | SHOOT, FIGHT |
-| TAKE_DMG           | Adds a number to every instance of damage dealt to this unit 												   | Number                                 | SHOOT, FIGHT |
-| SET_DMG          	 | Sets the damage characteristic of any attack made by this unit 												   | Damage string                                 | SHOOT, FIGHT |
-| DMG_REROLL     	 | Reroll any damage dice for attacks made by this unit | ONE_DIE | SHOOT, FIGHT |
-| DMG_MAX            | Each attack against this unit can only deal a maximum of this much damage                                       | Number                                 | SHOOT, FIGHT |
-| DMG_MAX_ROLL       | For every successful attack, roll a D6. If it meets the given threshold, the damage is reduced to the given max | {max, threshold}                       | SHOOT, FIGHT |
-| DMG_TAKEN_MULT       | Multiply any damage received by this (int or float) number | Number                       | SHOOT, FIGHT |
-| PASS_MORALE | Automatically pass all morale tests | | |
-| MORALE | Adds a number to every morale roll this unit makes | Number | |
-| MORALE_REROLL | This unit can re-roll failed Morale tests | | |
-| MORALE_FNP         | Every time a model from this unit flees, it rolls a D6. If it meets the given threshold, it stays               | Number                                 |              |
-| MORALE_EXECUTION   | Every time this unit fails a morale test, it can choose to suffer the listed damage instead of fleeing          | String that describes damage           |              |
-| DEEPSTRIKE         | Unit can choose to deploy after the first round at least the given number of inches away from any enemies       | Number of inches - null implies 9 		|              |
-| ADVANCE_AND_CHARGE | Allows the unit to charge even if it advanced this turn                                                         |                                        | ONE_DIE      |
-| ADVANCE_AND_SHOOT | Allows the unit to shoot even if it advanced this turn; subtype restricts weapon types |                                         |  HEAVY, PISTOL, RAPIDFIRE |
-| FALL_AND_CHARGE | Allows the unit to charge even if it fell back this turn | | |
-| FALL_AND_SHOOT | Allows the unit to shoot even if it fell back this turn | | |
-| SET_ADVANCE_DISTANCE | Sets the number of inches the model will move if it advances |                                        | |
-| ADVANCE_SHOOT | This unit can advance and fire without penalty. Subtypes offer restriction options. |  | ASSAULT |
-| MOVE_SHOOT_HEAVY | This unit can move and fire heavy weapons without penalty. |  |  |
-| ADD_ADVANCE | Add a number to any advance roll made by this unit. | Number | |
-| ADD_CHARGE | Add a number to any charge roll made by this unit. | Number | |
-| CHARGE_REROLL     | This unit can reroll one or both charge dice                                                                    |                                        | ONE_DIE             |
-| ADVANCE_REROLL     | This unit can reroll the die it uses to advance                                                                    |                                        |              |
-| CHARGE_DMG | Upon a successful charge, inflict damage on units in engagement range if a rolled D6 meets a threshold. | { dmg, threshold } | |
-| MAX_DMG_PER_ROUND  | This unit can only take up to this many wounds per round                                                        | Number                                 | 			   |
-| ADD_PSYKER_CASTS   | Add this number to the number of psychic abilities this unit can use per round                                  | Number                                 |              |
-| OBJECTIVE_SECURED  | This unit takes precedence over units without this rule when determining objective holders                      |                                        |              |
-| TRANSPORT          | This unit can transport the given number of models. Usually some specific restrictions apply                    | Number                                 |              |
-| OPEN_TOPPED        | Units embarked in this transport can still fire (restricitons apply)                                            |                                        |              |
-| CANNOT_BE_PSYCHIC  | This unit cannot be targeted by psychic powers                                                                  |                                        |              |
-| ADD_PSYCHIC        | Add a number to every psychic roll this unit makes                                                              | Number                                 |              |
-| ADD_DENY_THE_WITCH | Add a number to every deny the witch roll this unit makes                                                       | Number                                 |              |
-| BATLLEFORGED_MOD | This rule regards how one can legally construct a battleforged force, or some related pre-match activity				   |  										|              |
-| ACTION | Represents some sort of action the unit can take. Not really covered yet in app, just vague timing warnings. 	|  										| BATTLE, SETUP |
-| SPLIT_UP | This rule allows the unit to split up after deployment. Not supported. |  										| |
-| FREE_MOVEMENT | This unit can move over enemy units without penalty, though cannot end their turn within engagement range as usual | | |
-| CAN_GRENADE_PISTOL | This unit can fire grenades and pistols while firing other weapons | | |
-| MULT_SHOTS | Mutliply the number of shots form this unit by a constant value | | |
-| REROLL_SHOTS | Reroll any or all of the dice when rolling to determine number of shots | | |
-| SHARE_STAT | AURA ONLY: Sets some stats of units within the aura to the value held by the aura holder| | |
-| AIRCRAFT | Unit must pivot up to 90 degrees then move in a straight line| | |
-| SNIPER | Unit may target characters in the shooting phase and ignro the Look Out, Sir rule| | |
-| CP_REFUND | Rule triggers when command points are spent, and usually allows user to sometimes gain / refund CP | | |
-| LAST_STAND | When a model in this unit dies, it has a chance to fire before doing so | | |
-| CAN_INTERVENE | This unit can use the "Heroic Intervention" ability usually reserved for characters | | |
-| ADD_AURA_RADIUS | All other auras made by this unit have a range increased by this many inches | Number | |
-| BLAST | Special weapon ability stronger against units with more models - see text | | |
+### Control Flow
+| Type                 | Description                                                                                                        | Parameter Format                    | Subtypes                 |
+|----------------------|--------------------------------------------------------------------------------------------------------------------|-------------------------------------|--------------------------|
+| AND                  | A wrapper rule that applies each sub-rule                                                                          | Array of meaning objects            |                          |
+| OR                   | A wrapper rule that allows the player to choose one effect. Not yet fully supported                                | Array of meaning objects            |                          |
+| IF_ELSE              | Evaluates the conditional, returning the first effect if true and the second if false                              | Array of meaning objects (len 2)    |                          |
+| AURA                 | Applies the sub-rule to this unit and all others within the radius                                                 | Meaning object                      |                          |
+
+### Basic Combat 
+| Type                 | Description                                                                                                        | Parameter Format                    | Subtypes                 |
+|----------------------|--------------------------------------------------------------------------------------------------------------------|-------------------------------------|--------------------------|
+| SET_STAT             | Sets a statistic (AKA characteristic field) for a unit                                                             | {field, val}                        | SHOOT, FIGHT, OVERWATCH  |
+| ADD_STAT             | Adds a number to a unit's statistic (AKA characteristic field).                                                    | {field, val}                        | SHOOT, FIGHT, OVERWATCH  |
+| HIT                  | Adds a number to every hit roll this unit makes                                                                    | Number                              | SHOOT, FIGHT             |
+| BE_HIT               | Adds a number to every roll made to hit this unit                                                                  | Number                              | SHOOT, FIGHT             |
+| HIT_REROLL           | Every time the unit makes a roll to hit, it can reroll the listed values                                           | Array of numbers                    | SHOOT, FIGHT             |
+| BE_HIT_REROLL        | Every time an enemy makes a roll to hit this unit, it can reroll the listed values                                 | Array of numbers                    | SHOOT, FIGHT             |
+| WOUND                | Adds a number to every wound roll this unit makes                                                                  | Number                              | SHOOT, FIGHT             |
+| BE_WOUNDED           | Adds a number to every roll made to wound this unit                                                                | Number                              | SHOOT, FIGHT             |
+| WOUND_REROLL         | Every time the unit makes a roll to wound, it can reroll the listed values                                         | Array of numbers                    | SHOOT, FIGHT             |
+| BE_WOUNDED_REROLL    | Every time an enemy makes a roll to wound this unit, it can reroll the listed values                               | Array of numbers                    | SHOOT, FIGHT             |
+| SET_WOUND            | Ignores all saves, and sets the target it needs to meet to wound                                                   | Number                              | SHOOT, FIGHT             |
+| SET_SAVE             | Sets every save roll this unit makes                                                                               | Number                              | SHOOT, FIGHT             |
+| ADD_SAVE             | Adds a number to every save roll this unit makes                                                                   | Number                              | SHOOT, FIGHT             |
+| SAVE_REROLL          | Every time the unit makes a roll to save, it can reroll the listed values                                          | Array of numbers                    | SHOOT, FIGHT             |
+| SET_AP               | Set number to every armor save roll made to resist attacks from this unit                                          | Number                              | SHOOT, FIGHT             |
+| ADD_AP               | Add to number to add to every armor save roll made to resist attacks from this unit                                | Number                              | SHOOT, FIGHT             |
+| AUTOHIT              | If a hit roll matches one of the given numbers, it always hits regardless of modifiers                             | Array of numbers - null implies all | SHOOT, FIGHT             |
+| EXPLODING_HIT        | If a hit roll matches one of the given numbers, either inflict mortal wounds or cause another shot to be taken     | { triggers, dmg OR shots }          | INSTEAD                  |
+| EXPLODING_WOUND      | If a wound roll matches one of the given numbers, the unit deals mortal damage                                     | { triggers, dmg OR shots }          | INSTEAD                  |
+| FNP                  | Every time this unit suffers a wound, it rolls a D6. If it meets the given threshold, the wound is ignored         | Number                              | SHOOT, FIGHT             |
+| DMG                  | Adds a number to every instance of damage dealt by this unit                                                       | Number                              | SHOOT, FIGHT             |
+| TAKE_DMG             | Adds a number to every instance of damage dealt to this unit                                                       | Number                              | SHOOT, FIGHT             |
+| SET_DMG              | Sets the damage characteristic of any attack made by this unit                                                     | Damage string                       | SHOOT, FIGHT             |
+| DMG_REROLL           | Reroll any damage dice for attacks made by this unit                                                               | ONE_DIE                             | SHOOT, FIGHT             |
+| DMG_CHOOSE_ROLL      | Roll two dice for every damage this unit would normally roll, and choose the better one                            |                                     | SHOOT, FIGHT             |
+| DMG_MAX              | Each attack against this unit can only deal a maximum of this much damage                                          | Number                              | SHOOT, FIGHT             |
+| DMG_MAX_ROLL         | For every successful attack, roll a D6. If it meets the given threshold, the damage is reduced to the given max    | {max, threshold}                    | SHOOT, FIGHT             |
+| DMG_TAKEN_MULT       | Multiply any damage received by this (int or float) number                                                         | Number                              | SHOOT, FIGHT             |
+| MAX_DMG_PER_ROUND    | This unit can only take up to this many wounds per round                                                           | Number                              |                          |
+| SELF_HIT_DMG         | If any of the dice rolled to hit are in the trigger list, then the bearer suffers damage after resolving attacks   | { triggers, dmg }                   |                          |
+| PASS_MORALE          | Automatically pass all morale tests                                                                                |                                     |                          |
+| MORALE               | Adds a number to every morale roll this unit makes                                                                 | Number                              |                          |
+| MORALE_REROLL        | This unit can re-roll failed Morale tests                                                                          |                                     |                          |
+| MORALE_FNP           | Every time a model from this unit flees, it rolls a D6. If it meets the given threshold, it stays                  | Number                              |                          |
+| MORALE_EXECUTION     | Every time this unit fails a morale test, it can choose to suffer the listed damage instead of fleeing             | String that describes damage        |                          |
+| LAST_STAND           | When a model in this unit dies, it has a chance to fire before doing so                                            |                                     |                          |
+| BLAST                | Special weapon ability stronger against units with more models - see text                                          |                                     |                          |
+| MAX_ATTACKS          | This unit can only make this many attacks per phase (used for shooting and fighting)                               |                                     |                          |
+| SET_SHOTS_PER_SALVO  | [WEAPON ONLY] - each attack with this weapon uses the given number of shots                                        | Shots string                        |                          |
+| IGNORE_COVER         | Attacks from this unit ignore cover                                                                                |                                     |                          |
+| IGNORE_LOS           | Attacks from this unit ignore line of sight (i.e. can choose targets that are not visible to the attacker)         |                                     |                          |
+| SNIPER               | Unit may target characters in the shooting phase and ignro the Look Out, Sir rule                                  |                                     |                          |
+| CAN_GRENADE_PISTOL   | This unit can fire grenades and pistols while firing other weapons                                                 |                                     |                          |
+| MULT_SHOTS           | Mutliply the number of shots form this unit by a constant value                                                    |                                     |                          |
+| REROLL_SHOTS         | Reroll any or all of the dice when rolling to determine number of shots                                            |                                     |                          |
+| SHARE_STAT           | AURA ONLY: Sets some stats of units within the aura to the value held by the aura holder                           |                                     |                          |
+
+### Movement
+| Type                 | Description                                                                                                        | Parameter Format                    | Subtypes                 |
+|----------------------|--------------------------------------------------------------------------------------------------------------------|-------------------------------------|--------------------------|
+| ADVANCE_AND_CHARGE   | Allows the unit to charge even if it advanced this turn                                                            |                                     | ONE_DIE                  |
+| ADVANCE_AND_SHOOT    | Allows the unit to shoot even if it advanced this turn; subtype restricts weapon types                             |                                     | HEAVY, PISTOL, RAPIDFIRE |
+| FALL_AND_CHARGE      | Allows the unit to charge even if it fell back this turn                                                           |                                     |                          |
+| FALL_AND_SHOOT       | Allows the unit to shoot even if it fell back this turn                                                            |                                     |                          |
+| SET_ADVANCE_DISTANCE | Sets the number of inches the model will move if it advances                                                       |                                     |                          |
+| ADVANCE_SHOOT        | This unit can advance and fire without penalty. Subtypes offer restriction options.                                |                                     | ASSAULT                  |
+| MOVE_SHOOT_HEAVY     | This unit can move and fire heavy weapons without penalty.                                                         |                                     |                          |
+| ADD_ADVANCE          | Add a number to any advance roll made by this unit.                                                                | Number                              |                          |
+| ADD_CHARGE           | Add a number to any charge roll made by this unit.                                                                 | Number                              |                          |
+| CHARGE_REROLL        | This unit can reroll one or both charge dice                                                                       |                                     | ONE_DIE                  |
+| ADVANCE_REROLL       | This unit can reroll the die it uses to advance                                                                    |                                     |                          |
+| CHARGE_DMG           | Upon a successful charge, inflict damage on units in engagement range if a rolled D6 meets a threshold.            | { dmg, threshold }                  |                          |
+| CAN_INTERVENE        | This unit can use the "Heroic Intervention" ability usually reserved for characters                                |                                     |                          |
+| FREE_MOVEMENT        | This unit can move over enemy units without penalty, though cannot end their turn within engagement range as usual |                                     |                          |
+| AIRCRAFT             | Unit must pivot up to 90 degrees then move in a straight line                                                      |                                     |                          |
+
+### Psychic
+| ADD_PSYKER_CASTS     | Add this number to the number of psychic abilities this unit can use per round                                     | Number                              |                          |
+| CANNOT_BE_PSYCHIC    | This unit cannot be targeted by psychic powers                                                                     |                                     |                          |
+| ADD_PSYCHIC          | Add a number to every psychic roll this unit makes                                                                 | Number                              |                          |
+| ADD_DENY_THE_WITCH   | Add a number to every deny the witch roll this unit makes                                                          | Number                              |                          |
+
+### Miscellaneous 
+| Type                 | Description                                                                                                        | Parameter Format                    | Subtypes                 |
+|----------------------|--------------------------------------------------------------------------------------------------------------------|-------------------------------------|--------------------------|
+| ACTION               | Represents some sort of action the unit can take. Not really covered yet in app, just vague timing warnings.       |                                     | BATTLE, SETUP            |
+| CP_REFUND            | Rule triggers when command points are spent, and usually allows user to sometimes gain / refund CP                 |                                     |                          |
+| ADD_AURA_RADIUS      | All other auras made by this unit have a range increased by this many inches                                       | Number                              |                          |
+| MAX_USES             | This weapon can only be used a set number of times - default is once per battle                                    |                                     | ROUND                    |
+| OBJECTIVE_SECURED    | This unit takes precedence over units without this rule when determining objective holders                         |                                     |                          |
+| TRANSPORT            | This unit can transport the given number of models. Usually some specific restrictions apply                       | Number                              |                          |
+| OPEN_TOPPED          | Units embarked in this transport can still fire (restricitons apply)                                               |                                     |                          |
+| BATLLEFORGED_MOD     | This rule regards how one can legally construct a battleforged force, or some related pre-match activity           |                                     |                          |
+| SPLIT_UP             | This rule allows the unit to split up after deployment. Not supported.                                             |                                     |                          |
+| DEEPSTRIKE           | Unit can choose to deploy after the first round at least the given number of inches away from any enemies          | Number of inches - null implies 9   |                          |
 
 
 ## Examples
@@ -296,7 +320,7 @@ And the corresponding object:
 This example showcases the use of multiple conditionals linked together - all of the listed conditionals within each "AND" must be satisfied on each unit within the radius for the rule to take effect for that unit. The rest simply uses everything we've discussed so far together, so I'll remit the detailed explanation. If you're curious to see more examples, I encourage you to look into [the actual .sql files](https://github.com/robbwdoering/bellum.ai/tree/master/database) that have been built so far, and compare the objects against what's printed in your codex. If you find a mistake, please let me know, or if you're feeling generous, you can [open a pull request](https://docs.github.com/en/free-pro-team@latest/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request) to fix it yourself!
 
 
-## Weaknesses
+## Limitations 
 - Rules that are "trinary" - that is, involve three units. Exampe is Ork's "biker_doks_tools"
 - OR rules, like Defensible Cover 
 - Actions, which is any rule along the lines of "At the end of your X phase, this model can Y". Right now it just alerts the user on the phase when possible, but does not provide any detail on the action; users are expected to consult the text.
@@ -308,4 +332,7 @@ This example showcases the use of multiple conditionals linked together - all of
 - Abilities that have arbitrary stuff happening on an event, like "double dmg dice when roll a wound of 6". See Custodes' slayer_of_the_unclean
 - Rules that involve any sort of calculations / multiplication of two inputs, like "increase attacks by 2 for every wound lost".
 - Rules that set the weapontype of a weapon to some arbitrary value 
-
+- Doesn't handle weapons that roll-to-determine-effect type abilities. See Ork's shokk_attack_gun
+- Doesn't handle weapons that don't have a strength value. See Ork's smasha_gun.
+- Doesn't handle weapon rules that can result in the death of the user. See Ork's tankhammer.
+- Doesn't handle weapons that restrict movement in following turns. See Ork's shunta.

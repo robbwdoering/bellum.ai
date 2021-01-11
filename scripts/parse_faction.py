@@ -27,10 +27,10 @@ def tagIs(obj, string):
 
 def parseWeapon(name, faction, profile, wepFile, foundStrings):
 	if (name in foundStrings):
-		# print "Found duplicate stat: ", name	
+		print "Found duplicate weapon: ", name	
 		return
-
 	foundStrings.append(name)
+	
 	ap 			= getChar("AP", profile)
 	damage 		= getChar("D", profile)
 	rng 		= getChar("Range", profile)
@@ -115,7 +115,7 @@ def parseDesc(name, faction, profile, descFile, foundStrings, univNames, isRule)
 	# Add a starter meaning object
 	val = "{\n\t-- " + val + '\n\t"type": "",\n\t"params":\n}),\n'
 
-# Write the main line
+	# Write the main line
 	newLine = '("{0}", "{1}", '.format(faction, name) + val
 	descFile.write(newLine)
 
